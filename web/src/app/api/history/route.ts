@@ -4,7 +4,7 @@ import { getHistory } from '@/lib/db';
 export async function GET() {
   try {
     const history = getHistory();
-    return NextResponse.json(history);
+    return NextResponse.json({ snapshots: history });
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to fetch history', details: String(error) },

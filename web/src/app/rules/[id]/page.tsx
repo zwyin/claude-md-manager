@@ -4,32 +4,32 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
-interface Citation {
-  date: string;
-  count: number;
-}
-
-interface RelatedRule {
-  rule_id: string;
-  title: string;
-  match_count: number;
-}
-
-interface RuleDetail {
+interface Rule {
   rule_id: string;
   section_id: string;
   title: string;
   keywords: string[];
-  session_count: number;
-  match_count: number;
-  citations: Citation[];
-  related_rules: RelatedRule[];
+  source_file: string;
+  updated_at: string;
+  citation_count: number;
+  last_cited: string | null;
+}
+
+interface CitationRecord {
+  id: number;
+  rule_id: string;
+  session_id: string;
+  matched_keyword: string;
+  timestamp: string;
+  model: string | null;
+  task_summary: string | null;
 }
 
 export default function RuleDetailPage() {
   const params = useParams();
   const ruleId = params?.id as string;
-  const [data, setData] = useState<RuleDetail | null>(null);
+  const [rule, setRule] = useState<Rule | null>(null);
+  const [citations, setCitations] = useState<CitationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +41,8 @@ export default function RuleDetailPage() {
         return res.json();
       })
       .then((json) => {
-        setData(json);
+        setRule(json.rule);
+        setCitations(json.citations || []);
         setLoading(false);
       })
       .catch((err) => {
@@ -71,12 +72,16 @@ export default function RuleDetailPage() {
     );
   }
 
-  if (!data) return null;
+  if (!rule) return null;
+
+  const uniqueSessions = new Set(citations.map((c) => c.session_id)).size;
 
   return (
     <div className="space-y-6">
-      {/* Back link */}
-      <Link href="/rules" className="text-sm text-[#4299e1] hover:underline inline-flex items-center gap-1">
+      <Link
+        href="/rules"
+        className="text-sm text-[#4299e1] hover:underline inline-flex items-center gap-1"
+      >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
@@ -87,36 +92,44 @@ export default function RuleDetailPage() {
       <div className="bg-white rounded-lg border border-[#e2e8f0] p-6">
         <div className="flex items-start justify-between">
           <div>
-            <div className="text-xs font-mono text-[#718096] mb-1">{data.rule_id}</div>
-            <h1 className="text-xl font-bold text-[#1a202c]">{data.title}</h1>
+            <div className="text-xs font-mono text-[#718096] mb-1">{rule.rule_id}</div>
+            <h1 className="text-xl font-bold text-[#1a202c]">{rule.title}</h1>
             <div className="text-sm text-[#718096] mt-1">
-              Section: <span className="text-[#4a5568] font-medium">{data.section_id}</span>
+              Section: <span className="text-[#4a5568] font-medium">{rule.section_id}</span>
+              {' · '}
+              Source: <span className="text-[#4a5568] font-medium">{rule.source_file}</span>
             </div>
+            {rule.last_cited && (
+              <div className="text-xs text-[#718096] mt-1">
+                Last cited: {new Date(rule.last_cited).toLocaleString('zh-CN')}
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-              {data.session_count} sessions
+              {uniqueSessions} sessions
             </span>
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-              data.match_count === 0
-                ? 'bg-red-100 text-red-800'
-                : data.match_count >= 10
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-gray-100 text-gray-800'
-            }`}>
-              {data.match_count} matches
+            <span
+              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                rule.citation_count === 0
+                  ? 'bg-red-100 text-red-800'
+                  : rule.citation_count >= 10
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-gray-100 text-gray-800'
+              }`}
+            >
+              {rule.citation_count} matches
             </span>
           </div>
         </div>
 
-        {/* Keywords */}
-        {data.keywords && data.keywords.length > 0 && (
+        {rule.keywords && rule.keywords.length > 0 && (
           <div className="mt-4 pt-4 border-t border-[#e2e8f0]">
             <div className="text-xs font-medium text-[#718096] uppercase tracking-wide mb-2">
               Keywords
             </div>
             <div className="flex flex-wrap gap-2">
-              {data.keywords.map((kw) => (
+              {rule.keywords.map((kw) => (
                 <span
                   key={kw}
                   className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[#edf2f7] text-[#4a5568]"
@@ -129,46 +142,54 @@ export default function RuleDetailPage() {
         )}
       </div>
 
-      {/* Citation trend */}
+      {/* Recent citations */}
       <div className="bg-white rounded-lg border border-[#e2e8f0]">
         <div className="px-5 py-4 border-b border-[#e2e8f0]">
-          <h2 className="text-base font-semibold text-[#1a202c]">Citation Trend</h2>
+          <h2 className="text-base font-semibold text-[#1a202c]">
+            Recent Citations ({citations.length})
+          </h2>
         </div>
-        {data.citations && data.citations.length > 0 ? (
+        {citations.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="text-xs text-[#718096] uppercase tracking-wide border-b border-[#e2e8f0]">
-                  <th className="text-left px-5 py-3 font-medium">Date</th>
-                  <th className="text-left px-5 py-3 font-medium">Count</th>
-                  <th className="text-left px-5 py-3 font-medium">Trend</th>
+                  <th className="text-left px-5 py-3 font-medium">Time</th>
+                  <th className="text-left px-5 py-3 font-medium">Keyword</th>
+                  <th className="text-left px-5 py-3 font-medium">Session</th>
                 </tr>
               </thead>
               <tbody>
-                {data.citations.map((c, i) => {
-                  const maxCount = Math.max(...data.citations.map((x) => x.count), 1);
-                  const widthPct = (c.count / maxCount) * 100;
-                  return (
-                    <tr key={i} className="border-b border-[#e2e8f0] last:border-0">
-                      <td className="px-5 py-2.5 text-sm text-[#4a5568] font-mono">
-                        {c.date}
-                      </td>
-                      <td className="px-5 py-2.5 text-sm text-[#1a202c] font-medium">
-                        {c.count}
-                      </td>
-                      <td className="px-5 py-2.5">
-                        <div className="w-32 bg-[#edf2f7] rounded-full h-2">
-                          <div
-                            className="bg-[#4299e1] h-2 rounded-full transition-all"
-                            style={{ width: `${widthPct}%` }}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {citations.slice(0, 50).map((c) => (
+                  <tr
+                    key={c.id}
+                    className="border-b border-[#e2e8f0] last:border-0 hover:bg-[#f7fafc] transition-colors"
+                  >
+                    <td className="px-5 py-2.5 text-xs text-[#4a5568] font-mono whitespace-nowrap">
+                      {new Date(c.timestamp).toLocaleString('zh-CN', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </td>
+                    <td className="px-5 py-2.5">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#edf2f7] text-[#4a5568]">
+                        {c.matched_keyword}
+                      </span>
+                    </td>
+                    <td className="px-5 py-2.5 text-xs font-mono text-[#718096] max-w-[200px] truncate">
+                      {c.session_id.replace('historical_', '')}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
+            {citations.length > 50 && (
+              <div className="px-5 py-3 text-xs text-[#718096] text-center border-t border-[#e2e8f0]">
+                Showing 50 of {citations.length} citations
+              </div>
+            )}
           </div>
         ) : (
           <div className="px-5 py-8 text-sm text-[#718096] text-center">
@@ -176,40 +197,6 @@ export default function RuleDetailPage() {
           </div>
         )}
       </div>
-
-      {/* Related rules */}
-      {data.related_rules && data.related_rules.length > 0 && (
-        <div className="bg-white rounded-lg border border-[#e2e8f0]">
-          <div className="px-5 py-4 border-b border-[#e2e8f0]">
-            <h2 className="text-base font-semibold text-[#1a202c]">Related Rules (Same Section)</h2>
-          </div>
-          <div className="divide-y divide-[#e2e8f0]">
-            {data.related_rules.map((related) => (
-              <Link
-                key={related.rule_id}
-                href={`/rules/${related.rule_id}`}
-                className="flex items-center justify-between px-5 py-3 hover:bg-[#f7fafc] transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-mono text-[#4a5568]">
-                    {related.rule_id}
-                  </span>
-                  <span className="text-sm text-[#1a202c]">
-                    {related.title}
-                  </span>
-                </div>
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                  related.match_count === 0
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {related.match_count} matches
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

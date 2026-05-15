@@ -73,7 +73,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-3">
         <div className="bg-white rounded-lg border border-[#e2e8f0] p-5">
           <div className="text-xs font-medium text-[#718096] uppercase tracking-wide">
             Total Rules
@@ -121,20 +121,20 @@ export default function DashboardPage() {
                   key={rule.rule_id}
                   className="border-b border-[#e2e8f0] last:border-0 hover:bg-[#f7fafc] transition-colors"
                 >
-                  <td className="px-5 py-3 text-sm font-mono text-[#4299e1]">
+                  <td className="px-4 py-2.5 text-xs font-mono text-[#4299e1] max-w-[200px] truncate">
                     <Link href={`/rules/${rule.rule_id}`} className="hover:underline">
                       {rule.rule_id}
                     </Link>
                   </td>
-                  <td className="px-5 py-3 text-sm text-[#1a202c]">
+                  <td className="px-4 py-2.5 text-sm text-[#1a202c]">
                     <Link href={`/rules/${rule.rule_id}`} className="hover:underline">
                       {rule.title}
                     </Link>
                   </td>
-                  <td className="px-5 py-3 text-sm text-right text-[#4a5568]">
+                  <td className="px-4 py-2.5 text-sm text-right text-[#4a5568]">
                     {rule.session_count}
                   </td>
-                  <td className="px-5 py-3 text-sm text-right">
+                  <td className="px-4 py-2.5 text-sm text-right">
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                       {rule.match_count}
                     </span>

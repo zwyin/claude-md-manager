@@ -2,19 +2,14 @@
 
 import { useEffect, useState } from 'react';
 
-interface BuildSnapshot {
-  timestamp: string;
-  file_size: number;
+interface SnapshotEntry {
+  snapshot_ts: string;
   rule_count: number;
-  created_at: string;
-}
-
-interface HistoryData {
-  snapshots: BuildSnapshot[];
+  source_file: string;
 }
 
 export default function HistoryPage() {
-  const [data, setData] = useState<HistoryData | null>(null);
+  const [snapshots, setSnapshots] = useState<SnapshotEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,7 +20,7 @@ export default function HistoryPage() {
         return res.json();
       })
       .then((json) => {
-        setData(json);
+        setSnapshots(json.snapshots || []);
         setLoading(false);
       })
       .catch((err) => {
@@ -34,22 +29,13 @@ export default function HistoryPage() {
       });
   }, []);
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
-  const formatTimestamp = (ts: string): string => {
+  const formatDate = (ts: string): string => {
     try {
-      const date = new Date(ts);
-      return date.toLocaleString('zh-CN', {
+      const date = new Date(ts + 'T00:00:00');
+      return date.toLocaleDateString('zh-CN', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
       });
     } catch {
       return ts;
@@ -72,58 +58,52 @@ export default function HistoryPage() {
     );
   }
 
-  if (!data) return null;
-
   return (
     <div className="space-y-6">
-      {/* Page header */}
       <div>
         <h1 className="text-2xl font-bold text-[#1a202c]">Version History</h1>
         <p className="text-sm text-[#718096] mt-1">
-          Build snapshots and change history
+          Rule metadata snapshots grouped by update date and source file
         </p>
       </div>
 
-      {/* Snapshots list */}
       <div className="bg-white rounded-lg border border-[#e2e8f0]">
-        {data.snapshots && data.snapshots.length > 0 ? (
-          <div className="divide-y divide-[#e2e8f0]">
-            {data.snapshots.map((snapshot, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between px-5 py-4 hover:bg-[#f7fafc] transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  {/* Timeline dot */}
-                  <div className="flex flex-col items-center">
-                    <div className="w-3 h-3 rounded-full bg-[#4299e1] border-2 border-white ring-2 ring-[#bee3f8]" />
-                    {i < data.snapshots.length - 1 && (
-                      <div className="w-0.5 h-8 bg-[#e2e8f0] mt-1" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-[#1a202c]">
-                      {formatTimestamp(snapshot.timestamp || snapshot.created_at)}
+        {snapshots.length > 0 ? (
+          <table className="w-full">
+            <thead>
+              <tr className="text-xs text-[#718096] uppercase tracking-wide border-b border-[#e2e8f0]">
+                <th className="text-left px-5 py-3 font-medium">Date</th>
+                <th className="text-left px-5 py-3 font-medium">Source File</th>
+                <th className="text-right px-5 py-3 font-medium">Rules</th>
+              </tr>
+            </thead>
+            <tbody>
+              {snapshots.map((s, i) => (
+                <tr
+                  key={i}
+                  className="border-b border-[#e2e8f0] last:border-0 hover:bg-[#f7fafc] transition-colors"
+                >
+                  <td className="px-5 py-3 text-sm text-[#1a202c]">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#4299e1]" />
+                      {formatDate(s.snapshot_ts)}
                     </div>
-                    <div className="text-xs text-[#718096] mt-0.5">
-                      {snapshot.rule_count != null ? `${snapshot.rule_count} rules` : ''}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[#edf2f7] text-[#4a5568]">
-                    {formatFileSize(snapshot.file_size)}
-                  </span>
-                  <button className="text-xs text-[#4299e1] hover:underline">
-                    View
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                  </td>
+                  <td className="px-5 py-3 text-sm font-mono text-[#4a5568]">
+                    {s.source_file}
+                  </td>
+                  <td className="px-5 py-3 text-sm text-right">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[#edf2f7] text-[#4a5568]">
+                      {s.rule_count}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : (
           <div className="px-5 py-8 text-sm text-[#718096] text-center">
-            No build snapshots available
+            No history snapshots available
           </div>
         )}
       </div>

@@ -21,11 +21,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" className="h-full antialiased">
-      <body className="min-h-full flex bg-[#f7f8fc]">
-        {/* Sidebar */}
-        <aside className="w-60 min-h-screen bg-[#1a1a2e] flex flex-col flex-shrink-0 fixed left-0 top-0 bottom-0 z-10">
+      <body className="h-full flex bg-[#f7f8fc]">
+        {/* Sidebar - fixed */}
+        <aside className="w-56 h-screen bg-[#1a1a2e] flex flex-col flex-shrink-0 fixed left-0 top-0 bottom-0 z-10">
           {/* Logo */}
-          <div className="px-6 py-5 border-b border-white/10">
+          <div className="px-5 py-4 border-b border-white/10">
             <h1 className="text-lg font-bold text-white tracking-wide">
               CLAUDE.md
             </h1>
@@ -35,15 +35,15 @@ export default function RootLayout({
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-3 py-4 space-y-1">
+          <nav className="flex-1 px-3 py-3 space-y-0.5">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#a0aec0] hover:bg-[#16213e] hover:text-[#e2e8f0] transition-colors"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[#a0aec0] hover:bg-[#16213e] hover:text-[#e2e8f0] transition-colors"
               >
                 <svg
-                  className="w-5 h-5 flex-shrink-0"
+                  className="w-4 h-4 flex-shrink-0"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -57,16 +57,16 @@ export default function RootLayout({
           </nav>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-white/10">
+          <div className="px-5 py-3 border-t border-white/10">
             <p className="text-xs text-[#718096]">
               v0.1.0
             </p>
           </div>
         </aside>
 
-        {/* Main content */}
-        <main className="flex-1 ml-60 min-h-screen">
-          <div className="p-8">
+        {/* Main content - scrollable, offset by sidebar width */}
+        <main className="flex-1 ml-56 h-screen overflow-y-auto">
+          <div className="p-6 max-w-[1400px]">
             {children}
           </div>
         </main>
