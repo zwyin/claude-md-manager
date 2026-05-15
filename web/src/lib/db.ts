@@ -1,0 +1,333 @@
+import Database from 'better-sqlite3';
+import path from 'path';
+import type {
+  RuleWithStats,
+  CitationRecord,
+  CitationTimePoint,
+  HistoryEntry,
+  AnalyticsData,
+  TopRule,
+  ColdRule,
+  CategoryDistribution,
+} from './types';
+
+const DB_PATH = path.join(process.cwd(), '..', 'data', 'usage.db');
+
+function getDb(): Database.Database {
+  return new Database(DB_PATH, { readonly: true });
+}
+
+// ── Rules ──
+
+export function getRulesWithStats(days?: number): RuleWithStats[] {
+  const db = getDb();
+  try {
+    const timeFilter = days
+      ? `AND r.timestamp >= datetime('now', '-${days} days')`
+      : '';
+
+    const rows = db
+      .prepare(
+        `
+        SELECT
+          m.rule_id,
+          m.section_id,
+          m.title,
+          m.keywords,
+          m.source_file,
+          m.updated_at,
+          COUNT(r.id) AS citation_count,
+          MAX(r.timestamp) AS last_cited
+        FROM rules_metadata m
+        LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${timeFilter}
+        GROUP BY m.rule_id
+        ORDER BY citation_count DESC, m.section_id
+        `
+      )
+      .all() as Array<{
+      rule_id: string;
+      section_id: string;
+      title: string;
+      keywords: string;
+      source_file: string;
+      updated_at: string;
+      citation_count: number;
+      last_cited: string | null;
+    }>;
+
+    return rows.map((row) => ({
+      ...row,
+      keywords: JSON.parse(row.keywords || '[]'),
+    }));
+  } finally {
+    db.close();
+  }
+}
+
+export function getRuleDetail(
+  ruleId: string,
+  days?: number
+): { rule: RuleWithStats; citations: CitationRecord[] } | null {
+  const db = getDb();
+  try {
+    const ruleRow = db
+      .prepare('SELECT * FROM rules_metadata WHERE rule_id = ?')
+      .get(ruleId) as {
+      rule_id: string;
+      section_id: string;
+      title: string;
+      keywords: string;
+      source_file: string;
+      updated_at: string;
+    } | null;
+
+    if (!ruleRow) return null;
+
+    const timeFilter = days
+      ? `AND r.timestamp >= datetime('now', '-${days} days')`
+      : '';
+
+    const citationCountRow = db
+      .prepare(
+        `SELECT COUNT(*) AS citation_count, MAX(timestamp) AS last_cited
+         FROM rule_references WHERE rule_id = ? ${timeFilter}`
+      )
+      .get(ruleId) as { citation_count: number; last_cited: string | null };
+
+    const citations = db
+      .prepare(
+        `
+        SELECT r.id, r.rule_id, r.session_id, r.matched_keyword, r.timestamp,
+               s.model, s.task_summary
+        FROM rule_references r
+        LEFT JOIN sessions s ON s.session_id = r.session_id
+        WHERE r.rule_id = ? ${timeFilter}
+        ORDER BY r.timestamp DESC
+        `
+      )
+      .all(ruleId) as CitationRecord[];
+
+    return {
+      rule: {
+        ...ruleRow,
+        keywords: JSON.parse(ruleRow.keywords || '[]'),
+        citation_count: citationCountRow.citation_count,
+        last_cited: citationCountRow.last_cited,
+      },
+      citations,
+    };
+  } finally {
+    db.close();
+  }
+}
+
+// ── Citations ──
+
+export function getCitations(filters: {
+  rule_id?: string;
+  days?: number;
+  group_by?: 'day' | 'week' | 'month';
+}): CitationTimePoint[] {
+  const db = getDb();
+  try {
+    const { rule_id, days, group_by } = filters;
+
+    let dateFormat: string;
+    switch (group_by) {
+      case 'week':
+        dateFormat = "strftime('%Y-W%W', timestamp)";
+        break;
+      case 'month':
+        dateFormat = "strftime('%Y-%m', timestamp)";
+        break;
+      default:
+        dateFormat = "strftime('%Y-%m-%d', timestamp)";
+    }
+
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+
+    if (rule_id) {
+      conditions.push('rule_id = ?');
+      params.push(rule_id);
+    }
+    if (days) {
+      conditions.push("timestamp >= datetime('now', '-? days')");
+      params.push(days);
+    }
+
+    const where =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const rows = db
+      .prepare(
+        `
+        SELECT ${dateFormat} AS period, COUNT(*) AS count
+        FROM rule_references
+        ${where}
+        GROUP BY period
+        ORDER BY period
+        `
+      )
+      .bind(...params)
+      .all() as CitationTimePoint[];
+
+    return rows;
+  } finally {
+    db.close();
+  }
+}
+
+// ── History ──
+
+export function getHistory(): HistoryEntry[] {
+  const db = getDb();
+  try {
+    // Derive history from distinct updated_at snapshots
+    const rows = db
+      .prepare(
+        `
+        SELECT
+          DATE(updated_at) AS snapshot_ts,
+          COUNT(*) AS rule_count,
+          source_file
+        FROM rules_metadata
+        GROUP BY snapshot_ts, source_file
+        ORDER BY snapshot_ts DESC
+        `
+      )
+      .all() as HistoryEntry[];
+
+    return rows;
+  } finally {
+    db.close();
+  }
+}
+
+// ── Snapshot (for rollback) ──
+
+export function getSnapshot(ts: string): {
+  rules: Array<{
+    rule_id: string;
+    section_id: string;
+    title: string;
+    keywords: string;
+    source_file: string;
+    updated_at: string;
+  }>;
+} | null {
+  const db = getDb();
+  try {
+    const rules = db
+      .prepare(
+        `
+        SELECT rule_id, section_id, title, keywords, source_file, updated_at
+        FROM rules_metadata
+        WHERE DATE(updated_at) <= DATE(?)
+        ORDER BY updated_at DESC
+        `
+      )
+      .all(ts) as Array<{
+      rule_id: string;
+      section_id: string;
+      title: string;
+      keywords: string;
+      source_file: string;
+      updated_at: string;
+    }>;
+
+    if (rules.length === 0) return null;
+    return { rules };
+  } finally {
+    db.close();
+  }
+}
+
+// ── Analytics ──
+
+export function getAnalytics(days?: number): AnalyticsData {
+  const db = getDb();
+  try {
+    const timeFilter = days
+      ? `WHERE timestamp >= datetime('now', '-${days} days')`
+      : '';
+
+    const totalRules = (
+      db.prepare('SELECT COUNT(*) AS c FROM rules_metadata').get() as {
+        c: number;
+      }
+    ).c;
+
+    const totalCitations = (
+      db
+        .prepare(`SELECT COUNT(*) AS c FROM rule_references ${timeFilter}`)
+        .get() as { c: number }
+    ).c;
+
+    const totalSessions = (
+      db
+        .prepare(
+          `SELECT COUNT(DISTINCT session_id) AS c FROM rule_references ${timeFilter}`
+        )
+        .get() as { c: number }
+    ).c;
+
+    // Top 10 rules by citation count
+    const topRules = db
+      .prepare(
+        `
+        SELECT m.rule_id, m.title, COUNT(r.id) AS citation_count
+        FROM rule_references r
+        JOIN rules_metadata m ON m.rule_id = r.rule_id
+        ${timeFilter ? timeFilter.replace('WHERE', 'AND').replace('timestamp', 'r.timestamp') : ''}
+        ${timeFilter ? '' : 'WHERE 1=1'}
+        GROUP BY m.rule_id
+        ORDER BY citation_count DESC
+        LIMIT 10
+        `
+      )
+      .all() as TopRule[];
+
+    // Cold rules: zero citations in the period
+    const coldRules = db
+      .prepare(
+        `
+        SELECT m.rule_id, m.title,
+               CAST(julianday('now') - julianday(MAX(r.timestamp)) AS INTEGER) AS days_since_last_citation
+        FROM rules_metadata m
+        LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${timeFilter ? timeFilter.replace('WHERE', 'AND').replace('timestamp', 'r.timestamp') : ''}
+        GROUP BY m.rule_id
+        HAVING COUNT(r.id) = 0 OR MAX(r.timestamp) IS NULL
+        ORDER BY days_since_last_citation DESC
+        LIMIT 20
+        `
+      )
+      .all() as ColdRule[];
+
+    // Category distribution
+    const categoryDistribution = db
+      .prepare(
+        `
+        SELECT m.section_id,
+               COUNT(DISTINCT m.rule_id) AS rule_count,
+               COUNT(r.id) AS citation_count
+        FROM rules_metadata m
+        LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${timeFilter ? timeFilter.replace('WHERE', 'AND').replace('timestamp', 'r.timestamp') : ''}
+        GROUP BY m.section_id
+        ORDER BY citation_count DESC
+        `
+      )
+      .all() as CategoryDistribution[];
+
+    return {
+      total_rules: totalRules,
+      total_citations: totalCitations,
+      total_sessions: totalSessions,
+      top_rules: topRules,
+      cold_rules: coldRules,
+      category_distribution: categoryDistribution,
+    };
+  } finally {
+    db.close();
+  }
+}
