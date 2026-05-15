@@ -59,6 +59,16 @@ rules:
 ## 实施阶段
 
 - [x] **Phase 1**：构建系统 + 规则拆分 + Karpathy 新规则
-- [x] **Phase 2**：Hook 引用追踪 + 历史数据导入
-- [x] **Phase 3**：Next.js 可视化仪表盘
-- [ ] **Phase 4**：收尾 + 测试
+- [x] **Phase 2**：Hook 引用追踪 + 历史数据导入（1305 sessions, 7176 matches）
+- [x] **Phase 3**：Next.js 可视化仪表盘 + launchd 自启动（`http://0.0.0.0:3456`）
+- [ ] **Phase 4**：收尾 — Hook 注册、单元测试、项目 CLAUDE.md
+
+### 仪表盘页面
+
+| 页面 | 路径 | 说明 |
+|------|------|------|
+| Dashboard | `/` | 总览：统计卡片 + Top 10 规则 + 冷规则 |
+| Rules | `/rules` | 51 条规则列表，按引用频次排序 |
+| Rule Detail | `/rules/[id]` | 单条规则详情 + 引用记录表 |
+| History | `/history` | 规则元数据按更新日期分组 |
+| Analytics | `/analytics` | Top 10 柱状图 + 分类分布表 |
