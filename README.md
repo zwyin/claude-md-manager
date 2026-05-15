@@ -59,6 +59,6 @@ rules:
 ## 实施阶段
 
 - [x] **Phase 1**：构建系统 + 规则拆分 + Karpathy 新规则
-- [ ] **Phase 2**：Hook 引用追踪 + 历史数据导入
-- [ ] **Phase 3**：Next.js 可视化仪表盘
+- [x] **Phase 2**：Hook 引用追踪 + 历史数据导入
+- [x] **Phase 3**：Next.js 可视化仪表盘
 - [ ] **Phase 4**：收尾 + 测试
