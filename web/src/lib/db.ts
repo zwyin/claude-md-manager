@@ -37,6 +37,7 @@ export function getRulesWithStats(days?: number): RuleWithStats[] {
           m.source_file,
           m.updated_at,
           COUNT(r.id) AS citation_count,
+          COUNT(DISTINCT r.session_id) AS session_count,
           MAX(r.timestamp) AS last_cited
         FROM rules_metadata m
         LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${timeFilter}
@@ -52,12 +53,15 @@ export function getRulesWithStats(days?: number): RuleWithStats[] {
       source_file: string;
       updated_at: string;
       citation_count: number;
+      session_count: number;
       last_cited: string | null;
     }>;
 
     return rows.map((row) => ({
       ...row,
       keywords: JSON.parse(row.keywords || '[]'),
+      session_count: row.session_count || 0,
+      match_count: row.citation_count || 0,
     }));
   } finally {
     db.close();
