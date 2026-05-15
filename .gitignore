@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+web/.next/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Data (keep history/ but ignore db)
+data/usage.db
+
+# OS
+.DS_Store
