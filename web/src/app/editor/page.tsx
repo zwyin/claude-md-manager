@@ -1,0 +1,189 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import type { RuleFile } from "./types";
+import { EditorLayout } from "./EditorLayout";
+import { RuleListPanel } from "./RuleListPanel";
+import { EditorPanel } from "./EditorPanel";
+import { PreviewPanel } from "./PreviewPanel";
+import { PublishDialog } from "./PublishDialog";
+
+export default function EditorPage() {
+  const [rules, setRules] = useState<RuleFile[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [frontmatter, setFrontmatter] = useState("");
+  const [body, setBody] = useState("");
+  const [hasDraft, setHasDraft] = useState(false);
+  const [showPublish, setShowPublish] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+
+  const selectedRule = rules.find((r) => r.rule_id === selectedId) ?? null;
+
+  // Load rules on mount
+  useEffect(() => {
+    fetch("/api/editor/rules")
+      .then((r) => r.json())
+      .then((data) => {
+        setRules(data.rules);
+        if (data.rules.length > 0 && !selectedId) {
+          setSelectedId(data.rules[0].rule_id);
+        }
+      });
+  }, []);
+
+  // Load selected rule content
+  useEffect(() => {
+    if (!selectedRule) return;
+
+    fetch(`/api/editor/rules/${encodeURIComponent(selectedRule.rule_id)}/draft`)
+      .then((r) => {
+        if (r.status === 404) return null;
+        return r.json();
+      })
+      .then((draft) => {
+        if (draft) {
+          setFrontmatter(draft.frontmatter_yaml);
+          setBody(draft.markdown_body);
+          setHasDraft(true);
+        } else {
+          setFrontmatter(selectedRule.frontmatter_yaml);
+          setBody(selectedRule.markdown_body);
+          setHasDraft(false);
+        }
+      });
+  }, [selectedId, rules]);
+
+  const handleSaveDraft = useCallback(async () => {
+    if (!selectedId) return;
+    await fetch(`/api/editor/rules/${encodeURIComponent(selectedId)}/draft`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        frontmatter_yaml: frontmatter,
+        markdown_body: body,
+      }),
+    });
+    setHasDraft(true);
+    const res = await fetch("/api/editor/rules");
+    const data = await res.json();
+    setRules(data.rules);
+  }, [selectedId, frontmatter, body]);
+
+  const handleDiscardDraft = useCallback(async () => {
+    if (!selectedId) return;
+    await fetch(`/api/editor/rules/${encodeURIComponent(selectedId)}/draft`, {
+      method: "DELETE",
+    });
+    setFrontmatter(selectedRule?.frontmatter_yaml ?? "");
+    setBody(selectedRule?.markdown_body ?? "");
+    setHasDraft(false);
+    const res = await fetch("/api/editor/rules");
+    const data = await res.json();
+    setRules(data.rules);
+  }, [selectedId, selectedRule]);
+
+  const handleReorder = useCallback(async (items: Array<{ rule_id: string; order: number }>) => {
+    await fetch("/api/editor/reorder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(items),
+    });
+    const res = await fetch("/api/editor/rules");
+    const data = await res.json();
+    setRules(data.rules);
+  }, []);
+
+  const handlePublish = useCallback(async () => {
+    setPublishing(true);
+    try {
+      const res = await fetch("/api/editor/publish", { method: "POST" });
+      const data = await res.json();
+      if (data.error) {
+        alert(`Publish failed: ${data.error}`);
+      } else {
+        alert(`Published ${data.rulesChanged} rules successfully.`);
+      }
+    } catch (err) {
+      alert(`Publish error: ${err}`);
+    } finally {
+      setPublishing(false);
+      setShowPublish(false);
+      const res = await fetch("/api/editor/rules");
+      const refreshed = await res.json();
+      setRules(refreshed.rules);
+      setHasDraft(false);
+    }
+  }, []);
+
+  const draftCount = rules.filter((r) => r.has_draft).length;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-2xl font-bold">Rule Editor</h1>
+          <p className="text-sm text-muted-foreground">
+            Drag to reorder, edit, preview, and publish rule changes.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {draftCount > 0 && (
+            <span className="text-xs text-orange-400">
+              {draftCount} unsaved draft{draftCount !== 1 ? "s" : ""}
+            </span>
+          )}
+          <Button
+            onClick={() => setShowPublish(true)}
+            disabled={draftCount === 0 || publishing}
+          >
+            Publish All
+          </Button>
+        </div>
+      </div>
+
+      <EditorLayout rules={rules}>
+        {{
+          ruleList: (
+            <RuleListPanel
+              rules={rules}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              onReorder={handleReorder}
+            />
+          ),
+          editor: selectedRule ? (
+            <EditorPanel
+              frontmatterYaml={frontmatter}
+              markdownBody={body}
+              hasDraft={hasDraft}
+              onFrontmatterChange={setFrontmatter}
+              onBodyChange={setBody}
+              onSaveDraft={handleSaveDraft}
+              onDiscardDraft={handleDiscardDraft}
+            />
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-muted-foreground">
+              Select a rule to edit
+            </div>
+          ),
+          preview: selectedRule ? (
+            <PreviewPanel markdownBody={body} title={selectedRule.title} />
+          ) : (
+            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+              Preview
+            </div>
+          ),
+        }}
+      </EditorLayout>
+
+      {showPublish && (
+        <PublishDialog
+          rules={rules}
+          onPublish={handlePublish}
+          onCancel={() => setShowPublish(false)}
+        />
+      )}
+    </div>
+  );
+}
