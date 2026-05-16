@@ -17,6 +17,7 @@ export function StatCard({ label, value, sublabel, trend, color = '#6366f1', per
   const [displayValue, setDisplayValue] = useState(0);
   const targetValue = typeof value === 'string' ? parseInt(value, 10) || 0 : value;
   const rafRef = useRef<number>(0);
+  const gradientId = useRef(`gradient-${Math.random().toString(36).slice(2, 9)}`);
 
   useEffect(() => {
     if (Number.isNaN(targetValue)) {
@@ -59,7 +60,7 @@ export function StatCard({ label, value, sublabel, trend, color = '#6366f1', per
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trend}>
                 <defs>
-                  <linearGradient id={`gradient-${String(label).replace(/\s/g, '')}`} x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id={gradientId.current} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={color} stopOpacity={0.3} />
                     <stop offset="100%" stopColor={color} stopOpacity={0} />
                   </linearGradient>
@@ -68,7 +69,7 @@ export function StatCard({ label, value, sublabel, trend, color = '#6366f1', per
                   type="monotone"
                   dataKey="count"
                   stroke={color}
-                  fill={`url(#gradient-${String(label).replace(/\s/g, '')})`}
+                  fill={`url(#${gradientId.current})`}
                   strokeWidth={1.5}
                 />
               </AreaChart>

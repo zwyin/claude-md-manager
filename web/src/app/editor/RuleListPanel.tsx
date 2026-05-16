@@ -80,9 +80,7 @@ export function RuleListPanel({ rules, selectedId, onSelect, onReorder }: RuleLi
   return (
     <div className="p-2">
       <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-      <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
         {t('editor.rules')} ({rules.length})
-      </div>
       </div>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={rules.map((r) => r.rule_id)} strategy={verticalListSortingStrategy}>
