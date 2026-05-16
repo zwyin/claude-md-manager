@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Clock } from 'lucide-react';
+import { useI18n } from '@/i18n';
 
 interface SnapshotEntry {
   snapshot_ts: string;
@@ -15,6 +16,7 @@ export default function HistoryPage() {
   const [snapshots, setSnapshots] = useState<SnapshotEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     fetch('/api/history')
@@ -23,48 +25,45 @@ export default function HistoryPage() {
       .catch((err) => { setError(err.message); setLoading(false); });
   }, []);
 
-  if (loading) return <div className="text-muted-foreground p-4">Loading...</div>;
-  if (error) return <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-destructive text-sm">{error}</div>;
+  if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
+  if (error) return <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">{t('status.error', { error })}</div>;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Version History</h1>
-        <p className="text-sm text-muted-foreground mt-1">Rule metadata grouped by update date and source file</p>
+        <h1 className="text-2xl font-bold">{t('history.title')}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{t('history.subtitle')}</p>
       </div>
-      <Card>
-        <CardContent className="p-0">
-          {snapshots.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Source File</TableHead>
-                  <TableHead className="text-right">Rules</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {snapshots.map((s, i) => (
-                  <TableRow key={i}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                        {s.snapshot_ts}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono text-muted-foreground">{s.source_file}</TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant="secondary">{s.rule_count}</Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="px-6 py-8 text-sm text-muted-foreground text-center">No history snapshots available</div>
-          )}
-        </CardContent>
-      </Card>
+
+      {snapshots.length > 0 ? (
+        <div className="relative pl-8">
+          <div className="absolute left-3 top-0 bottom-0 w-px bg-slate-800" />
+          <div className="space-y-4">
+            {snapshots.map((s, i) => (
+              <div key={i} className="relative">
+                <div className="absolute -left-5 top-4 w-3 h-3 rounded-full bg-indigo-500 border-2 border-slate-950" />
+                <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50 ml-4">
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">{s.snapshot_ts}</span>
+                      <Badge variant="outline" className="text-xs font-mono text-muted-foreground">{s.source_file}</Badge>
+                    </div>
+                    <Badge variant="secondary">{s.rule_count} {t('table.rules')}</Badge>
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="text-center py-16">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-800 flex items-center justify-center">
+            <Clock className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <p className="text-muted-foreground">{t('history.noSnapshots')}</p>
+        </div>
+      )}
     </div>
   );
 }
