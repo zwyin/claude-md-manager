@@ -41,6 +41,24 @@ CREATE TABLE IF NOT EXISTS sections_metadata (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS rule_drafts (
+    rule_id TEXT PRIMARY KEY,
+    frontmatter_yaml TEXT NOT NULL,
+    markdown_body TEXT NOT NULL,
+    order_override INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS publish_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    published_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    rules_changed INTEGER NOT NULL,
+    snapshot_name TEXT,
+    status TEXT NOT NULL,
+    error_message TEXT
+);
+
 CREATE INDEX IF NOT EXISTS idx_refs_rule ON rule_references(rule_id);
 CREATE INDEX IF NOT EXISTS idx_refs_time ON rule_references(timestamp);
 CREATE INDEX IF NOT EXISTS idx_refs_session ON rule_references(session_id);
