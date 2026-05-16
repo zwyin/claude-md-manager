@@ -61,7 +61,14 @@ rules:
 - [x] **Phase 1**：构建系统 + 规则拆分 + Karpathy 新规则
 - [x] **Phase 2**：Hook 引用追踪 + 历史数据导入（1305 sessions, 7176 matches）
 - [x] **Phase 3**：Next.js 可视化仪表盘 + launchd 自启动（`http://0.0.0.0:3456`）
+- [x] **Phase 3.1**：迁移到 shadcn/ui（Radix UI + Tailwind CSS），修复侧边栏遮挡问题
 - [ ] **Phase 4**：收尾 — Hook 注册、单元测试、项目 CLAUDE.md
+
+### 仪表盘技术栈
+
+- Next.js 16 + React 19 + Tailwind CSS v4
+- **shadcn/ui**（Radix UI 原语）— Card, Table, Badge, Sidebar, Collapsible
+- better-sqlite3（服务端只读）
 
 ### 仪表盘页面
 
