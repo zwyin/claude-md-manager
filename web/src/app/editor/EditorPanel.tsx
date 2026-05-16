@@ -1,6 +1,6 @@
 "use client";
 
-import { CodeMirror } from "@uiw/react-codemirror";
+import CodeMirror from "@uiw/react-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { markdown } from "@codemirror/lang-markdown";
 import { Button } from "@/components/ui/button";
