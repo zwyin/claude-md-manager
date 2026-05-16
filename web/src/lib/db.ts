@@ -201,8 +201,7 @@ export function getCitations(filters: {
       params.push(rule_id);
     }
     if (days) {
-      conditions.push("timestamp >= datetime('now', '-? days')");
-      params.push(days);
+      conditions.push(`timestamp >= datetime('now', '-${days} days')`);
     }
 
     const where =
