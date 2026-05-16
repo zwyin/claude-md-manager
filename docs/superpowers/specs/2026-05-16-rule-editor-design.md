@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS rule_drafts (
 
 A row exists only when the user has unsaved changes. No row = no draft, rule content comes from the file.
 
+**Order precedence**: `order_override` (from drag-and-drop) takes precedence over the `order` field in `frontmatter_yaml`. On publish, the override value is written back into the file's frontmatter `order` field, and `order_override` is cleared.
+
 ### `publish_history` table
 
 ```sql
