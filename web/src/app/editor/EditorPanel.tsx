@@ -44,31 +44,35 @@ export function EditorPanel({
       </div>
 
       <div className="flex-1 flex flex-col gap-2 min-h-0">
-        <div className="h-[40%] border border-border rounded-lg overflow-hidden">
-          <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground bg-muted/50 border-b border-border">
+        <div className="h-[40%] flex flex-col border border-border rounded-lg overflow-hidden">
+          <div className="shrink-0 px-2 py-1 text-[10px] font-semibold text-muted-foreground bg-muted/50 border-b border-border">
             YAML Frontmatter
           </div>
-          <CodeMirror
-            value={frontmatterYaml}
-            height="100%"
-            extensions={[yaml()]}
-            onChange={onFrontmatterChange}
-            className="text-sm"
-            theme="dark"
-          />
+          <div className="flex-1 min-h-0">
+            <CodeMirror
+              value={frontmatterYaml}
+              height="100%"
+              extensions={[yaml()]}
+              onChange={onFrontmatterChange}
+              className="text-sm h-full"
+              theme="dark"
+            />
+          </div>
         </div>
-        <div className="flex-1 border border-border rounded-lg overflow-hidden">
-          <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground bg-muted/50 border-b border-border">
+        <div className="flex-1 flex flex-col border border-border rounded-lg overflow-hidden min-h-0">
+          <div className="shrink-0 px-2 py-1 text-[10px] font-semibold text-muted-foreground bg-muted/50 border-b border-border">
             Markdown Body
           </div>
-          <CodeMirror
-            value={markdownBody}
-            height="100%"
-            extensions={[markdown()]}
-            onChange={onBodyChange}
-            className="text-sm"
-            theme="dark"
-          />
+          <div className="flex-1 min-h-0">
+            <CodeMirror
+              value={markdownBody}
+              height="100%"
+              extensions={[markdown()]}
+              onChange={onBodyChange}
+              className="text-sm h-full"
+              theme="dark"
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -28,8 +28,10 @@ function SortableCard({ rule, isSelected, onSelect }: { rule: RuleFile; isSelect
       {...attributes}
       {...listeners}
       onClick={onSelect}
-      className={`px-3 py-2 cursor-pointer border-b border-border last:border-b-0 transition-colors ${
-        isSelected ? "bg-accent" : "hover:bg-accent/50"
+      className={`px-3 py-2 cursor-pointer border-b border-border last:border-b-0 transition-colors border-l-2 ${
+        isSelected
+          ? "bg-primary/10 border-l-primary"
+          : "border-l-transparent hover:bg-accent/50"
       }`}
     >
       <div className="flex items-center gap-2">
