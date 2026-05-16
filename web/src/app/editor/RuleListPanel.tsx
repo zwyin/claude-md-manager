@@ -16,6 +16,7 @@ interface RuleListPanelProps {
 
 function SortableCard({ rule, isSelected, onSelect }: { rule: RuleFile; isSelected: boolean; onSelect: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: rule.rule_id });
+  const { t } = useI18n();
 
   const style = {
     transform: CSS.Transform.toString(transform),

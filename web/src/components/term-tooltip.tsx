@@ -11,11 +11,9 @@ interface TermTooltipProps {
 export function TermTooltip({ term, explanation }: TermTooltipProps) {
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <span className="inline-flex items-center gap-0.5 cursor-help border-b border-dashed border-muted-foreground/50">
-          {term}
-          <HelpCircle className="w-3 h-3 text-muted-foreground" />
-        </span>
+      <TooltipTrigger className="inline-flex items-center gap-0.5 cursor-help border-b border-dashed border-muted-foreground/50">
+        {term}
+        <HelpCircle className="w-3 h-3 text-muted-foreground" />
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-xs text-sm">
         {explanation}

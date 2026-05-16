@@ -86,7 +86,7 @@ export default function AnalyticsPage() {
                 <BarChart data={topRulesData} layout="vertical" margin={{ left: 20, right: 20 }}>
                   <XAxis type="number" hide />
                   <YAxis type="category" dataKey="name" width={120} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <RechartsTooltip {...tooltipStyle} formatter={(value: number, _: string, props: { payload: { fullName: string } }) => [value, props.payload.fullName]} />
+                  <RechartsTooltip {...tooltipStyle} formatter={(value, _name, props) => [value, (props as { payload: { fullName: string } }).payload.fullName]} />
                   <Bar dataKey="citations" radius={[0, 4, 4, 0]} maxBarSize={20}>
                     {topRulesData.map((_, i) => (
                       <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
@@ -110,13 +110,13 @@ export default function AnalyticsPage() {
                     innerRadius={60} outerRadius={100}
                     paddingAngle={2}
                     dataKey="value"
-                    label={({ name, percent }: { name: string; percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }: { name?: string; percent?: number }) => `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`}
                   >
                     {pieData.map((_, i) => (
                       <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                     ))}
                   </Pie>
-                  <RechartsTooltip {...tooltipStyle} formatter={(value: number, _: string, props: { payload: { name: string; ruleCount: number } }) => [`${value} (${props.payload.ruleCount} rules)`, props.payload.name]} />
+                  <RechartsTooltip {...tooltipStyle} formatter={(value, _name, props) => [`${value} (${(props as { payload: { ruleCount: number } }).payload.ruleCount} rules)`, (props as { payload: { name: string } }).payload.name]} />
                   <Legend formatter={(value: string) => <span className="text-xs text-slate-400">{value}</span>} />
                 </PieChart>
               </ResponsiveContainer>

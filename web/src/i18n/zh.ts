@@ -126,4 +126,4 @@ const zh = {
 } as const;
 
 export default zh;
-export type Dict = typeof zh;
+export type Dict = Record<keyof typeof zh, string>;

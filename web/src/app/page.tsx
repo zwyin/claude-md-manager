@@ -111,7 +111,7 @@ export default function DashboardPage() {
                 <YAxis type="category" dataKey="name" width={140} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                 <RechartsTooltip
                   {...tooltipStyle}
-                  formatter={(value: number, _: string, props: { payload: { fullName: string } }) => [value, props.payload.fullName]}
+                  formatter={(value, _name, props) => [value, (props as { payload: { fullName: string } }).payload.fullName]}
                 />
                 <Bar dataKey="citations" radius={[0, 4, 4, 0]} maxBarSize={24}>
                   {sectionChartData.map((_, i) => (
@@ -136,7 +136,7 @@ export default function DashboardPage() {
                 <YAxis type="category" dataKey="name" width={160} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                 <RechartsTooltip
                   {...tooltipStyle}
-                  formatter={(value: number, _: string, props: { payload: { fullName: string } }) => [value, props.payload.fullName]}
+                  formatter={(value, _name, props) => [value, (props as { payload: { fullName: string } }).payload.fullName]}
                 />
                 <Bar dataKey="citations" fill="#6366f1" radius={[0, 4, 4, 0]} maxBarSize={20} />
               </BarChart>
