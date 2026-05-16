@@ -17,6 +17,48 @@ function getDb(): Database.Database {
   return new Database(DB_PATH, { readonly: true });
 }
 
+// ── Sections ──
+
+export interface SectionWithStats {
+  section_id: string;
+  title: string;
+  source_file: string;
+  rule_count: number;
+  total_citations: number;
+  total_sessions: number;
+}
+
+export function getSectionsWithStats(): SectionWithStats[] {
+  const db = getDb();
+  try {
+    return db
+      .prepare(
+        `
+        SELECT
+          s.section_id,
+          s.title,
+          s.source_file,
+          s.rule_count,
+          COALESCE(SUM(citation_count), 0) AS total_citations,
+          COALESCE(SUM(session_count), 0) AS total_sessions
+        FROM sections_metadata s
+        LEFT JOIN (
+          SELECT section_id, COUNT(r.id) AS citation_count,
+                 COUNT(DISTINCT r.session_id) AS session_count
+          FROM rules_metadata m
+          LEFT JOIN rule_references r ON r.rule_id = m.rule_id
+          GROUP BY m.rule_id
+        ) agg ON agg.section_id = s.section_id
+        GROUP BY s.section_id
+        ORDER BY total_citations DESC
+        `
+      )
+      .all() as SectionWithStats[];
+  } finally {
+    db.close();
+  }
+}
+
 // ── Rules ──
 
 export function getRulesWithStats(days?: number): RuleWithStats[] {
@@ -32,6 +74,7 @@ export function getRulesWithStats(days?: number): RuleWithStats[] {
         SELECT
           m.rule_id,
           m.section_id,
+          s.title AS section_title,
           m.title,
           m.keywords,
           m.source_file,
@@ -41,6 +84,7 @@ export function getRulesWithStats(days?: number): RuleWithStats[] {
           MAX(r.timestamp) AS last_cited
         FROM rules_metadata m
         LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${timeFilter}
+        LEFT JOIN sections_metadata s ON s.section_id = m.section_id
         GROUP BY m.rule_id
         ORDER BY citation_count DESC, m.section_id
         `
@@ -48,6 +92,7 @@ export function getRulesWithStats(days?: number): RuleWithStats[] {
       .all() as Array<{
       rule_id: string;
       section_id: string;
+      section_title: string;
       title: string;
       keywords: string;
       source_file: string;

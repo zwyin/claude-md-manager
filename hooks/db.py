@@ -33,6 +33,14 @@ CREATE TABLE IF NOT EXISTS rules_metadata (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS sections_metadata (
+    section_id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    source_file TEXT NOT NULL,
+    rule_count INTEGER DEFAULT 0,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_refs_rule ON rule_references(rule_id);
 CREATE INDEX IF NOT EXISTS idx_refs_time ON rule_references(timestamp);
 CREATE INDEX IF NOT EXISTS idx_refs_session ON rule_references(session_id);
@@ -94,6 +102,25 @@ def sync_rules_metadata(conn: sqlite3.Connection, rules_data: list):
                    source_file = excluded.source_file,
                    updated_at = datetime('now')""",
             (r["rule_id"], r["section_id"], r["title"], json.dumps(r["keywords"]), r["source_file"])
+        )
+    conn.commit()
+
+
+def sync_sections_metadata(conn: sqlite3.Connection, sections_data: list):
+    """Sync section-level metadata into the database.
+
+    sections_data: [{"section_id": "...", "title": "...", "source_file": "...", "rule_count": N}, ...]
+    """
+    for s in sections_data:
+        conn.execute(
+            """INSERT INTO sections_metadata (section_id, title, source_file, rule_count, updated_at)
+               VALUES (?, ?, ?, ?, datetime('now'))
+               ON CONFLICT(section_id) DO UPDATE SET
+                   title = excluded.title,
+                   source_file = excluded.source_file,
+                   rule_count = excluded.rule_count,
+                   updated_at = datetime('now')""",
+            (s["section_id"], s["title"], s["source_file"], s["rule_count"])
         )
     conn.commit()
 

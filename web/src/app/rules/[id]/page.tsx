@@ -17,11 +17,16 @@ interface CitationRecord {
   timestamp: string; model: string | null; task_summary: string | null;
 }
 
+interface SiblingRule {
+  rule_id: string; title: string; session_count: number; match_count: number;
+}
+
 export default function RuleDetailPage() {
   const params = useParams();
   const ruleId = params?.id as string;
   const [rule, setRule] = useState<Rule | null>(null);
   const [citations, setCitations] = useState<CitationRecord[]>([]);
+  const [siblings, setSiblings] = useState<SiblingRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,9 +34,33 @@ export default function RuleDetailPage() {
     if (!ruleId) return;
     fetch(`/api/rules/${encodeURIComponent(ruleId)}`)
       .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
-      .then((json) => { setRule(json.rule); setCitations(json.citations || []); setLoading(false); })
+      .then((json) => {
+        setRule(json.rule);
+        setCitations(json.citations || []);
+        setLoading(false);
+      })
       .catch((err) => { setError(err.message); setLoading(false); });
   }, [ruleId]);
+
+  // Fetch siblings from same section
+  useEffect(() => {
+    if (!rule?.section_id) return;
+    fetch('/api/rules')
+      .then((res) => res.json())
+      .then((json) => {
+        const allRules = json.rules || [];
+        const sibs = allRules
+          .filter((r: any) => r.section_id === rule.section_id && r.rule_id !== rule.rule_id)
+          .map((r: any) => ({
+            rule_id: r.rule_id,
+            title: r.title,
+            session_count: r.session_count || 0,
+            match_count: r.match_count || 0,
+          }));
+        setSiblings(sibs);
+      })
+      .catch(() => {});
+  }, [rule?.section_id, rule?.rule_id]);
 
   if (loading) return <div className="text-muted-foreground p-4">Loading...</div>;
   if (error) return (
@@ -46,11 +75,11 @@ export default function RuleDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/rules" className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1">
+      <Link href={`/rules?section=${rule.section_id}`} className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1">
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-        Back to Rules
+        Back to {rule.section_id}
       </Link>
 
       <Card>
@@ -60,7 +89,7 @@ export default function RuleDetailPage() {
               <p className="text-xs font-mono text-muted-foreground mb-1">{rule.rule_id}</p>
               <CardTitle className="text-xl">{rule.title}</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Section: <span className="font-medium text-foreground">{rule.section_id}</span>
+                Section: <Link href={`/rules?section=${rule.section_id}`} className="font-medium text-blue-600 hover:underline">{rule.section_id}</Link>
                 {' · '}Source: <span className="font-medium text-foreground">{rule.source_file}</span>
               </p>
               {rule.last_cited && <p className="text-xs text-muted-foreground mt-1">Last cited: {new Date(rule.last_cited).toLocaleString('zh-CN')}</p>}
@@ -84,6 +113,29 @@ export default function RuleDetailPage() {
           </CardContent>
         )}
       </Card>
+
+      {siblings.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Same Section ({rule.section_id})</CardTitle></CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y">
+              {siblings.map((sib) => (
+                <Link key={sib.rule_id} href={`/rules/${sib.rule_id}`}
+                  className="flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-xs font-mono text-muted-foreground shrink-0">{sib.rule_id}</span>
+                    <span className="text-sm truncate">{sib.title}</span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 ml-4">
+                    <Badge variant="secondary">{sib.session_count} sessions</Badge>
+                    <Badge variant={sib.match_count === 0 ? "destructive" : "default"}>{sib.match_count} matches</Badge>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader><CardTitle className="text-base">Recent Citations ({citations.length})</CardTitle></CardHeader>

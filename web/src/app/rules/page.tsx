@@ -1,22 +1,34 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface Rule {
   rule_id: string;
   section_id: string;
+  section_title: string;
   title: string;
   keywords: string[];
   session_count: number;
   match_count: number;
 }
 
+interface Section {
+  section_id: string;
+  title: string;
+  source_file: string;
+  rule_count: number;
+  total_citations: number;
+  total_sessions: number;
+}
+
 interface RulesData {
   rules: Rule[];
+  sections: Section[];
   total_rules: number;
 }
 
@@ -25,6 +37,7 @@ export default function RulesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     fetch('/api/rules')
@@ -32,12 +45,16 @@ export default function RulesPage() {
       .then((json) => {
         setData(json);
         const open: Record<string, boolean> = {};
-        (json.rules || []).forEach((r: Rule) => { open[r.section_id] = true; });
+        // If ?section=xxx in URL, open only that section; otherwise open all
+        const focusSection = searchParams.get('section');
+        (json.rules || []).forEach((r: Rule) => {
+          open[r.section_id] = focusSection ? r.section_id === focusSection : true;
+        });
         setOpenSections(open);
         setLoading(false);
       })
       .catch((err) => { setError(err.message); setLoading(false); });
-  }, []);
+  }, [searchParams]);
 
   const toggle = (id: string) => setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
 
@@ -45,24 +62,41 @@ export default function RulesPage() {
   if (error) return <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-destructive text-sm">{error}</div>;
   if (!data) return null;
 
+  // Build section_id → title map
+  const sectionTitleMap: Record<string, string> = {};
+  for (const sec of data.sections || []) {
+    sectionTitleMap[sec.section_id] = sec.title;
+  }
+
   const grouped: Record<string, Rule[]> = {};
   for (const rule of data.rules || []) {
     if (!grouped[rule.section_id]) grouped[rule.section_id] = [];
     grouped[rule.section_id].push(rule);
   }
 
+  // Sort sections by total citations (from sections data)
+  const sectionOrder = (data.sections || [])
+    .sort((a, b) => b.total_citations - a.total_citations)
+    .map((s) => s.section_id);
+  // Include any sections not in sections data
+  for (const id of Object.keys(grouped)) {
+    if (!sectionOrder.includes(id)) sectionOrder.push(id);
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Rules</h1>
-        <p className="text-sm text-muted-foreground mt-1">{data.total_rules} rules in total, grouped by section</p>
+        <p className="text-sm text-muted-foreground mt-1">{data.total_rules} rules in {Object.keys(grouped).length} sections</p>
       </div>
 
       <div className="space-y-3">
-        {Object.keys(grouped).sort().map((sectionId) => {
+        {sectionOrder.map((sectionId) => {
           const rules = grouped[sectionId];
+          if (!rules) return null;
           const isOpen = openSections[sectionId] !== false;
           const totalMatches = rules.reduce((s, r) => s + r.match_count, 0);
+          const sectionTitle = sectionTitleMap[sectionId] || sectionId;
 
           return (
             <Card key={sectionId}>
@@ -72,7 +106,8 @@ export default function RulesPage() {
                     <svg className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
-                    <span className="text-sm font-semibold">{sectionId}</span>
+                    <span className="text-sm font-semibold">{sectionTitle}</span>
+                    <span className="text-xs text-muted-foreground font-mono">{sectionId}</span>
                     <span className="text-xs text-muted-foreground">{rules.length} rules</span>
                   </div>
                   <span className="text-xs text-muted-foreground">{totalMatches} total matches</span>

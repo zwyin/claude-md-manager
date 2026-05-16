@@ -20,7 +20,7 @@ from pathlib import Path
 
 # Add parent to path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from db import get_db, record_references, upsert_session, sync_rules_metadata
+from db import get_db, record_references, upsert_session, sync_rules_metadata, sync_sections_metadata
 
 # Paths
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -72,6 +72,28 @@ def get_rules_metadata() -> list:
                 "source_file": f.name,
             })
     return rules_data
+
+
+def get_sections_metadata() -> list:
+    """Extract section-level metadata from all rule files for DB sync."""
+    import yaml as _yaml
+    sections_data = []
+    for f in RULES_DIR.glob("*.md"):
+        content = f.read_text(encoding="utf-8")
+        match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
+        if not match:
+            continue
+        meta = _yaml.safe_load(match.group(1)) or {}
+        section_id = meta.get("id", "")
+        if not section_id:
+            continue
+        sections_data.append({
+            "section_id": section_id,
+            "title": meta.get("title", section_id),
+            "source_file": f.name,
+            "rule_count": len(meta.get("rules", [])),
+        })
+    return sections_data
 
 
 def find_latest_session() -> Path | None:
@@ -155,7 +177,9 @@ def main():
         conn = get_db()
         rules_data = get_rules_metadata()
         sync_rules_metadata(conn, rules_data)
-        print(f"Synced {len(rules_data)} rules metadata")
+        sections_data = get_sections_metadata()
+        sync_sections_metadata(conn, sections_data)
+        print(f"Synced {len(rules_data)} rules, {len(sections_data)} sections")
         conn.close()
         return
     
@@ -190,6 +214,8 @@ def main():
     # Sync metadata first
     rules_data = get_rules_metadata()
     sync_rules_metadata(conn, rules_data)
+    sections_data = get_sections_metadata()
+    sync_sections_metadata(conn, sections_data)
     
     # Record references
     record_references(conn, session_id, matches)

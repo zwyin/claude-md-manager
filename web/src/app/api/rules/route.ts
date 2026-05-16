@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRulesWithStats } from '@/lib/db';
+import { getRulesWithStats, getSectionsWithStats } from '@/lib/db';
 import Database from 'better-sqlite3';
 import path from 'path';
 
@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       rules,
+      sections: getSectionsWithStats(),
       total_rules,
       total_sessions,
       active_rule_pct,
