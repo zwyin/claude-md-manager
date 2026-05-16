@@ -1,0 +1,129 @@
+const zh = {
+  // 全局
+  'app.title': 'CLAUDE.md',
+  'app.subtitle': '规则管理面板',
+  'app.version': 'v0.1.0',
+
+  // 导航
+  'nav.dashboard': '仪表盘',
+  'nav.rules': '规则管理',
+  'nav.editor': '编辑器',
+  'nav.history': '版本历史',
+  'nav.analytics': '数据分析',
+
+  // 语言
+  'lang.zh': '中文',
+  'lang.en': 'English',
+
+  // Dashboard
+  'dashboard.title': '仪表盘',
+  'dashboard.subtitle': 'CLAUDE.md 规则概览与统计数据',
+  'dashboard.totalRules': '总规则数',
+  'dashboard.totalSessions': '总会话数',
+  'dashboard.activeRate': '规则活跃率',
+  'dashboard.totalCitations': '引用总量',
+  'dashboard.inSections': '{count} 个章节',
+  'dashboard.sections': '章节概览',
+  'dashboard.sections.subtitle': '按引用次数排序的章节',
+  'dashboard.topRules': '热门规则 Top 10',
+  'dashboard.coldRules': '休眠规则',
+  'dashboard.coldRules.count': '{count} 条规则',
+  'dashboard.coldRules.subtitle': '从未被引用过的规则',
+
+  // 表格通用
+  'table.section': '章节',
+  'table.rules': '子规则',
+  'table.citations': '引用次数',
+  'table.sessions': '会话数',
+  'table.rank': '排名',
+  'table.title': '标题',
+  'table.time': '时间',
+  'table.keyword': '触发关键词',
+  'table.sessionId': '会话 ID',
+  'table.date': '日期',
+  'table.sourceFile': '来源文件',
+  'table.matches': '匹配数',
+
+  // Rules 列表
+  'rules.title': '规则管理',
+  'rules.subtitle': '{total} 条规则，分布在 {sections} 个章节',
+  'rules.totalMatches': '共 {count} 次匹配',
+
+  // Rules 详情
+  'ruleDetail.backTo': '返回 {section}',
+  'ruleDetail.section': '所属章节',
+  'ruleDetail.source': '来源文件',
+  'ruleDetail.lastCited': '最后引用',
+  'ruleDetail.keywords': '关键词',
+  'ruleDetail.sameSection': '同章节规则',
+  'ruleDetail.citations': '引用记录',
+  'ruleDetail.noCitations': '暂无引用数据',
+  'ruleDetail.showing': '显示 {shown} / {total} 条',
+
+  // Editor
+  'editor.title': '规则编辑器',
+  'editor.subtitle': '拖拽排序、编辑、预览和发布规则变更',
+  'editor.yamlFrontmatter': 'YAML 前置配置',
+  'editor.markdownBody': 'Markdown 正文',
+  'editor.saveDraft': '保存草稿',
+  'editor.discardDraft': '丢弃草稿',
+  'editor.unsavedChanges': '未保存的更改',
+  'editor.unsavedDrafts': '{count} 个未保存草稿',
+  'editor.publishAll': '全部发布',
+  'editor.publishTitle': '发布确认',
+  'editor.publishDesc': '以下规则将被发布到文件系统：',
+  'editor.publish': '发布',
+  'editor.cancel': '取消',
+  'editor.published': '成功发布 {count} 条规则。',
+  'editor.selectRule': '选择一条规则进行编辑',
+  'editor.preview': '预览',
+  'editor.rules': '规则列表',
+  'editor.draft': '有草稿',
+
+  // History
+  'history.title': '版本历史',
+  'history.subtitle': '按更新日期和来源文件分组的规则元数据',
+  'history.noSnapshots': '暂无历史快照',
+
+  // Analytics
+  'analytics.title': '数据分析',
+  'analytics.subtitle': '规则使用统计与分布',
+  'analytics.topRules': '热门规则 Top 10',
+  'analytics.sectionDist': '章节分布',
+  'analytics.citationTrend': '引用趋势',
+  'analytics.coldRules': '休眠规则',
+  'analytics.coldRules.days': '{days} 天未引用',
+  'analytics.neverCited': '从未引用',
+  'analytics.trend.day': '按天',
+  'analytics.trend.week': '按周',
+  'analytics.trend.month': '按月',
+
+  // 术语
+  'term.rule': '规则',
+  'term.rule.desc': 'CLAUDE.md 中的一条独立配置指令',
+  'term.section': '章节',
+  'term.section.desc': '规则所属的功能分组，如"核心原则"、"安全护栏"',
+  'term.citation': '引用记录',
+  'term.citation.desc': 'Claude 会话中触发该规则时产生的一条匹配记录',
+  'term.session': '会话',
+  'term.session.desc': '一次 Claude Code 交互过程',
+  'term.match': '匹配',
+  'term.match.desc': '规则的关键词被会话内容命中的次数',
+  'term.activeRate': '规则活跃率',
+  'term.activeRate.desc': '至少被引用过一次的规则占总规则数的百分比',
+  'term.coldRule': '休眠规则',
+  'term.coldRule.desc': '从未被引用过的规则，可能需要优化或移除',
+  'term.draft': '草稿',
+  'term.draft.desc': '编辑器中已修改但尚未发布的规则内容',
+  'term.snapshot': '快照',
+  'term.snapshot.desc': '规则文件在某个时间点的版本备份',
+  'term.keywords': '关键词',
+  'term.keywords.desc': '规则配置的触发词，Claude 会话中出现时自动引用该规则',
+
+  // 状态
+  'status.loading': '加载中...',
+  'status.error': '加载失败：{error}',
+} as const;
+
+export default zh;
+export type Dict = typeof zh;
