@@ -2,41 +2,35 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
+import { StatCard } from '@/components/stat-card';
+import { TermTooltip } from '@/components/term-tooltip';
+import { useI18n } from '@/i18n';
 
 interface Rule {
-  rule_id: string;
-  section_id: string;
-  section_title: string;
-  title: string;
-  keywords: string[];
-  session_count: number;
-  match_count: number;
+  rule_id: string; section_id: string; section_title: string;
+  title: string; keywords: string[]; session_count: number; match_count: number;
 }
-
 interface Section {
-  section_id: string;
-  title: string;
-  source_file: string;
-  rule_count: number;
-  total_citations: number;
-  total_sessions: number;
+  section_id: string; title: string; source_file: string;
+  rule_count: number; total_citations: number; total_sessions: number;
+}
+interface DashboardData {
+  rules: Rule[]; sections: Section[];
+  total_rules: number; total_sessions: number; active_rule_pct: number;
 }
 
-interface DashboardData {
-  rules: Rule[];
-  sections: Section[];
-  total_rules: number;
-  total_sessions: number;
-  active_rule_pct: number;
-}
+const CHART_COLORS = ['#6366f1', '#818cf8', '#a78bfa', '#c4b5fd', '#8b5cf6', '#7c3aed'];
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [coldOpen, setColdOpen] = useState(false);
+  const { t } = useI18n();
 
   useEffect(() => {
     fetch('/api/rules')
@@ -45,125 +39,142 @@ export default function DashboardPage() {
       .catch((err) => { setError(err.message); setLoading(false); });
   }, []);
 
-  if (loading) return <div className="text-muted-foreground p-4">Loading...</div>;
-  if (error) return <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-destructive text-sm">{error}</div>;
+  if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
+  if (error) return <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">{t('status.error', { error })}</div>;
   if (!data) return null;
 
   const topRules = [...(data.rules || [])].sort((a, b) => b.match_count - a.match_count).slice(0, 10);
   const coldRules = (data.rules || []).filter((r) => r.match_count === 0);
   const sections = data.sections || [];
+  const totalCitations = (data.rules || []).reduce((s, r) => s + r.match_count, 0);
+
+  const sectionChartData = sections.map((s) => ({
+    name: s.title.length > 16 ? s.title.slice(0, 16) + '...' : s.title,
+    fullName: s.title,
+    citations: s.total_citations,
+    section_id: s.section_id,
+  }));
+
+  const topRulesChartData = topRules.map((r) => ({
+    name: r.title.length > 20 ? r.title.slice(0, 20) + '...' : r.title,
+    fullName: r.title,
+    citations: r.match_count,
+    rule_id: r.rule_id,
+  }));
+
+  const tooltipStyle = {
+    contentStyle: { backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#e2e8f0' },
+  };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">CLAUDE.md rule overview and statistics</p>
+        <h1 className="text-2xl font-bold">{t('dashboard.title')}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{t('dashboard.subtitle')}</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-xs font-medium text-muted-foreground uppercase">Total Rules</CardTitle></CardHeader>
-          <CardContent><div className="text-3xl font-bold">{data.total_rules}</div><div className="text-xs text-muted-foreground mt-1">in {sections.length} sections</div></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-xs font-medium text-muted-foreground uppercase">Total Sessions</CardTitle></CardHeader>
-          <CardContent><div className="text-3xl font-bold">{data.total_sessions}</div></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-xs font-medium text-muted-foreground uppercase">Active Rule %</CardTitle></CardHeader>
-          <CardContent><div className="text-3xl font-bold text-green-600">{data.active_rule_pct}%</div></CardContent>
-        </Card>
+      <div className="grid grid-cols-4 gap-4">
+        <StatCard
+          label={t('dashboard.totalRules')}
+          value={data.total_rules}
+          sublabel={t('dashboard.inSections', { count: sections.length })}
+          color="#6366f1"
+        />
+        <StatCard
+          label={t('dashboard.totalSessions')}
+          value={data.total_sessions}
+          color="#3b82f6"
+        />
+        <StatCard
+          label={<TermTooltip term={t('term.activeRate')} explanation={t('term.activeRate.desc')} />}
+          value={data.active_rule_pct}
+          percentage
+          color="#10b981"
+        />
+        <StatCard
+          label={<TermTooltip term={t('term.citation')} explanation={t('term.citation.desc')} />}
+          value={totalCitations}
+          color="#8b5cf6"
+        />
       </div>
 
-      <Card>
+      <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
         <CardHeader>
-          <CardTitle className="text-base">Sections</CardTitle>
-          <p className="text-xs text-muted-foreground">CLAUDE.md 中的章节，按引用次数排序</p>
+          <CardTitle className="text-base">{t('dashboard.sections')}</CardTitle>
+          <p className="text-xs text-muted-foreground">{t('dashboard.sections.subtitle')}</p>
         </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>章节</TableHead>
-                <TableHead className="text-center">子规则</TableHead>
-                <TableHead className="text-right">引用次数</TableHead>
-                <TableHead className="text-right">会话数</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sections.map((sec) => (
-                <TableRow key={sec.section_id}>
-                  <TableCell>
-                    <Link href={`/rules?section=${sec.section_id}`} className="hover:underline">
-                      <span className="font-medium">{sec.title}</span>
-                    </Link>
-                    <span className="text-xs text-muted-foreground ml-2 font-mono">{sec.section_id}</span>
-                  </TableCell>
-                  <TableCell className="text-center"><Badge variant="outline">{sec.rule_count}</Badge></TableCell>
-                  <TableCell className="text-right">{sec.total_citations}</TableCell>
-                  <TableCell className="text-right">{sec.total_sessions}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <CardContent>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={sectionChartData} layout="vertical" margin={{ left: 20, right: 20 }}>
+                <XAxis type="number" hide />
+                <YAxis type="category" dataKey="name" width={140} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                <RechartsTooltip
+                  {...tooltipStyle}
+                  formatter={(value: number, _: string, props: { payload: { fullName: string } }) => [value, props.payload.fullName]}
+                />
+                <Bar dataKey="citations" radius={[0, 4, 4, 0]} maxBarSize={24}>
+                  {sectionChartData.map((_, i) => (
+                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Top 10 Sub-rules</CardTitle></CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Rule ID</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Section</TableHead>
-                <TableHead className="text-right">Sessions</TableHead>
-                <TableHead className="text-right">Matches</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {topRules.map((rule) => (
-                <TableRow key={rule.rule_id}>
-                  <TableCell className="font-mono text-xs text-blue-600">
-                    <Link href={`/rules/${rule.rule_id}`} className="hover:underline">{rule.rule_id}</Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link href={`/rules/${rule.rule_id}`} className="hover:underline">{rule.title}</Link>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{rule.section_title || rule.section_id}</TableCell>
-                  <TableCell className="text-right">{rule.session_count}</TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant="secondary">{rule.match_count}</Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+      <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
+        <CardHeader>
+          <CardTitle className="text-base">{t('dashboard.topRules')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={topRulesChartData} layout="vertical" margin={{ left: 20, right: 20 }}>
+                <XAxis type="number" hide />
+                <YAxis type="category" dataKey="name" width={160} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                <RechartsTooltip
+                  {...tooltipStyle}
+                  formatter={(value: number, _: string, props: { payload: { fullName: string } }) => [value, props.payload.fullName]}
+                />
+                <Bar dataKey="citations" fill="#6366f1" radius={[0, 4, 4, 0]} maxBarSize={20} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
 
       {coldRules.length > 0 && (
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-2">
-            <CardTitle className="text-base">Cold Rules (0 Matches)</CardTitle>
-            <Badge variant="outline" className="ml-auto text-amber-600">{coldRules.length} rules</Badge>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y">
-              {coldRules.map((rule) => (
-                <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
-                  className="flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-mono text-muted-foreground">{rule.rule_id}</span>
-                    <span className="text-sm">{rule.title}</span>
-                  </div>
-                  <Badge variant="destructive" className="text-xs">0 matches</Badge>
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <Collapsible open={coldOpen} onOpenChange={setColdOpen}>
+          <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
+            <CollapsibleTrigger className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-800/50 transition-colors text-left">
+              <div className="flex items-center gap-3">
+                <svg className={`w-4 h-4 text-muted-foreground transition-transform ${coldOpen ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+                <span className="text-base font-semibold">
+                  <TermTooltip term={t('term.coldRule')} explanation={t('term.coldRule.desc')} />
+                </span>
+              </div>
+              <Badge variant="outline" className="text-amber-500">{t('dashboard.coldRules.count', { count: coldRules.length })}</Badge>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="border-t border-slate-800 divide-y divide-slate-800">
+                {coldRules.map((rule) => (
+                  <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
+                    className="flex items-center justify-between px-6 py-3 hover:bg-slate-800/30 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-mono text-muted-foreground">{rule.rule_id}</span>
+                      <span className="text-sm">{rule.title}</span>
+                    </div>
+                    <Badge variant="destructive" className="text-xs">0 {t('table.matches')}</Badge>
+                  </Link>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       )}
     </div>
   );
