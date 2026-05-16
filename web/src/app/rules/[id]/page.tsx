@@ -3,20 +3,21 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ChevronRight, Home } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { TermTooltip } from '@/components/term-tooltip';
+import { useI18n } from '@/i18n';
 
 interface Rule {
   rule_id: string; section_id: string; title: string; keywords: string[];
   source_file: string; updated_at: string; citation_count: number; last_cited: string | null;
 }
-
 interface CitationRecord {
   id: number; rule_id: string; session_id: string; matched_keyword: string;
   timestamp: string; model: string | null; task_summary: string | null;
 }
-
 interface SiblingRule {
   rule_id: string; title: string; session_count: number; match_count: number;
 }
@@ -29,6 +30,7 @@ export default function RuleDetailPage() {
   const [siblings, setSiblings] = useState<SiblingRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!ruleId) return;
@@ -42,7 +44,6 @@ export default function RuleDetailPage() {
       .catch((err) => { setError(err.message); setLoading(false); });
   }, [ruleId]);
 
-  // Fetch siblings from same section
   useEffect(() => {
     if (!rule?.section_id) return;
     fetch('/api/rules')
@@ -50,23 +51,21 @@ export default function RuleDetailPage() {
       .then((json) => {
         const allRules = json.rules || [];
         const sibs = allRules
-          .filter((r: any) => r.section_id === rule.section_id && r.rule_id !== rule.rule_id)
-          .map((r: any) => ({
-            rule_id: r.rule_id,
-            title: r.title,
-            session_count: r.session_count || 0,
-            match_count: r.match_count || 0,
+          .filter((r: { section_id: string; rule_id: string }) => r.section_id === rule.section_id && r.rule_id !== rule.rule_id)
+          .map((r: { rule_id: string; title: string; session_count: number; match_count: number }) => ({
+            rule_id: r.rule_id, title: r.title,
+            session_count: r.session_count || 0, match_count: r.match_count || 0,
           }));
         setSiblings(sibs);
       })
       .catch(() => {});
   }, [rule?.section_id, rule?.rule_id]);
 
-  if (loading) return <div className="text-muted-foreground p-4">Loading...</div>;
+  if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
   if (error) return (
     <div className="space-y-4">
-      <Link href="/rules" className="text-sm text-blue-600 hover:underline">&larr; Back to Rules</Link>
-      <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-destructive text-sm">Failed to load rule: {error}</div>
+      <Link href="/rules" className="text-sm text-indigo-400 hover:underline">&larr; {t('ruleDetail.backTo', { section: 'Rules' })}</Link>
+      <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">{t('status.error', { error })}</div>
     </div>
   );
   if (!rule) return null;
@@ -75,38 +74,52 @@ export default function RuleDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link href={`/rules?section=${rule.section_id}`} className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1">
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
-        Back to {rule.section_id}
-      </Link>
+      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Link href="/" className="hover:text-foreground transition-colors"><Home className="w-3.5 h-3.5" /></Link>
+        <ChevronRight className="w-3 h-3" />
+        <Link href="/rules" className="hover:text-foreground transition-colors">{t('rules.title')}</Link>
+        <ChevronRight className="w-3 h-3" />
+        <Link href={`/rules?section=${rule.section_id}`} className="hover:text-foreground transition-colors">{rule.section_id}</Link>
+        <ChevronRight className="w-3 h-3" />
+        <span className="text-foreground">{rule.title}</span>
+      </nav>
 
-      <Card>
+      <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
               <p className="text-xs font-mono text-muted-foreground mb-1">{rule.rule_id}</p>
               <CardTitle className="text-xl">{rule.title}</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Section: <Link href={`/rules?section=${rule.section_id}`} className="font-medium text-blue-600 hover:underline">{rule.section_id}</Link>
-                {' · '}Source: <span className="font-medium text-foreground">{rule.source_file}</span>
+              <p className="text-sm text-muted-foreground mt-2 space-x-2">
+                <span>{t('ruleDetail.section')}:
+                  <Link href={`/rules?section=${rule.section_id}`} className="font-medium text-indigo-400 hover:underline ml-1">{rule.section_id}</Link>
+                </span>
+                <span>·</span>
+                <span>{t('ruleDetail.source')}:
+                  <span className="font-medium text-foreground ml-1">{rule.source_file}</span>
+                </span>
               </p>
-              {rule.last_cited && <p className="text-xs text-muted-foreground mt-1">Last cited: {new Date(rule.last_cited).toLocaleString('zh-CN')}</p>}
+              {rule.last_cited && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t('ruleDetail.lastCited')}: {new Date(rule.last_cited).toLocaleString('zh-CN')}
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Badge variant="secondary">{uniqueSessions} sessions</Badge>
-              <Badge variant={rule.citation_count === 0 ? "destructive" : "default"}>{rule.citation_count} matches</Badge>
+              <Badge variant="secondary">{uniqueSessions} {t('table.sessions')}</Badge>
+              <Badge variant={rule.citation_count === 0 ? "destructive" : "default"}>{rule.citation_count} {t('table.matches')}</Badge>
             </div>
           </div>
         </CardHeader>
         {rule.keywords && rule.keywords.length > 0 && (
           <CardContent>
-            <div className="border-t pt-4">
-              <p className="text-xs font-medium text-muted-foreground uppercase mb-2">Keywords</p>
+            <div className="border-t border-slate-800 pt-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase mb-2">
+                <TermTooltip term={t('term.keywords')} explanation={t('term.keywords.desc')} />
+              </p>
               <div className="flex flex-wrap gap-2">
                 {rule.keywords.map((kw) => (
-                  <Badge key={kw} variant="outline">{kw}</Badge>
+                  <Badge key={kw} variant="outline" className="border-indigo-500/30 text-indigo-300">{kw}</Badge>
                 ))}
               </div>
             </div>
@@ -115,20 +128,19 @@ export default function RuleDetailPage() {
       </Card>
 
       {siblings.length > 0 && (
-        <Card>
-          <CardHeader><CardTitle className="text-base">Same Section ({rule.section_id})</CardTitle></CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y">
+        <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
+          <CardHeader>
+            <CardTitle className="text-base">{t('ruleDetail.sameSection')} ({rule.section_id})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-3 overflow-x-auto pb-2">
               {siblings.map((sib) => (
                 <Link key={sib.rule_id} href={`/rules/${sib.rule_id}`}
-                  className="flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-xs font-mono text-muted-foreground shrink-0">{sib.rule_id}</span>
-                    <span className="text-sm truncate">{sib.title}</span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0 ml-4">
-                    <Badge variant="secondary">{sib.session_count} sessions</Badge>
-                    <Badge variant={sib.match_count === 0 ? "destructive" : "default"}>{sib.match_count} matches</Badge>
+                  className="shrink-0 w-48 p-3 rounded-lg border border-slate-800 bg-slate-900/50 hover:border-indigo-500/30 transition-colors">
+                  <p className="text-xs font-mono text-muted-foreground mb-1">{sib.rule_id}</p>
+                  <p className="text-sm font-medium truncate">{sib.title}</p>
+                  <div className="flex gap-2 mt-2">
+                    <Badge variant="secondary" className="text-[10px]">{sib.match_count}</Badge>
                   </div>
                 </Link>
               ))}
@@ -137,17 +149,22 @@ export default function RuleDetailPage() {
         </Card>
       )}
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Recent Citations ({citations.length})</CardTitle></CardHeader>
+      <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <TermTooltip term={t('term.citation')} explanation={t('term.citation.desc')} />
+            <span className="text-muted-foreground font-normal">({citations.length})</span>
+          </CardTitle>
+        </CardHeader>
         <CardContent className="p-0">
           {citations.length > 0 ? (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Time</TableHead>
-                    <TableHead>Keyword</TableHead>
-                    <TableHead>Session</TableHead>
+                    <TableHead>{t('table.time')}</TableHead>
+                    <TableHead>{t('table.keyword')}</TableHead>
+                    <TableHead>{t('table.sessionId')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -156,7 +173,7 @@ export default function RuleDetailPage() {
                       <TableCell className="text-xs font-mono whitespace-nowrap">
                         {new Date(c.timestamp).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                       </TableCell>
-                      <TableCell><Badge variant="outline">{c.matched_keyword}</Badge></TableCell>
+                      <TableCell><Badge variant="outline" className="border-indigo-500/30 text-indigo-300">{c.matched_keyword}</Badge></TableCell>
                       <TableCell className="text-xs font-mono text-muted-foreground max-w-[200px] truncate">
                         {c.session_id.replace('historical_', '')}
                       </TableCell>
@@ -165,13 +182,13 @@ export default function RuleDetailPage() {
                 </TableBody>
               </Table>
               {citations.length > 50 && (
-                <div className="px-6 py-3 text-xs text-muted-foreground text-center border-t">
-                  Showing 50 of {citations.length} citations
+                <div className="px-6 py-3 text-xs text-muted-foreground text-center border-t border-slate-800">
+                  {t('ruleDetail.showing', { shown: 50, total: citations.length })}
                 </div>
               )}
             </>
           ) : (
-            <div className="px-6 py-8 text-sm text-muted-foreground text-center">No citation data available</div>
+            <div className="px-6 py-8 text-sm text-muted-foreground text-center">{t('ruleDetail.noCitations')}</div>
           )}
         </CardContent>
       </Card>
