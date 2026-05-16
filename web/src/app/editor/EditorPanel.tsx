@@ -4,6 +4,7 @@ import CodeMirror from "@uiw/react-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { markdown } from "@codemirror/lang-markdown";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/i18n";
 
 interface EditorPanelProps {
   frontmatterYaml: string;
@@ -24,21 +25,23 @@ export function EditorPanel({
   onSaveDraft,
   onDiscardDraft,
 }: EditorPanelProps) {
+  const { t } = useI18n();
+
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex items-center gap-2 mb-2">
         <Button size="sm" onClick={onSaveDraft}>
-          Save Draft
+          {t('editor.saveDraft')}
         </Button>
         {hasDraft && (
           <Button size="sm" variant="outline" onClick={onDiscardDraft}>
-            Discard Draft
+            {t('editor.discardDraft')}
           </Button>
         )}
         {hasDraft && (
           <span className="text-xs text-orange-400 flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-orange-400" />
-            Unsaved changes
+            {t('editor.unsavedChanges')}
           </span>
         )}
       </div>
@@ -46,7 +49,7 @@ export function EditorPanel({
       <div className="flex-1 flex flex-col gap-2 min-h-0">
         <div className="h-[40%] flex flex-col border border-border rounded-lg overflow-hidden">
           <div className="shrink-0 px-2 py-1 text-[10px] font-semibold text-muted-foreground bg-muted/50 border-b border-border">
-            YAML Frontmatter
+            {t('editor.yamlFrontmatter')}
           </div>
           <div className="flex-1 min-h-0">
             <CodeMirror
@@ -61,7 +64,7 @@ export function EditorPanel({
         </div>
         <div className="flex-1 flex flex-col border border-border rounded-lg overflow-hidden min-h-0">
           <div className="shrink-0 px-2 py-1 text-[10px] font-semibold text-muted-foreground bg-muted/50 border-b border-border">
-            Markdown Body
+            {t('editor.markdownBody')}
           </div>
           <div className="flex-1 min-h-0">
             <CodeMirror

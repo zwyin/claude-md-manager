@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import type { RuleFile } from "./types";
+import { useI18n } from "@/i18n";
 
 interface PublishDialogProps {
   rules: RuleFile[];
@@ -11,13 +12,14 @@ interface PublishDialogProps {
 
 export function PublishDialog({ rules, onPublish, onCancel }: PublishDialogProps) {
   const draftRules = rules.filter((r) => r.has_draft);
+  const { t } = useI18n();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-card border border-border rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-        <h3 className="text-lg font-semibold mb-4">Publish Changes</h3>
+        <h3 className="text-lg font-semibold mb-4">{t('editor.publishTitle')}</h3>
         <p className="text-sm text-muted-foreground mb-3">
-          The following {draftRules.length} rule{draftRules.length !== 1 ? "s" : ""} will be written to disk and assembled:
+          {t('editor.publishDesc')}
         </p>
         <ul className="text-sm space-y-1 mb-4 max-h-48 overflow-y-auto">
           {draftRules.map((r) => (
@@ -30,10 +32,10 @@ export function PublishDialog({ rules, onPublish, onCancel }: PublishDialogProps
         </ul>
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onCancel}>
-            Cancel
+            {t('editor.cancel')}
           </Button>
           <Button onClick={onPublish}>
-            Publish {draftRules.length} Rule{draftRules.length !== 1 ? "s" : ""}
+            {t('editor.publish')} ({draftRules.length})
           </Button>
         </div>
       </div>

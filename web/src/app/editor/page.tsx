@@ -8,6 +8,7 @@ import { RuleListPanel } from "./RuleListPanel";
 import { EditorPanel } from "./EditorPanel";
 import { PreviewPanel } from "./PreviewPanel";
 import { PublishDialog } from "./PublishDialog";
+import { useI18n } from "@/i18n";
 
 export default function EditorPage() {
   const [rules, setRules] = useState<RuleFile[]>([]);
@@ -17,10 +18,10 @@ export default function EditorPage() {
   const [hasDraft, setHasDraft] = useState(false);
   const [showPublish, setShowPublish] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const { t } = useI18n();
 
   const selectedRule = rules.find((r) => r.rule_id === selectedId) ?? null;
 
-  // Load rules on mount
   useEffect(() => {
     fetch("/api/editor/rules")
       .then((r) => r.json())
@@ -32,7 +33,6 @@ export default function EditorPage() {
       });
   }, []);
 
-  // Load selected rule content
   useEffect(() => {
     if (!selectedRule) return;
 
@@ -102,7 +102,7 @@ export default function EditorPage() {
       if (data.error) {
         alert(`Publish failed: ${data.error}`);
       } else {
-        alert(`Published ${data.rulesChanged} rules successfully.`);
+        alert(t('editor.published', { count: data.rulesChanged }));
       }
     } catch (err) {
       alert(`Publish error: ${err}`);
@@ -114,7 +114,7 @@ export default function EditorPage() {
       setRules(refreshed.rules);
       setHasDraft(false);
     }
-  }, []);
+  }, [t]);
 
   const draftCount = rules.filter((r) => r.has_draft).length;
 
@@ -122,22 +122,22 @@ export default function EditorPage() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-2xl font-bold">Rule Editor</h1>
+          <h1 className="text-2xl font-bold">{t('editor.title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Drag to reorder, edit, preview, and publish rule changes.
+            {t('editor.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {draftCount > 0 && (
             <span className="text-xs text-orange-400">
-              {draftCount} unsaved draft{draftCount !== 1 ? "s" : ""}
+              {t('editor.unsavedDrafts', { count: draftCount })}
             </span>
           )}
           <Button
             onClick={() => setShowPublish(true)}
             disabled={draftCount === 0 || publishing}
           >
-            Publish All
+            {t('editor.publishAll')}
           </Button>
         </div>
       </div>
@@ -164,14 +164,14 @@ export default function EditorPage() {
             />
           ) : (
             <div className="flex-1 flex items-center justify-center text-muted-foreground">
-              Select a rule to edit
+              {t('editor.selectRule')}
             </div>
           ),
           preview: selectedRule ? (
             <PreviewPanel markdownBody={body} title={selectedRule.title} />
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-              Preview
+              {t('editor.preview')}
             </div>
           ),
         }}

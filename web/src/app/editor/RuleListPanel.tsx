@@ -5,6 +5,7 @@ import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type D
 import { CSS } from "@dnd-kit/utilities";
 import type { RuleFile } from "./types";
 import { Badge } from "@/components/ui/badge";
+import { useI18n } from "@/i18n";
 
 interface RuleListPanelProps {
   rules: RuleFile[];
@@ -38,7 +39,7 @@ function SortableCard({ rule, isSelected, onSelect }: { rule: RuleFile; isSelect
         <span className="text-xs text-muted-foreground w-6">{rule.order}</span>
         <span className="text-sm font-medium truncate flex-1">{rule.title}</span>
         {rule.has_draft && (
-          <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0" title="Has draft" />
+          <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0" title={t('editor.draft')} />
         )}
       </div>
       <div className="mt-1 pl-6">
@@ -51,6 +52,7 @@ function SortableCard({ rule, isSelected, onSelect }: { rule: RuleFile; isSelect
 }
 
 export function RuleListPanel({ rules, selectedId, onSelect, onReorder }: RuleListPanelProps) {
+  const { t } = useI18n();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
@@ -77,7 +79,9 @@ export function RuleListPanel({ rules, selectedId, onSelect, onReorder }: RuleLi
   return (
     <div className="p-2">
       <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-        Rules ({rules.length})
+      <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        {t('editor.rules')} ({rules.length})
+      </div>
       </div>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={rules.map((r) => r.rule_id)} strategy={verticalListSortingStrategy}>
