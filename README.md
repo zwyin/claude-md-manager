@@ -1,81 +1,223 @@
 # CLAUDE.md Manager
 
-模块化管理 `~/.claude/CLAUDE.md`，支持版本控制、可视化查看、规则引用频率统计。
+> Modular management for your `~/.claude/CLAUDE.md` — version control, citation tracking, and a visual dashboard.
+
+[中文文档](#中文文档)
+
+---
+
+## Features
+
+- **Modular Rules** — Split your CLAUDE.md into individual files with YAML frontmatter. Each file declares sub-rules and keywords for tracking.
+- **Build System** — One command assembles all rules into `~/.claude/CLAUDE.md`, sorted and versioned with git snapshots.
+- **Citation Tracking** — A Claude Code hook scans session logs and records which rules are actually referenced, with keyword-level granularity.
+- **Visual Dashboard** — A Next.js web app showing section-level aggregation, top rules, cold rules, citation history, and analytics.
+- **One-command Rollback** — Every build creates a snapshot. Roll back to any previous version instantly.
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.10+ with `pyyaml`
+- Node.js 20+ (for the dashboard)
+
+### Install
+
+```bash
+git clone https://github.com/zwyin/claude-md-manager.git
+cd claude-md-manager
+pip install pyyaml   # Python dependency
+cd web && npm install # Dashboard dependencies
+```
+
+### Build CLAUDE.md
+
+```bash
+# Build and write to ~/.claude/CLAUDE.md
+python build/assemble.py
+
+# Preview without writing
+python build/assemble.py --dry-run
+
+# Validate all rule file formats
+python build/assemble.py --validate
+
+# List available snapshots
+python build/assemble.py --list-snapshots
+
+# Rollback to a snapshot
+python build/assemble.py --rollback 2026-05-15T21-38-58
+```
+
+### Start the Dashboard
+
+```bash
+cd web && npm run dev    # Development: http://localhost:3456
+cd web && npm run build  # Production build
+```
+
+For auto-start on macOS, see `scripts/setup-launchd.sh`.
+
+### Register the Citation Hook
+
+Add to `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "command",
+        "command": "python3 /path/to/claude-md-manager/hooks/session-logger.py"
+      }]
+    }]
+  }
+}
+```
+
+Then sync rule metadata into the database:
+
+```bash
+python hooks/session-logger.py --sync-metadata
+```
+
+## Rule File Format
+
+Each file in `rules/` uses YAML frontmatter + Markdown:
+
+```yaml
+---
+id: task-triage
+title: Task Triage
+order: 10
+tags: [workflow, triage]
+rules:
+  - id: task-triage.readonly
+    title: Read-only Tasks
+    keywords: ["read-only", "analyze", "explain", "architecture"]
+  - id: task-triage.light
+    title: Light Tasks
+    keywords: ["light task", "single file", "bug fix"]
+---
+
+## Task Triage
+
+### Read-only Tasks
+- Analysis, explanation, code reading — handle directly.
+
+### Light Tasks
+- Single-file changes, clear bug fixes, config tweaks.
+```
+
+The build script:
+1. Scans `rules/*.md`, sorts by `order`
+2. Strips frontmatter, concatenates Markdown bodies
+3. Adds a timestamp header
+4. Writes to `~/.claude/CLAUDE.md` + saves a snapshot
+
+## Architecture
+
+```
+rules/*.md        → YAML frontmatter + Markdown body
+build/assemble.py → Sort by order, concatenate → ~/.claude/CLAUDE.md + snapshot
+hooks/            → session-logger.py (PostToolUse hook) → SQLite citations
+web/              → Next.js 16 + shadcn/ui dashboard
+data/usage.db     → SQLite (rule metadata + citations + sessions)
+data/history/     → Build snapshots for rollback
+```
+
+### Dashboard Pages
+
+| Page | Path | Description |
+|------|------|-------------|
+| Dashboard | `/` | Stats cards + Sections overview + Top 10 rules + Cold rules |
+| Rules | `/rules` | All rules grouped by section, collapsible |
+| Rule Detail | `/rules/[id]` | Single rule + keywords + citation records + sibling rules |
+| History | `/history` | Rule metadata grouped by update date |
+| Analytics | `/analytics` | Top 10 chart + category distribution |
+
+### Dashboard Tech Stack
+
+- Next.js 16 + React 19 + Tailwind CSS v4
+- **shadcn/ui** (Radix UI primitives) — Card, Table, Badge, Sidebar, Collapsible
+- better-sqlite3 (server-side, read-only)
+
+## Design Docs
+
+- [English](docs/specs/2026-05-15-claude-md-manager-design.md)
+- [Chinese](docs/specs/2026-05-15-claude-md-manager-design.zh.md)
+
+## Development
+
+```bash
+# Run tests
+python -m pytest tests/ -v
+
+# Build dashboard
+cd web && npm run build
+
+# Sync rule metadata
+python hooks/session-logger.py --sync-metadata
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+[MIT](LICENSE)
+
+---
+
+<a id="中文文档"></a>
+
+# CLAUDE.md Manager（中文）
+
+> 模块化管理 `~/.claude/CLAUDE.md` — 版本控制、引用追踪、可视化仪表盘。
+
+## 功能
+
+- **模块化规则** — 将 CLAUDE.md 拆分为独立文件，YAML frontmatter 声明子规则和关键词
+- **构建系统** — 一条命令按顺序拼接所有规则，写入 `~/.claude/CLAUDE.md` 并创建 git 快照
+- **引用追踪** — Claude Code Hook 扫描会话日志，记录哪些规则被实际引用
+- **可视化仪表盘** — Next.js Web 应用，展示章节聚合、热门规则、冷门规则、引用历史
+- **一键回滚** — 每次构建创建快照，可回滚到任意历史版本
 
 ## 快速开始
 
 ```bash
-# 构建并写入 ~/.claude/CLAUDE.md
-python build/assemble.py
+# 安装
+git clone https://github.com/zwyin/claude-md-manager.git
+cd claude-md-manager
+pip install pyyaml
+cd web && npm install
 
-# 预览（不写文件）
-python build/assemble.py --dry-run
+# 构建 CLAUDE.md
+python build/assemble.py              # 构建 + 快照 + git commit
+python build/assemble.py --dry-run    # 预览（不写文件）
+python build/assemble.py --validate   # 校验规则文件
+python build/assemble.py --rollback 2026-05-15T21-38-58  # 回滚
 
-# 验证所有规则文件格式
-python build/assemble.py --validate
-
-# 列出可回滚的快照
-python build/assemble.py --list-snapshots
-
-# 回滚到指定快照
-python build/assemble.py --rollback 2026-05-15T21-38-58
+# 启动仪表盘
+cd web && npm run dev                 # 开发模式 http://localhost:3456
 ```
 
-## 项目结构
+## 架构
 
 ```
-rules/           # 14 个模块化规则文件（YAML frontmatter + Markdown）
-build/           # assemble.py 构建脚本
-web/             # Next.js 可视化仪表盘（Phase 3）
-data/history/    # 构建快照（用于回滚）
-hooks/           # Claude Code Hook（引用追踪）
-scripts/         # 工具脚本
+rules/*.md        → YAML frontmatter + Markdown 正文
+build/assemble.py → 按 order 排序拼接 → ~/.claude/CLAUDE.md + 快照
+hooks/            → session-logger.py (PostToolUse) → SQLite 引用记录
+web/              → Next.js 16 + shadcn/ui 仪表盘
+data/usage.db     → SQLite (规则元数据 + 引用记录 + 会话信息)
+data/history/     → 构建快照（用于回滚）
 ```
-
-## 规则文件格式
-
-每个规则文件包含 YAML frontmatter（声明 ID、子规则、关键词）和 Markdown 正文：
-
-```yaml
----
-id: surgical-changes
-title: 手术刀原则
-order: 7
-tags: [coding-style, changes]
-rules:
-  - id: surgical-changes.no-adjacent
-    title: 不改相邻代码
-    keywords: ["相邻代码", "adjacent", "格式化"]
----
-```
-
-构建脚本按 `order` 排序拼接正文，剥离 frontmatter，输出到 `~/.claude/CLAUDE.md`。
 
 ## 设计文档
 
-- [英文版](docs/specs/2026-05-15-claude-md-manager-design.md) — for potential open source
-- [中文版](docs/specs/2026-05-15-claude-md-manager-design.zh.md) — 中文设计文档
+- [英文版](docs/specs/2026-05-15-claude-md-manager-design.md)
+- [中文版](docs/specs/2026-05-15-claude-md-manager-design.zh.md)
 
-## 实施阶段
+## 许可证
 
-- [x] **Phase 1**：构建系统 + 规则拆分 + Karpathy 新规则
-- [x] **Phase 2**：Hook 引用追踪 + 历史数据导入（1305 sessions, 7176 matches）
-- [x] **Phase 3**：Next.js 可视化仪表盘 + launchd 自启动（`http://0.0.0.0:3456`）
-- [x] **Phase 3.1**：迁移到 shadcn/ui（Radix UI + Tailwind CSS），修复侧边栏遮挡问题
-- [ ] **Phase 4**：收尾 — Hook 注册、单元测试、项目 CLAUDE.md
-
-### 仪表盘技术栈
-
-- Next.js 16 + React 19 + Tailwind CSS v4
-- **shadcn/ui**（Radix UI 原语）— Card, Table, Badge, Sidebar, Collapsible
-- better-sqlite3（服务端只读）
-
-### 仪表盘页面
-
-| 页面 | 路径 | 说明 |
-|------|------|------|
-| Dashboard | `/` | 总览：统计卡片 + Top 10 规则 + 冷规则 |
-| Rules | `/rules` | 51 条规则列表，按引用频次排序 |
-| Rule Detail | `/rules/[id]` | 单条规则详情 + 引用记录表 |
-| History | `/history` | 规则元数据按更新日期分组 |
-| Analytics | `/analytics` | Top 10 柱状图 + 分类分布表 |
+[MIT](LICENSE)
