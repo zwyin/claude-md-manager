@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface Rule {
   rule_id: string;
@@ -26,160 +29,93 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetch('/api/rules')
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((json) => {
-        setData(json);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
+      .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
+      .then((json) => { setData(json); setLoading(false); })
+      .catch((err) => { setError(err.message); setLoading(false); });
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-[#718096] text-sm">Loading...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
-        Failed to load data: {error}
-      </div>
-    );
-  }
-
+  if (loading) return <div className="text-muted-foreground p-4">Loading...</div>;
+  if (error) return <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-destructive text-sm">{error}</div>;
   if (!data) return null;
 
-  const topRules = [...(data.rules || [])]
-    .sort((a, b) => b.match_count - a.match_count)
-    .slice(0, 10);
-
+  const topRules = [...(data.rules || [])].sort((a, b) => b.match_count - a.match_count).slice(0, 10);
   const coldRules = (data.rules || []).filter((r) => r.match_count === 0);
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-[#1a202c]">Dashboard</h1>
-        <p className="text-sm text-[#718096] mt-1">CLAUDE.md rule overview and statistics</p>
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <p className="text-sm text-muted-foreground mt-1">CLAUDE.md rule overview and statistics</p>
       </div>
 
-      {/* Stats cards */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-lg border border-[#e2e8f0] p-5">
-          <div className="text-xs font-medium text-[#718096] uppercase tracking-wide">
-            Total Rules
-          </div>
-          <div className="text-3xl font-bold text-[#1a202c] mt-2">
-            {data.total_rules}
-          </div>
-        </div>
-        <div className="bg-white rounded-lg border border-[#e2e8f0] p-5">
-          <div className="text-xs font-medium text-[#718096] uppercase tracking-wide">
-            Total Sessions
-          </div>
-          <div className="text-3xl font-bold text-[#1a202c] mt-2">
-            {data.total_sessions}
-          </div>
-        </div>
-        <div className="bg-white rounded-lg border border-[#e2e8f0] p-5">
-          <div className="text-xs font-medium text-[#718096] uppercase tracking-wide">
-            Active Rule %
-          </div>
-          <div className="text-3xl font-bold text-[#48bb78] mt-2">
-            {data.active_rule_pct}%
-          </div>
-        </div>
+      <div className="grid grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-xs font-medium text-muted-foreground uppercase">Total Rules</CardTitle></CardHeader>
+          <CardContent><div className="text-3xl font-bold">{data.total_rules}</div></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-xs font-medium text-muted-foreground uppercase">Total Sessions</CardTitle></CardHeader>
+          <CardContent><div className="text-3xl font-bold">{data.total_sessions}</div></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-xs font-medium text-muted-foreground uppercase">Active Rule %</CardTitle></CardHeader>
+          <CardContent><div className="text-3xl font-bold text-green-600">{data.active_rule_pct}%</div></CardContent>
+        </Card>
       </div>
 
-      {/* Top 10 rules table */}
-      <div className="bg-white rounded-lg border border-[#e2e8f0]">
-        <div className="px-5 py-4 border-b border-[#e2e8f0]">
-          <h2 className="text-base font-semibold text-[#1a202c]">Top 10 Rules</h2>
-        </div>
-        {topRules.length > 0 ? (
-          <table className="w-full">
-            <thead>
-              <tr className="text-xs text-[#718096] uppercase tracking-wide border-b border-[#e2e8f0]">
-                <th className="text-left px-5 py-3 font-medium">Rule ID</th>
-                <th className="text-left px-5 py-3 font-medium">Title</th>
-                <th className="text-right px-5 py-3 font-medium">Sessions</th>
-                <th className="text-right px-5 py-3 font-medium">Matches</th>
-              </tr>
-            </thead>
-            <tbody>
+      <Card>
+        <CardHeader><CardTitle className="text-base">Top 10 Rules</CardTitle></CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Rule ID</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead className="text-right">Sessions</TableHead>
+                <TableHead className="text-right">Matches</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {topRules.map((rule) => (
-                <tr
-                  key={rule.rule_id}
-                  className="border-b border-[#e2e8f0] last:border-0 hover:bg-[#f7fafc] transition-colors"
-                >
-                  <td className="px-4 py-2.5 text-xs font-mono text-[#4299e1] max-w-[200px] truncate">
-                    <Link href={`/rules/${rule.rule_id}`} className="hover:underline">
-                      {rule.rule_id}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2.5 text-sm text-[#1a202c]">
-                    <Link href={`/rules/${rule.rule_id}`} className="hover:underline">
-                      {rule.title}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2.5 text-sm text-right text-[#4a5568]">
-                    {rule.session_count}
-                  </td>
-                  <td className="px-4 py-2.5 text-sm text-right">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      {rule.match_count}
-                    </span>
-                  </td>
-                </tr>
+                <TableRow key={rule.rule_id}>
+                  <TableCell className="font-mono text-xs text-blue-600">
+                    <Link href={`/rules/${rule.rule_id}`} className="hover:underline">{rule.rule_id}</Link>
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/rules/${rule.rule_id}`} className="hover:underline">{rule.title}</Link>
+                  </TableCell>
+                  <TableCell className="text-right">{rule.session_count}</TableCell>
+                  <TableCell className="text-right">
+                    <Badge variant="secondary">{rule.match_count}</Badge>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        ) : (
-          <div className="px-5 py-8 text-sm text-[#718096] text-center">
-            No rules data available
-          </div>
-        )}
-      </div>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      {/* Cold rules */}
       {coldRules.length > 0 && (
-        <div className="bg-white rounded-lg border border-[#e2e8f0]">
-          <div className="px-5 py-4 border-b border-[#e2e8f0] flex items-center gap-2">
-            <svg className="w-4 h-4 text-[#f6ad55]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-            <h2 className="text-base font-semibold text-[#1a202c]">Cold Rules (0 Matches)</h2>
-            <span className="ml-auto text-xs text-[#f6ad55] font-medium">
-              {coldRules.length} rules
-            </span>
-          </div>
-          <div className="divide-y divide-[#e2e8f0]">
-            {coldRules.map((rule) => (
-              <Link
-                key={rule.rule_id}
-                href={`/rules/${rule.rule_id}`}
-                className="flex items-center justify-between px-5 py-3 hover:bg-[#f7fafc] transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-mono text-[#4a5568]">{rule.rule_id}</span>
-                  <span className="text-sm text-[#1a202c]">{rule.title}</span>
-                </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                  0 matches
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center gap-2">
+            <CardTitle className="text-base">Cold Rules (0 Matches)</CardTitle>
+            <Badge variant="outline" className="ml-auto text-amber-600">{coldRules.length} rules</Badge>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y">
+              {coldRules.map((rule) => (
+                <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
+                  className="flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-mono text-muted-foreground">{rule.rule_id}</span>
+                    <span className="text-sm">{rule.title}</span>
+                  </div>
+                  <Badge variant="destructive" className="text-xs">0 matches</Badge>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
