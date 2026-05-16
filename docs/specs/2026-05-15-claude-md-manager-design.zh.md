@@ -368,3 +368,4 @@ GET /api/analytics      → 聚合分析数据
 | 版本控制策略 | Git + 符号链接 / 模块化构建 / 直接 track | 模块化拆分 + 构建组装 | 粒度可控、diff 清晰 |
 | 模块粒度 | Section 级 / Atomic Rule 级 / 两层结构 | 两层结构 | Section 文件 + 子规则 ID，平衡管理成本和追踪粒度 |
 | Hook 数据源 | hook stdin / session JSONL | session JSONL | Claude Code hook 不传完整对话，需直接读文件 |
+| UI 框架 | 手写 Tailwind / shadcn/ui / MUI | shadcn/ui | 手写 CSS 导致侧边栏遮挡内容，shadcn/ui 基于 Radix UI 原语，布局可靠 |
