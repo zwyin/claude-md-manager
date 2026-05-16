@@ -1,0 +1,48 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getDraft, saveDraft, deleteDraft } from "@/lib/editor-db";
+
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  try {
+    const draft = getDraft(decodeURIComponent(id));
+    if (!draft) return NextResponse.json(null, { status: 404 });
+    return NextResponse.json(draft);
+  } catch (error) {
+    return NextResponse.json({ error: String(error) }, { status: 500 });
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  try {
+    const body = await request.json();
+    saveDraft(
+      decodeURIComponent(id),
+      body.frontmatter_yaml,
+      body.markdown_body,
+      body.order_override
+    );
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return NextResponse.json({ error: String(error) }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  try {
+    deleteDraft(decodeURIComponent(id));
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return NextResponse.json({ error: String(error) }, { status: 500 });
+  }
+}
