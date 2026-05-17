@@ -108,7 +108,7 @@ export default function DashboardPage() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={sectionChartData} layout="vertical" margin={{ left: 20, right: 20 }}>
                 <XAxis type="number" hide />
-                <YAxis type="category" dataKey="name" width={140} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                <YAxis type="category" dataKey="name" width={140} tick={{ fill: '#cbd5e1', fontSize: 12 }} />
                 <RechartsTooltip
                   {...tooltipStyle}
                   formatter={(value, _name, props) => [value, (props as { payload: { fullName: string } }).payload.fullName]}
@@ -133,7 +133,7 @@ export default function DashboardPage() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={topRulesChartData} layout="vertical" margin={{ left: 20, right: 20 }}>
                 <XAxis type="number" hide />
-                <YAxis type="category" dataKey="name" width={160} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                <YAxis type="category" dataKey="name" width={160} tick={{ fill: '#cbd5e1', fontSize: 12 }} />
                 <RechartsTooltip
                   {...tooltipStyle}
                   formatter={(value, _name, props) => [value, (props as { payload: { fullName: string } }).payload.fullName]}

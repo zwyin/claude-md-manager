@@ -85,7 +85,7 @@ export default function AnalyticsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={topRulesData} layout="vertical" margin={{ left: 20, right: 20 }}>
                   <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="name" width={120} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                  <YAxis type="category" dataKey="name" width={120} tick={{ fill: '#cbd5e1', fontSize: 12 }} />
                   <RechartsTooltip {...tooltipStyle} formatter={(value, _name, props) => [value, (props as { payload: { fullName: string } }).payload.fullName]} />
                   <Bar dataKey="citations" radius={[0, 4, 4, 0]} maxBarSize={20}>
                     {topRulesData.map((_, i) => (
@@ -110,7 +110,7 @@ export default function AnalyticsPage() {
                     innerRadius={60} outerRadius={100}
                     paddingAngle={2}
                     dataKey="value"
-                    label={({ name, percent }: { name?: string; percent?: number }) => `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                    label={({ name, percent }: { name?: string; percent?: number }) => <span className="text-xs text-slate-200">{name ?? ''} {((percent ?? 0) * 100).toFixed(0)}%</span>}
                   >
                     {pieData.map((_, i) => (
                       <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
@@ -155,8 +155,8 @@ export default function AnalyticsPage() {
                       <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="period" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                  <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                  <XAxis dataKey="period" tick={{ fill: '#cbd5e1', fontSize: 11 }} />
+                  <YAxis tick={{ fill: '#cbd5e1', fontSize: 11 }} />
                   <RechartsTooltip {...tooltipStyle} />
                   <Area type="monotone" dataKey="count" stroke="#6366f1" fill="url(#trendGradient)" strokeWidth={2} />
                 </AreaChart>
