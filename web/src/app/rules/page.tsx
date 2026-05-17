@@ -115,9 +115,9 @@ function RulesContent() {
           const color = SECTION_COLORS[sIdx % SECTION_COLORS.length];
 
           return (
-            <Card key={sectionId} className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50 overflow-hidden">
+            <Card key={sectionId} className="rounded-xl border-border bg-card overflow-hidden">
               <Collapsible open={isOpen} onOpenChange={() => toggle(sectionId)}>
-                <CollapsibleTrigger className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-800/50 transition-colors text-left">
+                <CollapsibleTrigger className="w-full flex items-center justify-between px-5 py-4 hover:bg-accent/50 transition-colors text-left">
                   <div className="flex items-center gap-3">
                     <div className="w-1 h-6 rounded-full" style={{ backgroundColor: color }} />
                     <svg className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -130,10 +130,10 @@ function RulesContent() {
                   <span className="text-xs text-muted-foreground">{t('rules.totalMatches', { count: totalMatches })}</span>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="border-t border-slate-800">
+                  <div className="border-t border-border">
                     {rules.map((rule) => (
                       <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
-                        className="flex items-center justify-between px-5 py-3 pl-14 border-b border-slate-800 last:border-0 hover:bg-slate-800/30 transition-colors">
+                        className="flex items-center justify-between px-5 py-3 pl-14 border-b border-border last:border-0 hover:bg-accent/30 transition-colors">
                         <div className="flex items-center gap-3 min-w-0">
                           <span className="text-xs font-mono text-muted-foreground shrink-0">{rule.rule_id}</span>
                           <span className="text-sm truncate">{rule.title}</span>

@@ -84,7 +84,7 @@ export default function RuleDetailPage() {
         <span className="text-foreground">{rule.title}</span>
       </nav>
 
-      <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
+      <Card className="rounded-xl border-border bg-card">
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
@@ -113,7 +113,7 @@ export default function RuleDetailPage() {
         </CardHeader>
         {rule.keywords && rule.keywords.length > 0 && (
           <CardContent>
-            <div className="border-t border-slate-800 pt-4">
+            <div className="border-t border-border pt-4">
               <p className="text-xs font-medium text-muted-foreground uppercase mb-2">
                 <TermTooltip term={t('term.keywords')} explanation={t('term.keywords.desc')} />
               </p>
@@ -128,7 +128,7 @@ export default function RuleDetailPage() {
       </Card>
 
       {siblings.length > 0 && (
-        <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
+        <Card className="rounded-xl border-border bg-card">
           <CardHeader>
             <CardTitle className="text-base">{t('ruleDetail.sameSection')} ({rule.section_id})</CardTitle>
           </CardHeader>
@@ -136,7 +136,7 @@ export default function RuleDetailPage() {
             <div className="flex gap-3 overflow-x-auto pb-2">
               {siblings.map((sib) => (
                 <Link key={sib.rule_id} href={`/rules/${sib.rule_id}`}
-                  className="shrink-0 w-48 p-3 rounded-lg border border-slate-800 bg-slate-900/50 hover:border-indigo-500/30 transition-colors">
+                  className="shrink-0 w-48 p-3 rounded-lg border border-border bg-accent/50 hover:border-indigo-500/30 transition-colors">
                   <p className="text-xs font-mono text-muted-foreground mb-1">{sib.rule_id}</p>
                   <p className="text-sm font-medium truncate">{sib.title}</p>
                   <div className="flex gap-2 mt-2">
@@ -149,7 +149,7 @@ export default function RuleDetailPage() {
         </Card>
       )}
 
-      <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
+      <Card className="rounded-xl border-border bg-card">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <TermTooltip term={t('term.citation')} explanation={t('term.citation.desc')} />
@@ -182,7 +182,7 @@ export default function RuleDetailPage() {
                 </TableBody>
               </Table>
               {citations.length > 50 && (
-                <div className="px-6 py-3 text-xs text-muted-foreground text-center border-t border-slate-800">
+                <div className="px-6 py-3 text-xs text-muted-foreground text-center border-t border-border">
                   {t('ruleDetail.showing', { shown: 50, total: citations.length })}
                 </div>
               )}

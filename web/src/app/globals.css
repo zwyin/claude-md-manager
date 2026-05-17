@@ -10,39 +10,39 @@
   --sidebar-active: #0f3460;
   --sidebar-text: #a0aec0;
   --sidebar-text-active: #e2e8f0;
-  --content-bg: #f7f8fc;
-  --card-bg: #ffffff;
-  --text-primary: #1a202c;
-  --text-secondary: #4a5568;
-  --text-muted: #718096;
-  --border-color: #e2e8f0;
-  --accent-green: #48bb78;
-  --accent-red: #fc8181;
-  --accent-amber: #f6ad55;
-  --accent-blue: #4299e1;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --content-bg: #0f172a;
+  --card-bg: #1e293b;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border-color: #334155;
+  --accent-green: #4ade80;
+  --accent-red: #f87171;
+  --accent-amber: #fbbf24;
+  --accent-blue: #60a5fa;
+  --background: #0f172a;
+  --foreground: #e2e8f0;
+  --card: #1e293b;
+  --card-foreground: #e2e8f0;
+  --popover: #1e293b;
+  --popover-foreground: #e2e8f0;
+  --primary: oklch(0.708 0.165 254.624);
+  --primary-foreground: #ffffff;
+  --secondary: #1e293b;
+  --secondary-foreground: #e2e8f0;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --accent-foreground: #e2e8f0;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --border: #334155;
+  --input: #334155;
+  --ring: oklch(0.708 0.165 254.624);
+  --chart-1: oklch(0.708 0.165 254.624);
+  --chart-2: oklch(0.6 0.2 265);
+  --chart-3: oklch(0.65 0.18 280);
+  --chart-4: oklch(0.55 0.15 290);
+  --chart-5: oklch(0.5 0.12 300);
   --radius: 0.625rem;
   --sidebar: #1a1a2e;
   --sidebar-foreground: #a0aec0;
@@ -121,12 +121,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
+  background: #475569;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a0aec0;
+  background: #64748b;
 }
 
 .dark {

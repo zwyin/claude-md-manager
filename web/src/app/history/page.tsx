@@ -37,12 +37,12 @@ export default function HistoryPage() {
 
       {snapshots.length > 0 ? (
         <div className="relative pl-8">
-          <div className="absolute left-3 top-0 bottom-0 w-px bg-slate-800" />
+          <div className="absolute left-3 top-0 bottom-0 w-px bg-border" />
           <div className="space-y-4">
             {snapshots.map((s, i) => (
               <div key={i} className="relative">
-                <div className="absolute -left-5 top-4 w-3 h-3 rounded-full bg-indigo-500 border-2 border-slate-950" />
-                <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50 ml-4">
+                <div className="absolute -left-5 top-4 w-3 h-3 rounded-full bg-indigo-500 border-2 border-slate-900" />
+                <Card className="rounded-xl border-border bg-card ml-4">
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Clock className="w-4 h-4 text-muted-foreground" />
@@ -58,7 +58,7 @@ export default function HistoryPage() {
         </div>
       ) : (
         <div className="text-center py-16">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-800 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-border flex items-center justify-center">
             <Clock className="w-8 h-8 text-muted-foreground" />
           </div>
           <p className="text-muted-foreground">{t('history.noSnapshots')}</p>

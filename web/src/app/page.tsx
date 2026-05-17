@@ -98,7 +98,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
+      <Card className="rounded-xl border-border bg-card">
         <CardHeader>
           <CardTitle className="text-base">{t('dashboard.sections')}</CardTitle>
           <p className="text-xs text-muted-foreground">{t('dashboard.sections.subtitle')}</p>
@@ -124,7 +124,7 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
+      <Card className="rounded-xl border-border bg-card">
         <CardHeader>
           <CardTitle className="text-base">{t('dashboard.topRules')}</CardTitle>
         </CardHeader>
@@ -147,8 +147,8 @@ export default function DashboardPage() {
 
       {coldRules.length > 0 && (
         <Collapsible open={coldOpen} onOpenChange={setColdOpen}>
-          <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
-            <CollapsibleTrigger className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-800/50 transition-colors text-left">
+          <Card className="rounded-xl border-border bg-card">
+            <CollapsibleTrigger className="w-full flex items-center justify-between px-6 py-4 hover:bg-accent/50 transition-colors text-left">
               <div className="flex items-center gap-3">
                 <svg className={`w-4 h-4 text-muted-foreground transition-transform ${coldOpen ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -160,10 +160,10 @@ export default function DashboardPage() {
               <Badge variant="outline" className="text-amber-500">{t('dashboard.coldRules.count', { count: coldRules.length })}</Badge>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="border-t border-slate-800 divide-y divide-slate-800">
+              <div className="border-t border-border divide-y divide-border">
                 {coldRules.map((rule) => (
                   <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
-                    className="flex items-center justify-between px-6 py-3 hover:bg-slate-800/30 transition-colors">
+                    className="flex items-center justify-between px-6 py-3 hover:bg-accent/50 transition-colors">
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-mono text-muted-foreground">{rule.rule_id}</span>
                       <span className="text-sm">{rule.title}</span>

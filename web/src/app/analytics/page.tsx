@@ -78,7 +78,7 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
+        <Card className="rounded-xl border-border bg-card">
           <CardHeader><CardTitle className="text-base">{t('analytics.topRules')}</CardTitle></CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -98,7 +98,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
+        <Card className="rounded-xl border-border bg-card">
           <CardHeader><CardTitle className="text-base">{t('analytics.sectionDist')}</CardTitle></CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -126,7 +126,7 @@ export default function AnalyticsPage() {
       </div>
 
       {data.citation_trend && data.citation_trend.length > 0 && (
-        <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
+        <Card className="rounded-xl border-border bg-card">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">{t('analytics.citationTrend')}</CardTitle>
@@ -167,7 +167,7 @@ export default function AnalyticsPage() {
       )}
 
       {data.cold_rules && data.cold_rules.length > 0 && (
-        <Card className="rounded-xl border-slate-800 bg-gradient-to-br from-slate-900 to-slate-900/50">
+        <Card className="rounded-xl border-border bg-card">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">
@@ -177,10 +177,10 @@ export default function AnalyticsPage() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y divide-slate-800">
+            <div className="divide-y divide-border">
               {data.cold_rules.map((rule) => (
                 <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
-                  className="flex items-center justify-between px-6 py-3 hover:bg-slate-800/30 transition-colors">
+                  className="flex items-center justify-between px-6 py-3 hover:bg-accent/30 transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="text-sm font-mono text-muted-foreground shrink-0">{rule.rule_id}</span>
                     <span className="text-sm truncate">{rule.title}</span>
