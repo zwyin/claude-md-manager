@@ -33,6 +33,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (dicts[newLang]) {
       setLangState(newLang);
       localStorage.setItem('lang', newLang);
+      document.documentElement.lang = localeMap[newLang] || 'zh-CN';
     }
   }, []);
 
