@@ -9,6 +9,7 @@ import { EditorPanel } from "./EditorPanel";
 import { PreviewPanel } from "./PreviewPanel";
 import { PublishDialog } from "./PublishDialog";
 import { useI18n } from "@/i18n";
+import { toast } from "sonner";
 
 export default function EditorPage() {
   const [rules, setRules] = useState<RuleFile[]>([]);
@@ -100,12 +101,12 @@ export default function EditorPage() {
       const res = await fetch("/api/editor/publish", { method: "POST" });
       const data = await res.json();
       if (data.error) {
-        alert(`Publish failed: ${data.error}`);
+        toast.error(`Publish failed: ${data.error}`);
       } else {
-        alert(t('editor.published', { count: data.rulesChanged }));
+        toast.success(t('editor.published', { count: data.rulesChanged }));
       }
     } catch (err) {
-      alert(`Publish error: ${err}`);
+      toast.error(`Publish error: ${err}`);
     } finally {
       setPublishing(false);
       setShowPublish(false);

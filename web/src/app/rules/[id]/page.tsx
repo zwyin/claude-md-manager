@@ -39,27 +39,11 @@ export default function RuleDetailPage() {
       .then((json) => {
         setRule(json.rule);
         setCitations(json.citations || []);
+        setSiblings(json.siblings || []);
         setLoading(false);
       })
       .catch((err) => { setError(err.message); setLoading(false); });
   }, [ruleId]);
-
-  useEffect(() => {
-    if (!rule?.section_id) return;
-    fetch('/api/rules')
-      .then((res) => res.json())
-      .then((json) => {
-        const allRules = json.rules || [];
-        const sibs = allRules
-          .filter((r: { section_id: string; rule_id: string }) => r.section_id === rule.section_id && r.rule_id !== rule.rule_id)
-          .map((r: { rule_id: string; title: string; session_count: number; match_count: number }) => ({
-            rule_id: r.rule_id, title: r.title,
-            session_count: r.session_count || 0, match_count: r.match_count || 0,
-          }));
-        setSiblings(sibs);
-      })
-      .catch(() => {});
-  }, [rule?.section_id, rule?.rule_id]);
 
   if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
   if (error) return (

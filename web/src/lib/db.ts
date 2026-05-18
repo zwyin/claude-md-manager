@@ -115,7 +115,7 @@ export function getRulesWithStats(days?: number): RuleWithStats[] {
 export function getRuleDetail(
   ruleId: string,
   days?: number
-): { rule: RuleWithStats; citations: CitationRecord[] } | null {
+): { rule: RuleWithStats; citations: CitationRecord[]; siblings: Array<{ rule_id: string; title: string; match_count: number; session_count: number }> } | null {
   const db = getDb();
   try {
     const ruleRow = db
@@ -155,6 +155,23 @@ export function getRuleDetail(
       )
       .all(ruleId) as CitationRecord[];
 
+    const siblings = db
+      .prepare(
+        `
+        SELECT m.rule_id, m.title,
+               COUNT(r.id) AS match_count,
+               COUNT(DISTINCT r.session_id) AS session_count
+        FROM rules_metadata m
+        LEFT JOIN rule_references r ON r.rule_id = m.rule_id
+        WHERE m.section_id = ? AND m.rule_id != ?
+        GROUP BY m.rule_id
+        ORDER BY match_count DESC
+        `
+      )
+      .all(ruleRow.section_id, ruleId) as Array<{
+      rule_id: string; title: string; match_count: number; session_count: number;
+    }>;
+
     return {
       rule: {
         ...ruleRow,
@@ -163,6 +180,7 @@ export function getRuleDetail(
         last_cited: citationCountRow.last_cited,
       },
       citations,
+      siblings,
     };
   } finally {
     db.close();
