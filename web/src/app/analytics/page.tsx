@@ -134,14 +134,14 @@ export default function AnalyticsPage() {
                     innerRadius={60} outerRadius={100}
                     paddingAngle={2}
                     dataKey="value"
-                    label={({ name, percent }: { name?: string; percent?: number }) => <span className="text-xs text-slate-200">{name ?? ''} {((percent ?? 0) * 100).toFixed(0)}%</span>}
+                    label={({ name, percent }: { name?: string; percent?: number }) => <span className="text-xs text-foreground">{name ?? ''} {((percent ?? 0) * 100).toFixed(0)}%</span>}
                   >
                     {pieData.map((_, i) => (
                       <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                     ))}
                   </Pie>
                   <RechartsTooltip {...tooltipStyle} formatter={(value, _name, props) => [`${value} (${(props as { payload: { ruleCount: number } }).payload.ruleCount} rules)`, (props as { payload: { name: string } }).payload.name]} />
-                  <Legend formatter={(value: string) => <span className="text-xs text-slate-400">{value}</span>} />
+                  <Legend formatter={(value: string) => <span className="text-xs text-muted-foreground">{value}</span>} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
