@@ -27,15 +27,16 @@ export interface SectionWithStats {
   total_sessions: number;
 }
 
-export function getSectionsWithStats(days?: number): SectionWithStats[] {
-  const db = getDb();
+export function getSectionsWithStats(days?: number, db?: Database.Database): SectionWithStats[] {
+  const own = !db;
+  const conn = db || getDb();
   try {
     const timeFilter = days
       ? `AND r.timestamp >= datetime('now', ? || ' days')`
       : '';
     const params = days ? [`-${days}`] : [];
 
-    return db
+    return conn
       .prepare(
         `
         SELECT
@@ -60,21 +61,22 @@ export function getSectionsWithStats(days?: number): SectionWithStats[] {
       .bind(...params)
       .all() as SectionWithStats[];
   } finally {
-    db.close();
+    if (own) conn.close();
   }
 }
 
 // ── Rules ──
 
-export function getRulesWithStats(days?: number): RuleWithStats[] {
-  const db = getDb();
+export function getRulesWithStats(days?: number, db?: Database.Database): RuleWithStats[] {
+  const own = !db;
+  const conn = db || getDb();
   try {
     const timeFilter = days
       ? `AND r.timestamp >= datetime('now', ? || ' days')`
       : '';
     const params = days ? [`-${days}`] : [];
 
-    const rows = db
+    const rows = conn
       .prepare(
         `
         SELECT
@@ -116,7 +118,7 @@ export function getRulesWithStats(days?: number): RuleWithStats[] {
       match_count: row.citation_count || 0,
     }));
   } finally {
-    db.close();
+    if (own) conn.close();
   }
 }
 
@@ -212,19 +214,20 @@ export function getRuleDetail(
 
 // ── Sessions ──
 
-export function getTotalSessionCount(days?: number): number {
-  const db = getDb();
+export function getTotalSessionCount(days?: number, db?: Database.Database): number {
+  const own = !db;
+  const conn = db || getDb();
   try {
     if (days) {
       return (
-        db
+        conn
           .prepare(`SELECT COUNT(*) AS c FROM sessions WHERE started_at >= datetime('now', ? || ' days')`)
           .get(`-${days}`) as { c: number }
       ).c;
     }
-    return (db.prepare('SELECT COUNT(*) AS c FROM sessions').get() as { c: number }).c;
+    return (conn.prepare('SELECT COUNT(*) AS c FROM sessions').get() as { c: number }).c;
   } finally {
-    db.close();
+    if (own) conn.close();
   }
 }
 
