@@ -13,6 +13,7 @@ import {
 import { StatCard } from '@/components/stat-card';
 import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
+import { useChartTheme } from '@/hooks/use-chart-theme';
 
 interface TopRule { rule_id: string; title: string; citation_count: number; }
 interface ColdRule { rule_id: string; title: string; days_since_last_citation: number | null; }
@@ -35,6 +36,7 @@ export default function AnalyticsPage() {
   const [trendMode, setTrendMode] = useState<'day' | 'week' | 'month'>('day');
   const [timeRange, setTimeRange] = useState<number | undefined>(undefined);
   const { t } = useI18n();
+  const chartTheme = useChartTheme();
 
   useEffect(() => {
     setLoading(true);
@@ -64,7 +66,7 @@ export default function AnalyticsPage() {
   }));
 
   const tooltipStyle = {
-    contentStyle: { backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#e2e8f0' },
+    contentStyle: { backgroundColor: chartTheme.card, border: `1px solid ${chartTheme.border}`, borderRadius: '8px', color: chartTheme.foreground },
   };
 
   return (
@@ -109,7 +111,7 @@ export default function AnalyticsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={topRulesData} layout="vertical" margin={{ left: 20, right: 20 }}>
                   <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="name" width={120} tick={{ fill: '#cbd5e1', fontSize: 12 }} />
+                  <YAxis type="category" dataKey="name" width={120} tick={{ fill: chartTheme.mutedForeground, fontSize: 12 }} />
                   <RechartsTooltip {...tooltipStyle} formatter={(value, _name, props) => [value, (props as { payload: { fullName: string } }).payload.fullName]} />
                   <Bar dataKey="citations" radius={[0, 4, 4, 0]} maxBarSize={20}>
                     {topRulesData.map((_, i) => (
@@ -179,8 +181,8 @@ export default function AnalyticsPage() {
                       <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="period" tick={{ fill: '#cbd5e1', fontSize: 11 }} />
-                  <YAxis tick={{ fill: '#cbd5e1', fontSize: 11 }} />
+                  <XAxis dataKey="period" tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
+                  <YAxis tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
                   <RechartsTooltip {...tooltipStyle} />
                   <Area type="monotone" dataKey="count" stroke="#6366f1" fill="url(#trendGradient)" strokeWidth={2} />
                 </AreaChart>
