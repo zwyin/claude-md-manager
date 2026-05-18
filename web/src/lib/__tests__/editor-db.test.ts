@@ -202,7 +202,7 @@ describe('getPublishHistory', () => {
 
 describe('getAllRulesWithDraftStatus', () => {
   it('reads rules from disk and merges with drafts', () => {
-    vi.mocked(fs.readdirSync).mockReturnValue(['01-intro.md', '02-core.md'] as unknown as fs.Dirent[]);
+    vi.mocked(fs.readdirSync).mockReturnValue(['01-intro.md', '02-core.md'] as any);
     vi.mocked(fs.readFileSync).mockImplementation(((_path: unknown) => {
       const p = String(_path);
       if (p.includes('01-intro')) return '---\nid: intro\ntitle: Intro\norder: 10\n---\nIntro body';
@@ -252,7 +252,7 @@ describe('publishDrafts', () => {
     });
 
     // Mock getAllRulesWithDraftStatus's filesystem reads
-    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as unknown as fs.Dirent[]);
+    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as any);
     vi.mocked(fs.readFileSync).mockReturnValue('---\nid: core\ntitle: Core\norder: 10\n---\nCore body');
 
     // Mock assemble.py success
@@ -276,7 +276,7 @@ describe('publishDrafts', () => {
       return mockStatement({});
     });
 
-    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as unknown as fs.Dirent[]);
+    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as any);
     vi.mocked(fs.readFileSync).mockReturnValue('---\nid: core\norder: 10\n---\nbody');
     vi.mocked(execFileSync).mockImplementation(() => {
       const err = new Error('assemble failed') as Error & { stderr?: string };
@@ -300,7 +300,7 @@ describe('publishDrafts', () => {
       return mockStatement({});
     });
 
-    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as unknown as fs.Dirent[]);
+    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as any);
     vi.mocked(fs.readFileSync).mockReturnValue('---\nid: core\norder: 10\n---\nbody');
     vi.mocked(execFileSync).mockReturnValue('Built CLAUDE.md');
 
@@ -323,7 +323,7 @@ describe('publishDrafts', () => {
       return mockStatement({});
     });
 
-    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as unknown as fs.Dirent[]);
+    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as any);
     vi.mocked(fs.readFileSync).mockReturnValue('---\nid: core\norder: 10\n---\nbody');
     vi.mocked(execFileSync).mockReturnValue('Built CLAUDE.md');
 
@@ -344,7 +344,7 @@ describe('publishDrafts', () => {
       return mockStatement({});
     });
 
-    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as unknown as fs.Dirent[]);
+    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as any);
     vi.mocked(fs.readFileSync).mockReturnValue('---\nid: core\norder: 10\n---\nbody');
     vi.mocked(execFileSync).mockImplementation(() => {
       throw new Error('spawn failed');

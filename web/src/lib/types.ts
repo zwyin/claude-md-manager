@@ -30,11 +30,14 @@ export interface Session {
 export interface RuleWithStats {
   rule_id: string;
   section_id: string;
+  section_title: string;
   title: string;
   keywords: string[];
   source_file: string;
   updated_at: string;
   citation_count: number;
+  match_count: number;
+  session_count: number;
   last_cited: string | null;
 }
 

@@ -69,7 +69,7 @@ describe('listSnapshotFiles', () => {
       '2026-01-01.md',
       '2026-01-02.md',
       'ignore.txt',
-    ] as unknown as fs.Dirent[]);
+    ] as any);
     vi.mocked(fs.statSync).mockReturnValue({ size: 42 } as fs.Stats);
 
     const result = listSnapshotFiles();

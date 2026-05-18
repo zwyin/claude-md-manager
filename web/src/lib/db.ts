@@ -120,10 +120,21 @@ export function getRulesWithStats(days?: number): RuleWithStats[] {
   }
 }
 
+export interface RuleDetail {
+  rule_id: string;
+  section_id: string;
+  title: string;
+  keywords: string[];
+  source_file: string;
+  updated_at: string;
+  citation_count: number;
+  last_cited: string | null;
+}
+
 export function getRuleDetail(
   ruleId: string,
   days?: number
-): { rule: RuleWithStats; citations: CitationRecord[]; siblings: Array<{ rule_id: string; title: string; match_count: number; session_count: number }> } | null {
+): { rule: RuleDetail; citations: CitationRecord[]; siblings: Array<{ rule_id: string; title: string; match_count: number; session_count: number }> } | null {
   const db = getDb();
   try {
     const ruleRow = db
