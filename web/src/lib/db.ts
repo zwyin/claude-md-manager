@@ -146,8 +146,8 @@ export function getRuleDetail(
 
     const citationCountRow = db
       .prepare(
-        `SELECT COUNT(*) AS citation_count, MAX(timestamp) AS last_cited
-         FROM rule_references WHERE rule_id = ? ${timeFilter}`
+        `SELECT COUNT(*) AS citation_count, MAX(r.timestamp) AS last_cited
+         FROM rule_references r WHERE r.rule_id = ? ${timeFilter}`
       )
       .bind(ruleId, ...timeParams)
       .get() as { citation_count: number; last_cited: string | null };
@@ -173,13 +173,14 @@ export function getRuleDetail(
                COUNT(r.id) AS match_count,
                COUNT(DISTINCT r.session_id) AS session_count
         FROM rules_metadata m
-        LEFT JOIN rule_references r ON r.rule_id = m.rule_id
+        LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${timeFilter}
         WHERE m.section_id = ? AND m.rule_id != ?
         GROUP BY m.rule_id
         ORDER BY match_count DESC
         `
       )
-      .all(ruleRow.section_id, ruleId) as Array<{
+      .bind(...timeParams, ruleRow.section_id, ruleId)
+      .all() as Array<{
       rule_id: string; title: string; match_count: number; session_count: number;
     }>;
 
