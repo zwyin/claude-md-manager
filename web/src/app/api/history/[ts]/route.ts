@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import { getSnapshotContent, listSnapshotFiles } from '@/lib/snapshots';
 
+const TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}$/;
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ ts: string }> }
 ) {
   try {
     const { ts } = await params;
+    if (!TIMESTAMP_RE.test(ts)) {
+      return NextResponse.json({ error: 'Invalid timestamp format' }, { status: 400 });
+    }
     // Find matching snapshot file
     const snapshots = listSnapshotFiles();
     const match = snapshots.find(

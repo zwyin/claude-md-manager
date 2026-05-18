@@ -25,13 +25,17 @@ export default function EditorPage() {
 
   useEffect(() => {
     fetch("/api/editor/rules")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
         setRules(data.rules);
         if (data.rules.length > 0 && !selectedId) {
           setSelectedId(data.rules[0].rule_id);
         }
-      });
+      })
+      .catch(() => toast.error(t('editor.loadFailed')));
   }, []);
 
   useEffect(() => {
@@ -40,6 +44,7 @@ export default function EditorPage() {
     fetch(`/api/editor/rules/${encodeURIComponent(selectedRule.rule_id)}/draft`)
       .then((r) => {
         if (r.status === 404) return null;
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
       .then((draft) => {
@@ -52,7 +57,8 @@ export default function EditorPage() {
           setBody(selectedRule.markdown_body);
           setHasDraft(false);
         }
-      });
+      })
+      .catch(() => toast.error(t('editor.draftLoadFailed')));
   }, [selectedId, rules]);
 
   const handleSaveDraft = useCallback(async () => {

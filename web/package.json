@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npx tsx --test 'src/lib/__tests__/*.test.ts'"
+    "test": "npx vitest run"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

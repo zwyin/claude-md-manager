@@ -1,60 +1,59 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
+import { describe, it, expect } from 'vitest';
 import { diffLines } from '../diff';
 
 describe('diffLines', () => {
   it('returns empty for two empty inputs', () => {
     const result = diffLines([], []);
-    assert.deepEqual(result, []);
+    expect(result).toEqual([]);
   });
 
   it('returns all added when from is empty', () => {
     const result = diffLines([], ['a', 'b']);
-    assert.equal(result.length, 2);
-    assert.equal(result[0].type, 'added');
-    assert.equal(result[0].content, 'a');
-    assert.equal(result[1].type, 'added');
-    assert.equal(result[1].content, 'b');
+    expect(result).toHaveLength(2);
+    expect(result[0].type).toBe('added');
+    expect(result[0].content).toBe('a');
+    expect(result[1].type).toBe('added');
+    expect(result[1].content).toBe('b');
   });
 
   it('returns all removed when to is empty', () => {
     const result = diffLines(['a', 'b'], []);
-    assert.equal(result.length, 2);
-    assert.equal(result[0].type, 'removed');
-    assert.equal(result[1].type, 'removed');
+    expect(result).toHaveLength(2);
+    expect(result[0].type).toBe('removed');
+    expect(result[1].type).toBe('removed');
   });
 
   it('returns all unchanged for identical inputs', () => {
     const result = diffLines(['a', 'b', 'c'], ['a', 'b', 'c']);
-    assert.equal(result.length, 3);
-    assert.ok(result.every((l) => l.type === 'unchanged'));
+    expect(result).toHaveLength(3);
+    expect(result.every((l) => l.type === 'unchanged')).toBe(true);
   });
 
   it('detects a single line change', () => {
     const result = diffLines(['a', 'b', 'c'], ['a', 'x', 'c']);
     const types = result.map((l) => l.type);
-    assert.ok(types.includes('removed'));
-    assert.ok(types.includes('added'));
-    assert.ok(types.includes('unchanged'));
+    expect(types).toContain('removed');
+    expect(types).toContain('added');
+    expect(types).toContain('unchanged');
   });
 
   it('detects insertion at beginning', () => {
     const result = diffLines(['b', 'c'], ['a', 'b', 'c']);
-    assert.ok(result.some((l) => l.type === 'added' && l.content === 'a'));
-    assert.ok(result.some((l) => l.type === 'unchanged' && l.content === 'b'));
+    expect(result.some((l) => l.type === 'added' && l.content === 'a')).toBe(true);
+    expect(result.some((l) => l.type === 'unchanged' && l.content === 'b')).toBe(true);
   });
 
   it('detects deletion at end', () => {
     const result = diffLines(['a', 'b', 'c'], ['a', 'b']);
-    assert.ok(result.some((l) => l.type === 'removed' && l.content === 'c'));
-    assert.ok(result.some((l) => l.type === 'unchanged' && l.content === 'a'));
+    expect(result.some((l) => l.type === 'removed' && l.content === 'c')).toBe(true);
+    expect(result.some((l) => l.type === 'unchanged' && l.content === 'a')).toBe(true);
   });
 
   it('provides correct line numbers', () => {
     const result = diffLines(['a', 'b'], ['a', 'c']);
     const unchanged = result.find((l) => l.type === 'unchanged' && l.content === 'a');
-    assert.equal(unchanged?.lineNum.old, 1);
-    assert.equal(unchanged?.lineNum.new, 1);
+    expect(unchanged?.lineNum.old).toBe(1);
+    expect(unchanged?.lineNum.new).toBe(1);
   });
 
   it('handles multi-line diff correctly', () => {
@@ -63,16 +62,16 @@ describe('diffLines', () => {
     const result = diffLines(from, to);
     const added = result.filter((l) => l.type === 'added');
     const removed = result.filter((l) => l.type === 'removed');
-    assert.ok(removed.some((l) => l.content === '- old item 1'));
-    assert.ok(added.some((l) => l.content === '- new item 1'));
+    expect(removed.some((l) => l.content === '- old item 1')).toBe(true);
+    expect(added.some((l) => l.content === '- new item 1')).toBe(true);
   });
 
   it('uses line-by-line fallback for large files', () => {
     const from = Array.from({ length: 5001 }, (_, i) => `line ${i}`);
     const to = [...from.slice(0, 100), 'inserted', ...from.slice(100)];
     const result = diffLines(from, to);
-    assert.ok(result.length > 0);
-    assert.ok(result.some((l) => l.type === 'added'));
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.some((l) => l.type === 'added')).toBe(true);
   });
 
   it('stats count matches line types', () => {
@@ -80,6 +79,6 @@ describe('diffLines', () => {
     const added = result.filter((l) => l.type === 'added').length;
     const removed = result.filter((l) => l.type === 'removed').length;
     const unchanged = result.filter((l) => l.type === 'unchanged').length;
-    assert.equal(added + removed + unchanged, result.length);
+    expect(added + removed + unchanged).toBe(result.length);
   });
 });

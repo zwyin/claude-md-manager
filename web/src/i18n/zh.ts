@@ -87,6 +87,8 @@ const zh = {
   'editor.draftDiscarded': '草稿已丢弃',
   'editor.draftDiscardFailed': '丢弃草稿失败',
   'editor.reorderFailed': '排序失败，请重试',
+  'editor.loadFailed': '规则列表加载失败',
+  'editor.draftLoadFailed': '草稿加载失败',
   'editor.selectRule': '选择一条规则进行编辑',
   'editor.preview': '预览',
   'editor.rules': '规则列表',

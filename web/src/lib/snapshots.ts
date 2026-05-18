@@ -9,6 +9,15 @@ const OUTPUT_PATH = path.join(
   'CLAUDE.md'
 );
 
+const SAFE_FILENAME_RE = /^[a-zA-Z0-9._-]+$/;
+
+function safePath(filename: string): string {
+  if (!SAFE_FILENAME_RE.test(filename)) {
+    throw new Error(`Invalid filename: ${filename}`);
+  }
+  return path.join(HISTORY_DIR, filename);
+}
+
 export interface SnapshotInfo {
   filename: string;
   timestamp: string;
@@ -39,7 +48,7 @@ export function listSnapshotFiles(): SnapshotInfo[] {
 }
 
 export function getSnapshotContent(filename: string): string | null {
-  const filePath = path.join(HISTORY_DIR, filename);
+  const filePath = safePath(filename);
   if (!fs.existsSync(filePath)) return null;
   return fs.readFileSync(filePath, 'utf-8');
 }
@@ -61,7 +70,7 @@ export function computeDiff(fromFile: string, toFile: string): DiffResult | null
 }
 
 export function rollbackToSnapshot(filename: string): boolean {
-  const filePath = path.join(HISTORY_DIR, filename);
+  const filePath = safePath(filename);
   if (!fs.existsSync(filePath)) return false;
 
   const content = fs.readFileSync(filePath, 'utf-8');

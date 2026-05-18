@@ -1,86 +1,68 @@
-import { describe, test } from 'node:test';
-import assert from 'node:assert/strict';
-
-async function importUtils() {
-  return import('../api-utils');
-}
+import { describe, it, expect } from 'vitest';
+import { parseDays, parseEnum, sanitizeRuleId } from '../api-utils';
 
 describe('parseDays', () => {
-  test('returns undefined for null', async () => {
-    const { parseDays } = await importUtils();
-    assert.equal(parseDays(null), undefined);
+  it('returns undefined for null', () => {
+    expect(parseDays(null)).toBeUndefined();
   });
 
-  test('returns number for valid positive string', async () => {
-    const { parseDays } = await importUtils();
-    assert.equal(parseDays('7'), 7);
-    assert.equal(parseDays('30'), 30);
+  it('returns number for valid positive string', () => {
+    expect(parseDays('7')).toBe(7);
+    expect(parseDays('30')).toBe(30);
   });
 
-  test('returns undefined for zero', async () => {
-    const { parseDays } = await importUtils();
-    assert.equal(parseDays('0'), undefined);
+  it('returns undefined for zero', () => {
+    expect(parseDays('0')).toBeUndefined();
   });
 
-  test('returns undefined for negative', async () => {
-    const { parseDays } = await importUtils();
-    assert.equal(parseDays('-5'), undefined);
+  it('returns undefined for negative', () => {
+    expect(parseDays('-5')).toBeUndefined();
   });
 
-  test('returns undefined for non-numeric', async () => {
-    const { parseDays } = await importUtils();
-    assert.equal(parseDays('abc'), undefined);
+  it('returns undefined for non-numeric', () => {
+    expect(parseDays('abc')).toBeUndefined();
   });
 
-  test('returns undefined for float', async () => {
-    const { parseDays } = await importUtils();
-    assert.equal(parseDays('3.14'), undefined);
+  it('returns undefined for float', () => {
+    expect(parseDays('3.14')).toBeUndefined();
   });
 });
 
 describe('parseEnum', () => {
   const allowed = ['day', 'week', 'month'] as const;
 
-  test('returns fallback for null', async () => {
-    const { parseEnum } = await importUtils();
-    assert.equal(parseEnum(null, allowed, 'day'), 'day');
+  it('returns fallback for null', () => {
+    expect(parseEnum(null, allowed, 'day')).toBe('day');
   });
 
-  test('returns value when in allowed list', async () => {
-    const { parseEnum } = await importUtils();
-    assert.equal(parseEnum('week', allowed, 'day'), 'week');
+  it('returns value when in allowed list', () => {
+    expect(parseEnum('week', allowed, 'day')).toBe('week');
   });
 
-  test('returns fallback for invalid value', async () => {
-    const { parseEnum } = await importUtils();
-    assert.equal(parseEnum('year', allowed, 'day'), 'day');
+  it('returns fallback for invalid value', () => {
+    expect(parseEnum('year', allowed, 'day')).toBe('day');
   });
 });
 
 describe('sanitizeRuleId', () => {
-  test('accepts valid rule IDs', async () => {
-    const { sanitizeRuleId } = await importUtils();
-    assert.equal(sanitizeRuleId('my-rule_01'), 'my-rule_01');
+  it('accepts valid rule IDs', () => {
+    expect(sanitizeRuleId('my-rule_01')).toBe('my-rule_01');
   });
 
-  test('decodes URI-encoded IDs', async () => {
-    const { sanitizeRuleId } = await importUtils();
-    assert.equal(sanitizeRuleId('my-rule_01'), 'my-rule_01');
-    assert.throws(() => sanitizeRuleId('my%20rule'), /Invalid rule ID/);
+  it('decodes URI-encoded IDs', () => {
+    expect(sanitizeRuleId('my-rule_01')).toBe('my-rule_01');
+    expect(() => sanitizeRuleId('my%20rule')).toThrow(/Invalid rule ID/);
   });
 
-  test('rejects path traversal', async () => {
-    const { sanitizeRuleId } = await importUtils();
-    assert.throws(() => sanitizeRuleId('../etc/passwd'));
+  it('rejects path traversal', () => {
+    expect(() => sanitizeRuleId('../etc/passwd')).toThrow();
   });
 
-  test('rejects IDs with special characters', async () => {
-    const { sanitizeRuleId } = await importUtils();
-    assert.throws(() => sanitizeRuleId('rule;DROP TABLE'));
+  it('rejects IDs with special characters', () => {
+    expect(() => sanitizeRuleId('rule;DROP TABLE')).toThrow();
   });
 
-  test('accepts simple alphanumeric IDs', async () => {
-    const { sanitizeRuleId } = await importUtils();
-    assert.equal(sanitizeRuleId('abc123'), 'abc123');
+  it('accepts simple alphanumeric IDs', () => {
+    expect(sanitizeRuleId('abc123')).toBe('abc123');
   });
 });

@@ -74,6 +74,8 @@ const en: Dict = {
   'editor.draftDiscarded': 'Draft discarded',
   'editor.draftDiscardFailed': 'Failed to discard draft',
   'editor.reorderFailed': 'Reorder failed, please try again',
+  'editor.loadFailed': 'Failed to load rule list',
+  'editor.draftLoadFailed': 'Failed to load draft',
   'editor.selectRule': 'Select a rule to edit',
   'editor.preview': 'Preview',
   'editor.rules': 'Rules',
