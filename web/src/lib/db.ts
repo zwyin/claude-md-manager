@@ -169,6 +169,24 @@ export function getRuleDetail(
   }
 }
 
+// ── Sessions ──
+
+export function getTotalSessionCount(days?: number): number {
+  const db = getDb();
+  try {
+    const timeFilter = days
+      ? `WHERE started_at >= datetime('now', '-${days} days')`
+      : '';
+    return (
+      db
+        .prepare(`SELECT COUNT(*) AS c FROM sessions ${timeFilter}`)
+        .get() as { c: number }
+    ).c;
+  } finally {
+    db.close();
+  }
+}
+
 // ── Citations ──
 
 export function getCitations(filters: {

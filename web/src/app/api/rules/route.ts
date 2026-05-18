@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRulesWithStats, getSectionsWithStats } from '@/lib/db';
-import Database from 'better-sqlite3';
-import path from 'path';
+import { getRulesWithStats, getSectionsWithStats, getTotalSessionCount } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,16 +13,11 @@ export async function GET(request: NextRequest) {
     const active_rules = rules.filter((r: any) => (r.citation_count || 0) > 0).length;
     const active_rule_pct = total_rules > 0 ? Math.round((active_rules / total_rules) * 100) : 0;
 
-    const dbPath = path.join(process.cwd(), '..', 'data', 'usage.db');
-    const db = new Database(dbPath, { readonly: true });
-    const total_sessions = (db.prepare('SELECT COUNT(*) as count FROM sessions').get() as any).count;
-    db.close();
-
     return NextResponse.json({
       rules,
       sections: getSectionsWithStats(),
       total_rules,
-      total_sessions,
+      total_sessions: getTotalSessionCount(days),
       active_rule_pct,
     });
   } catch (error) {
