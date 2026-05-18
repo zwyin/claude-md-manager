@@ -25,7 +25,7 @@ interface SiblingRule {
 export default function RuleDetailPage() {
   const params = useParams();
   const ruleId = params?.id as string;
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   const url = ruleId ? `/api/rules/${encodeURIComponent(ruleId)}` : null;
   const { data: resp, loading, error } = useFetch<{ rule: Rule; citations: CitationRecord[]; siblings: SiblingRule[] }>(url);
@@ -73,7 +73,7 @@ export default function RuleDetailPage() {
               </p>
               {rule.last_cited && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  {t('ruleDetail.lastCited')}: {new Date(rule.last_cited).toLocaleString('zh-CN')}
+                  {t('ruleDetail.lastCited')}: {new Date(rule.last_cited).toLocaleString(locale)}
                 </p>
               )}
             </div>
@@ -143,7 +143,7 @@ export default function RuleDetailPage() {
                   {citations.slice(0, 50).map((c) => (
                     <TableRow key={c.id}>
                       <TableCell className="text-xs font-mono whitespace-nowrap">
-                        {new Date(c.timestamp).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                        {new Date(c.timestamp).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                       </TableCell>
                       <TableCell><Badge variant="outline" className="border-indigo-500/30 text-indigo-300">{c.matched_keyword}</Badge></TableCell>
                       <TableCell className="text-xs font-mono text-muted-foreground max-w-[200px] truncate">

@@ -64,8 +64,9 @@ export function getRulesWithStats(days?: number): RuleWithStats[] {
   const db = getDb();
   try {
     const timeFilter = days
-      ? `AND r.timestamp >= datetime('now', '-${days} days')`
+      ? `AND r.timestamp >= datetime('now', ? || ' days')`
       : '';
+    const params = days ? [`-${days}`] : [];
 
     const rows = db
       .prepare(
@@ -88,6 +89,7 @@ export function getRulesWithStats(days?: number): RuleWithStats[] {
         ORDER BY citation_count DESC, m.section_id
         `
       )
+      .bind(...params)
       .all() as Array<{
       rule_id: string;
       section_id: string;
@@ -132,15 +134,17 @@ export function getRuleDetail(
     if (!ruleRow) return null;
 
     const timeFilter = days
-      ? `AND r.timestamp >= datetime('now', '-${days} days')`
+      ? `AND r.timestamp >= datetime('now', ? || ' days')`
       : '';
+    const timeParams = days ? [`-${days}`] : [];
 
     const citationCountRow = db
       .prepare(
         `SELECT COUNT(*) AS citation_count, MAX(timestamp) AS last_cited
          FROM rule_references WHERE rule_id = ? ${timeFilter}`
       )
-      .get(ruleId) as { citation_count: number; last_cited: string | null };
+      .bind(ruleId, ...timeParams)
+      .get() as { citation_count: number; last_cited: string | null };
 
     const citations = db
       .prepare(
@@ -153,7 +157,8 @@ export function getRuleDetail(
         ORDER BY r.timestamp DESC
         `
       )
-      .all(ruleId) as CitationRecord[];
+      .bind(ruleId, ...timeParams)
+      .all() as CitationRecord[];
 
     const siblings = db
       .prepare(
@@ -192,14 +197,14 @@ export function getRuleDetail(
 export function getTotalSessionCount(days?: number): number {
   const db = getDb();
   try {
-    const timeFilter = days
-      ? `WHERE started_at >= datetime('now', '-${days} days')`
-      : '';
-    return (
-      db
-        .prepare(`SELECT COUNT(*) AS c FROM sessions ${timeFilter}`)
-        .get() as { c: number }
-    ).c;
+    if (days) {
+      return (
+        db
+          .prepare(`SELECT COUNT(*) AS c FROM sessions WHERE started_at >= datetime('now', ? || ' days')`)
+          .get(`-${days}`) as { c: number }
+      ).c;
+    }
+    return (db.prepare('SELECT COUNT(*) AS c FROM sessions').get() as { c: number }).c;
   } finally {
     db.close();
   }
@@ -236,7 +241,8 @@ export function getCitations(filters: {
       params.push(rule_id);
     }
     if (days) {
-      conditions.push(`timestamp >= datetime('now', '-${days} days')`);
+      conditions.push(`timestamp >= datetime('now', ? || ' days')`);
+      params.push(`-${days}`);
     }
 
     const where =
@@ -267,18 +273,20 @@ export function getAnalytics(days?: number): AnalyticsData {
   const db = getDb();
   try {
     const subqueryFilter = days
-      ? `WHERE timestamp >= datetime('now', '-${days} days')`
+      ? `WHERE timestamp >= datetime('now', ? || ' days')`
       : '';
     const joinFilter = days
-      ? `AND r.timestamp >= datetime('now', '-${days} days')`
+      ? `AND r.timestamp >= datetime('now', ? || ' days')`
       : '';
+    const statsParams = days ? [`-${days}`, `-${days}`] : [];
+    const joinParams = days ? [`-${days}`] : [];
 
     const stats = db.prepare(`
       SELECT
         (SELECT COUNT(*) FROM rules_metadata) AS total_rules,
         (SELECT COUNT(*) FROM rule_references ${subqueryFilter}) AS total_citations,
         (SELECT COUNT(DISTINCT session_id) FROM rule_references ${subqueryFilter}) AS total_sessions
-    `).get() as { total_rules: number; total_citations: number; total_sessions: number };
+    `).bind(...statsParams).get() as { total_rules: number; total_citations: number; total_sessions: number };
 
     const topRules = db
       .prepare(
@@ -292,6 +300,7 @@ export function getAnalytics(days?: number): AnalyticsData {
         LIMIT 10
         `
       )
+      .bind(...joinParams)
       .all() as TopRule[];
 
     const coldRules = db
@@ -307,6 +316,7 @@ export function getAnalytics(days?: number): AnalyticsData {
         LIMIT 20
         `
       )
+      .bind(...joinParams)
       .all() as ColdRule[];
 
     const categoryDistribution = db
@@ -321,6 +331,7 @@ export function getAnalytics(days?: number): AnalyticsData {
         ORDER BY citation_count DESC
         `
       )
+      .bind(...joinParams)
       .all() as CategoryDistribution[];
 
     return {

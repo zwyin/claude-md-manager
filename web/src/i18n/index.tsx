@@ -6,11 +6,13 @@ import en from './en';
 import type { Dict } from './zh';
 
 const dicts: Record<string, Dict> = { zh, en };
+const localeMap: Record<string, string> = { zh: 'zh-CN', en: 'en-US' };
 
 type InterpolateArgs = Record<string, string | number>;
 
 interface I18nContextValue {
   lang: string;
+  locale: string;
   setLang: (lang: string) => void;
   t: (key: keyof Dict, args?: InterpolateArgs) => string;
 }
@@ -48,7 +50,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <I18nContext.Provider value={{ lang, setLang, t }}>
+    <I18nContext.Provider value={{ lang, locale: localeMap[lang] || 'zh-CN', setLang, t }}>
       {children}
     </I18nContext.Provider>
   );
