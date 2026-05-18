@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for build/assemble.py"""
 
+import subprocess
 import sys
 import textwrap
 from pathlib import Path
@@ -403,16 +404,16 @@ class TestGitCommit:
         output = tmp_path / "CLAUDE.md"
         content = "# No change\n"
         output.write_text(content, encoding="utf-8")
-        # git_commit_if_changed calls save_snapshot before checking diff,
-        # and tries git rev-parse first. Let it fail at git rev-parse
-        # (no git repo in tmp_path), which exits early.
         with mock.patch.object(assemble, "OUTPUT_PATH", output), \
              mock.patch.object(assemble, "HISTORY_DIR", tmp_path / "hist"), \
-             mock.patch.object(assemble, "PROJECT_DIR", tmp_path):
+             mock.patch.object(assemble, "PROJECT_DIR", tmp_path), \
+             mock.patch("subprocess.run") as mock_run:
+            mock_run.return_value = subprocess.CompletedProcess([], 0)
             assemble.git_commit_if_changed(content)
-        # Since content == existing, and git_commit_if_changed returns early
-        # at the git check, it never reaches the "no changes" print.
-        # But we verify it didn't crash.
+        captured = capsys.readouterr()
+        assert "No changes detected" in captured.out
+        # Only rev-parse called, no git add/commit
+        assert mock_run.call_count == 1
 
     def test_not_git_repo(self, tmp_path, capsys):
         output = tmp_path / "CLAUDE.md"
@@ -425,3 +426,54 @@ class TestGitCommit:
         # Should not crash; git rev-parse fails, returns early
         captured = capsys.readouterr()
         # No commit printed because not a git repo
+
+    def test_commits_on_change(self, tmp_path, capsys):
+        output = tmp_path / "CLAUDE.md"
+        output.write_text("old content", encoding="utf-8")
+        hist_dir = tmp_path / "hist"
+        hist_dir.mkdir()
+        with mock.patch.object(assemble, "OUTPUT_PATH", output), \
+             mock.patch.object(assemble, "HISTORY_DIR", hist_dir), \
+             mock.patch.object(assemble, "PROJECT_DIR", tmp_path), \
+             mock.patch("subprocess.run") as mock_run:
+            mock_run.return_value = subprocess.CompletedProcess([], 0)
+            assemble.git_commit_if_changed("# New\n")
+        captured = capsys.readouterr()
+        assert "Committed:" in captured.out
+        assert mock_run.call_count == 3  # rev-parse, git add, git commit
+        # Verify commit message format
+        commit_call = mock_run.call_args_list[2]
+        commit_args = commit_call[0][0]
+        assert commit_args[0] == "git" and commit_args[1] == "commit"
+        assert "build: update CLAUDE.md" in commit_args[3]
+
+    def test_commits_with_changed_files(self, tmp_path, capsys):
+        output = tmp_path / "CLAUDE.md"
+        output.write_text("old", encoding="utf-8")
+        hist_dir = tmp_path / "hist"
+        hist_dir.mkdir()
+        with mock.patch.object(assemble, "OUTPUT_PATH", output), \
+             mock.patch.object(assemble, "HISTORY_DIR", hist_dir), \
+             mock.patch.object(assemble, "PROJECT_DIR", tmp_path), \
+             mock.patch("subprocess.run") as mock_run:
+            mock_run.return_value = subprocess.CompletedProcess([], 0)
+            assemble.git_commit_if_changed("# New\n", changed_files=["a.md", "b.md"])
+        commit_call = mock_run.call_args_list[2]
+        assert "changed: a.md, b.md" in commit_call[0][0][3]
+
+    def test_git_add_failure(self, tmp_path, capsys):
+        output = tmp_path / "CLAUDE.md"
+        output.write_text("old", encoding="utf-8")
+        hist_dir = tmp_path / "hist"
+        hist_dir.mkdir()
+        with mock.patch.object(assemble, "OUTPUT_PATH", output), \
+             mock.patch.object(assemble, "HISTORY_DIR", hist_dir), \
+             mock.patch.object(assemble, "PROJECT_DIR", tmp_path), \
+             mock.patch("subprocess.run") as mock_run:
+            mock_run.side_effect = [
+                subprocess.CompletedProcess([], 0),  # rev-parse
+                subprocess.CalledProcessError(1, "git add"),  # git add fails
+            ]
+            assemble.git_commit_if_changed("# New\n")
+        captured = capsys.readouterr()
+        assert "Git commit failed" in captured.err
