@@ -114,7 +114,7 @@ export default function HistoryPage() {
   if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
   if (error) return <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">{t('status.error', { error })}</div>;
 
-  const formatTs = (ts: string) => ts.replace('T', ' ').replace(/-/g, (m, i) => i > 9 ? '-' : m).replace(/(\d{2})-(\d{2})-(\d{2})$/, '$1:$2:$3');
+  const formatTs = (ts: string) => ts.replace('T', ' ').replace(/(\d{2})-(\d{2})-(\d{2})$/, '$1:$2:$3');
 
   return (
     <div className="space-y-6">
