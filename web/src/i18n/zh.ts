@@ -159,6 +159,16 @@ const zh = {
   // 状态
   'status.loading': '加载中...',
   'status.error': '加载失败：{error}',
+
+  // Error boundary
+  'errorBoundary.title': '出了点问题',
+  'errorBoundary.default': '发生了意外错误',
+  'errorBoundary.retry': '重试',
+
+  // Not found
+  'notFound.title': '页面未找到',
+  'notFound.description': '您访问的页面不存在',
+  'notFound.backDashboard': '返回仪表盘',
 } as const;
 
 export default zh;

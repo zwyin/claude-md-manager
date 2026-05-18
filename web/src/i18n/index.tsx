@@ -61,3 +61,15 @@ export function useI18n(): I18nContextValue {
   if (!ctx) throw new Error('useI18n must be used within I18nProvider');
   return ctx;
 }
+
+/** Standalone translate for class components that can't use hooks. */
+export function t(key: keyof Dict, args?: InterpolateArgs): string {
+  const lang = (typeof window !== 'undefined' && localStorage.getItem('lang')) || 'zh';
+  let text = (dicts[lang]?.[key] as string) || (dicts.zh[key] as string) || (key as string);
+  if (args) {
+    for (const [k, v] of Object.entries(args)) {
+      text = text.replace(`{${k}}`, String(v));
+    }
+  }
+  return text;
+}

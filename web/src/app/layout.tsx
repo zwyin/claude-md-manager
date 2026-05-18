@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     default: "CLAUDE.md Manager",
     template: "%s | CLAUDE.md Manager",
   },
-  description: "CLAUDE.md 规则管理面板",
+  description: "CLAUDE.md Rule Management Dashboard / 规则管理面板",
 };
 
 export default function RootLayout({

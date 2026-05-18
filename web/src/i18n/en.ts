@@ -138,6 +138,16 @@ const en: Dict = {
   'term.keywords.desc': 'Trigger words configured for a rule, auto-cited when appearing in Claude sessions',
   'status.loading': 'Loading...',
   'status.error': 'Failed to load: {error}',
+
+  // Error boundary
+  'errorBoundary.title': 'Something went wrong',
+  'errorBoundary.default': 'An unexpected error occurred',
+  'errorBoundary.retry': 'Retry',
+
+  // Not found
+  'notFound.title': 'Page not found',
+  'notFound.description': 'The page you are looking for does not exist',
+  'notFound.backDashboard': 'Back to Dashboard',
 };
 
 export default en;
