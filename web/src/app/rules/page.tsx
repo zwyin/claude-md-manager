@@ -7,7 +7,6 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { Search, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
 
@@ -28,18 +27,16 @@ const SECTION_COLORS = ['#6366f1', '#8b5cf6', '#3b82f6', '#06b6d4', '#10b981', '
 
 function MiniSparkline({ session, matches }: { session: number; matches: number }) {
   const max = Math.max(session, matches, 1);
-  const data = [
-    { v: session / max },
-    { v: matches / max },
-  ];
+  const h1 = 16 - (session / max) * 12;
+  const h2 = 16 - (matches / max) * 12;
   return (
-    <div className="w-12 h-4">
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data}>
-          <Area type="monotone" dataKey="v" stroke="#6366f1" fill="#6366f1" fillOpacity={0.2} strokeWidth={1} />
-        </AreaChart>
-      </ResponsiveContainer>
-    </div>
+    <svg width="48" height="16" viewBox="0 0 48 16" className="shrink-0">
+      <line x1="12" y1={h1} x2="36" y2={h2} stroke="#6366f1" strokeWidth="1.5" />
+      <line x1="0" y1="16" x2="48" y2="16" stroke="#6366f1" strokeWidth="0" />
+      <polygon points={`0,16 12,${h1} 36,${h2} 48,16`} fill="#6366f1" fillOpacity="0.15" />
+      <circle cx="12" cy={h1} r="2" fill="#6366f1" />
+      <circle cx="36" cy={h2} r="2" fill="#6366f1" />
+    </svg>
   );
 }
 
