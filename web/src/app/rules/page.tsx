@@ -72,6 +72,7 @@ function RulesContent() {
           open[r.section_id] = focusSection ? r.section_id === focusSection : true;
         });
         setOpenSections(open);
+        if (focusSection) setSectionFilter(focusSection);
         setLoading(false);
       })
       .catch((err) => { setError(err.message); setLoading(false); });
