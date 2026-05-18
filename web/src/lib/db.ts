@@ -38,16 +38,11 @@ export function getSectionsWithStats(days?: number, db?: Database.Database): Sec
           s.title,
           s.source_file,
           s.rule_count,
-          COALESCE(SUM(citation_count), 0) AS total_citations,
-          COALESCE(SUM(session_count), 0) AS total_sessions
+          COUNT(r.id) AS total_citations,
+          COUNT(DISTINCT r.session_id) AS total_sessions
         FROM sections_metadata s
-        LEFT JOIN (
-          SELECT section_id, COUNT(r.id) AS citation_count,
-                 COUNT(DISTINCT r.session_id) AS session_count
-          FROM rules_metadata m
-          LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${timeFilter}
-          GROUP BY m.rule_id
-        ) agg ON agg.section_id = s.section_id
+        LEFT JOIN rules_metadata m ON m.section_id = s.section_id
+        LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${timeFilter}
         GROUP BY s.section_id
         ORDER BY total_citations DESC
         `
