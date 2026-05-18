@@ -237,8 +237,9 @@ export function getCitations(filters: {
   rule_id?: string;
   days?: number;
   group_by?: 'day' | 'week' | 'month';
-}): CitationTimePoint[] {
-  const db = getDb();
+}, db?: Database.Database): CitationTimePoint[] {
+  const own = !db;
+  const conn = db || getDb();
   try {
     const { rule_id, days, group_by } = filters;
 
@@ -269,7 +270,7 @@ export function getCitations(filters: {
     const where =
       conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    const rows = db
+    const rows = conn
       .prepare(
         `
         SELECT ${dateFormat} AS period, COUNT(*) AS count
@@ -284,14 +285,15 @@ export function getCitations(filters: {
 
     return rows;
   } finally {
-    db.close();
+    if (own) conn.close();
   }
 }
 
 // ── Analytics ──
 
-export function getAnalytics(days?: number): AnalyticsData {
-  const db = getDb();
+export function getAnalytics(days?: number, db?: Database.Database): AnalyticsData {
+  const own = !db;
+  const conn = db || getDb();
   try {
     const subqueryFilter = days
       ? `WHERE timestamp >= datetime('now', ? || ' days')`
@@ -302,14 +304,14 @@ export function getAnalytics(days?: number): AnalyticsData {
     const statsParams = days ? [`-${days}`, `-${days}`] : [];
     const joinParams = days ? [`-${days}`] : [];
 
-    const stats = db.prepare(`
+    const stats = conn.prepare(`
       SELECT
         (SELECT COUNT(*) FROM rules_metadata) AS total_rules,
         (SELECT COUNT(*) FROM rule_references ${subqueryFilter}) AS total_citations,
         (SELECT COUNT(DISTINCT session_id) FROM rule_references ${subqueryFilter}) AS total_sessions
     `).bind(...statsParams).get() as { total_rules: number; total_citations: number; total_sessions: number };
 
-    const topRules = db
+    const topRules = conn
       .prepare(
         `
         SELECT m.rule_id, m.title, COUNT(r.id) AS citation_count
@@ -329,7 +331,7 @@ export function getAnalytics(days?: number): AnalyticsData {
       : 'HAVING MAX(r.timestamp) IS NULL';
     const coldParams = days ? [`-${days}`] : [];
 
-    const coldRules = db
+    const coldRules = conn
       .prepare(
         `
         SELECT m.rule_id, m.title,
@@ -345,7 +347,7 @@ export function getAnalytics(days?: number): AnalyticsData {
       .bind(...coldParams)
       .all() as ColdRule[];
 
-    const categoryDistribution = db
+    const categoryDistribution = conn
       .prepare(
         `
         SELECT m.section_id,
@@ -369,6 +371,6 @@ export function getAnalytics(days?: number): AnalyticsData {
       category_distribution: categoryDistribution,
     };
   } finally {
-    db.close();
+    if (own) conn.close();
   }
 }
