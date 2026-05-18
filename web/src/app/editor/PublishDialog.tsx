@@ -26,8 +26,8 @@ export function PublishDialog({ rules, onPublish, onCancel }: PublishDialogProps
   }, [onCancel]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true">
-      <div ref={dialogRef} tabIndex={-1} className="bg-card border border-border rounded-lg p-6 max-w-md w-full mx-4 shadow-xl outline-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true" onClick={onCancel}>
+      <div ref={dialogRef} tabIndex={-1} className="bg-card border border-border rounded-lg p-6 max-w-md w-full mx-4 shadow-xl outline-none" onClick={(e) => e.stopPropagation()}>
         <h3 className="text-lg font-semibold mb-4">{t('editor.publishTitle')}</h3>
         <p className="text-sm text-muted-foreground mb-3">
           {t('editor.publishDesc')}
