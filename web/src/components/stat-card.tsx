@@ -46,14 +46,14 @@ export function StatCard({ label, value, sublabel, trend, color = '#6366f1', per
   return (
     <Card className="rounded-xl border-border bg-card overflow-hidden">
       <CardContent className="p-6">
-        <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
           {label}
         </p>
-        <div className="text-3xl font-bold text-slate-100" style={percentage ? { color } : undefined}>
+        <div className="text-3xl font-bold text-foreground" style={percentage ? { color } : undefined}>
           {formattedValue}
         </div>
         {sublabel && (
-          <p className="text-xs text-slate-400 mt-1">{sublabel}</p>
+          <p className="text-xs text-muted-foreground mt-1">{sublabel}</p>
         )}
         {trend && trend.length > 1 && (
           <div className="mt-3 h-8">

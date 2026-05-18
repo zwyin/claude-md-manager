@@ -30,10 +30,10 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="border-b border-white/10">
+      <SidebarHeader className="border-b border-border">
         <div className="px-2 py-2">
-          <h1 className="text-lg font-bold text-white tracking-wide">{t('app.title')}</h1>
-          <p className="text-xs text-[#a0aec0]">{t('app.subtitle')}</p>
+          <h1 className="text-lg font-bold text-foreground tracking-wide">{t('app.title')}</h1>
+          <p className="text-xs text-muted-foreground">{t('app.subtitle')}</p>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -43,7 +43,7 @@ export function AppSidebar() {
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
-                    isActive={pathname === item.href}
+                    isActive={item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)}
                     render={<Link href={item.href} />}
                   >
                     <item.Icon className="w-4 h-4" />
@@ -56,7 +56,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="px-2 py-1 text-xs text-[#718096]">{t('app.version')}</div>
+        <div className="px-2 py-1 text-xs text-muted-foreground">{t('app.version')}</div>
       </SidebarFooter>
     </Sidebar>
   );

@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const trendGroup = (searchParams.get('trend_group') || 'day') as 'day' | 'week' | 'month';
 
     const analytics = getAnalytics(days);
-    const citation_trend = getCitations({ days: 30, group_by: trendGroup });
+    const citation_trend = getCitations({ days, group_by: trendGroup });
 
     return NextResponse.json({ ...analytics, citation_trend });
   } catch (error) {
