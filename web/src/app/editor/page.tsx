@@ -78,7 +78,7 @@ export default function EditorPage() {
       setHasDraft(true);
       toast.success(t('editor.draftSaved'));
       const refreshed = await fetch("/api/editor/rules").then((r) => r.json());
-      setRules(refreshed.rules);
+      if (Array.isArray(refreshed.rules)) setRules(refreshed.rules);
     } catch {
       toast.error(t('editor.draftSaveFailed'));
     }
@@ -96,7 +96,7 @@ export default function EditorPage() {
       setHasDraft(false);
       toast.success(t('editor.draftDiscarded'));
       const refreshed = await fetch("/api/editor/rules").then((r) => r.json());
-      setRules(refreshed.rules);
+      if (Array.isArray(refreshed.rules)) setRules(refreshed.rules);
     } catch {
       toast.error(t('editor.draftDiscardFailed'));
     }
@@ -111,7 +111,7 @@ export default function EditorPage() {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const refreshed = await fetch("/api/editor/rules").then((r) => r.json());
-      setRules(refreshed.rules);
+      if (Array.isArray(refreshed.rules)) setRules(refreshed.rules);
     } catch {
       toast.error(t('editor.reorderFailed'));
     }
@@ -132,9 +132,11 @@ export default function EditorPage() {
     } finally {
       setPublishing(false);
       setShowPublish(false);
-      const res = await fetch("/api/editor/rules");
-      const refreshed = await res.json();
-      setRules(refreshed.rules);
+      try {
+        const res = await fetch("/api/editor/rules");
+        const refreshed = await res.json();
+        if (Array.isArray(refreshed.rules)) setRules(refreshed.rules);
+      } catch { /* best-effort refresh */ }
       setHasDraft(false);
     }
   }, [t]);
