@@ -23,7 +23,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem('lang');
     if (saved && dicts[saved]) {
-      setLangState(saved);
+      queueMicrotask(() => setLangState(saved));
     }
   }, []);
 

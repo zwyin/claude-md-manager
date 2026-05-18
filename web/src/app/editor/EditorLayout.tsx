@@ -1,9 +1,6 @@
 "use client";
 
-import type { RuleFile } from "./types";
-
 interface EditorLayoutProps {
-  rules: RuleFile[];
   children: {
     ruleList: React.ReactNode;
     editor: React.ReactNode;
@@ -11,7 +8,7 @@ interface EditorLayoutProps {
   };
 }
 
-export function EditorLayout({ rules, children }: EditorLayoutProps) {
+export function EditorLayout({ children }: EditorLayoutProps) {
   return (
     <div className="flex h-[calc(100vh-7rem)] gap-4">
       <div className="w-[280px] shrink-0 overflow-y-auto rounded-lg border border-border bg-card">

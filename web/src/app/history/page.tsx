@@ -59,13 +59,13 @@ export default function HistoryPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setDiffResult(data);
-    } catch (err) {
+    } catch {
       setDiffResult(null);
       toast.error(t('history.diffFailed'));
     } finally {
       setDiffLoading(false);
     }
-  }, [selected]);
+  }, [selected, t]);
 
   const handleRollback = useCallback(async (filename: string) => {
     try {
@@ -105,7 +105,7 @@ export default function HistoryPage() {
     } finally {
       setContentLoading(false);
     }
-  }, []);
+  }, [t]);
 
   if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
   if (error) return <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">{t('status.error', { error })}</div>;

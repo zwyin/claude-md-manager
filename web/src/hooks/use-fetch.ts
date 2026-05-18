@@ -10,18 +10,17 @@ type FetchState<T> = {
 export function useFetch<T>(url: string | null): FetchState<T> {
   const [state, setState] = useState<FetchState<T>>({
     data: null,
-    loading: true,
+    loading: url !== null,
     error: null,
   });
 
   useEffect(() => {
-    if (!url) {
-      setState({ data: null, loading: false, error: null });
-      return;
-    }
+    if (!url) return;
 
     let cancelled = false;
-    setState({ data: null, loading: true, error: null });
+    queueMicrotask(() => {
+      if (!cancelled) setState({ data: null, loading: true, error: null });
+    });
 
     fetchJson<T>(url)
       .then((data) => {

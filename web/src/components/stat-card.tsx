@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useEffect, useRef, useState, type ReactNode } from 'react';
+import { memo, useEffect, useRef, useState, useId, type ReactNode } from 'react';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import { PRIMARY } from '@/lib/chart-colors';
@@ -18,13 +18,10 @@ function StatCardInner({ label, value, sublabel, trend, color = PRIMARY, percent
   const [displayValue, setDisplayValue] = useState(0);
   const targetValue = typeof value === 'string' ? parseInt(value, 10) || 0 : value;
   const rafRef = useRef<number>(0);
-  const gradientId = useRef(`gradient-${Math.random().toString(36).slice(2, 9)}`);
+  const gradientId = useId();
 
   useEffect(() => {
-    if (Number.isNaN(targetValue)) {
-      setDisplayValue(0);
-      return;
-    }
+    if (Number.isNaN(targetValue)) return;
     const duration = 800;
     const start = performance.now();
     const animate = (now: number) => {
@@ -61,7 +58,7 @@ function StatCardInner({ label, value, sublabel, trend, color = PRIMARY, percent
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trend}>
                 <defs>
-                  <linearGradient id={gradientId.current} x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={color} stopOpacity={0.3} />
                     <stop offset="100%" stopColor={color} stopOpacity={0} />
                   </linearGradient>
@@ -70,7 +67,7 @@ function StatCardInner({ label, value, sublabel, trend, color = PRIMARY, percent
                   type="monotone"
                   dataKey="count"
                   stroke={color}
-                  fill={`url(#${gradientId.current})`}
+                  fill={`url(#${gradientId})`}
                   strokeWidth={1.5}
                 />
               </AreaChart>

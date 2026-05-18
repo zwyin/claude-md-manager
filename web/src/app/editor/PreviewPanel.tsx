@@ -10,7 +10,7 @@ interface PreviewPanelProps {
   title: string;
 }
 
-export const PreviewPanel = memo(function PreviewPanel({ markdownBody, title }: PreviewPanelProps) {
+export const PreviewPanel = memo(function PreviewPanel({ markdownBody }: PreviewPanelProps) {
   const { t } = useI18n();
 
   return (

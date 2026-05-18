@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { RuleFile } from "./types";
 import { EditorLayout } from "./EditorLayout";
@@ -20,6 +20,7 @@ export default function EditorPage() {
   const [showPublish, setShowPublish] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const { t } = useI18n();
+  const initialLoadDone = useRef(false);
 
   const selectedRule = rules.find((r) => r.rule_id === selectedId) ?? null;
 
@@ -31,12 +32,13 @@ export default function EditorPage() {
       })
       .then((data) => {
         setRules(data.rules);
-        if (data.rules.length > 0 && !selectedId) {
+        if (!initialLoadDone.current && data.rules.length > 0) {
           setSelectedId(data.rules[0].rule_id);
         }
+        initialLoadDone.current = true;
       })
       .catch(() => toast.error(t('editor.loadFailed')));
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!selectedRule) return;
@@ -59,7 +61,7 @@ export default function EditorPage() {
         }
       })
       .catch(() => toast.error(t('editor.draftLoadFailed')));
-  }, [selectedId, rules]);
+  }, [selectedId, rules, selectedRule, t]);
 
   const handleSaveDraft = useCallback(async () => {
     if (!selectedId) return;
@@ -77,7 +79,7 @@ export default function EditorPage() {
       toast.success(t('editor.draftSaved'));
       const refreshed = await fetch("/api/editor/rules").then((r) => r.json());
       setRules(refreshed.rules);
-    } catch (err) {
+    } catch {
       toast.error(t('editor.draftSaveFailed'));
     }
   }, [selectedId, frontmatter, body, t]);
@@ -95,7 +97,7 @@ export default function EditorPage() {
       toast.success(t('editor.draftDiscarded'));
       const refreshed = await fetch("/api/editor/rules").then((r) => r.json());
       setRules(refreshed.rules);
-    } catch (err) {
+    } catch {
       toast.error(t('editor.draftDiscardFailed'));
     }
   }, [selectedId, selectedRule, t]);
@@ -110,7 +112,7 @@ export default function EditorPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const refreshed = await fetch("/api/editor/rules").then((r) => r.json());
       setRules(refreshed.rules);
-    } catch (err) {
+    } catch {
       toast.error(t('editor.reorderFailed'));
     }
   }, [t]);
@@ -163,7 +165,7 @@ export default function EditorPage() {
         </div>
       </div>
 
-      <EditorLayout rules={rules}>
+      <EditorLayout>
         {{
           ruleList: (
             <RuleListPanel

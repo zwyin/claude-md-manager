@@ -14,12 +14,15 @@ export function useChartTheme() {
   });
 
   useEffect(() => {
-    setTheme({
-      card: getVar('--card') || '#1e293b',
-      border: getVar('--border') || '#334155',
-      foreground: getVar('--foreground') || '#e2e8f0',
-      mutedForeground: getVar('--muted-foreground') || '#cbd5e1',
+    const frame = requestAnimationFrame(() => {
+      setTheme({
+        card: getVar('--card') || '#1e293b',
+        border: getVar('--border') || '#334155',
+        foreground: getVar('--foreground') || '#e2e8f0',
+        mutedForeground: getVar('--muted-foreground') || '#cbd5e1',
+      });
     });
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   return theme;

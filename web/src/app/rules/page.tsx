@@ -64,44 +64,37 @@ function RulesContent() {
     (data.rules || []).forEach((r: Rule) => {
       open[r.section_id] = focusSection ? r.section_id === focusSection : true;
     });
-    setOpenSections(open);
-    if (focusSection) setSectionFilter(focusSection);
+    queueMicrotask(() => {
+      setOpenSections(open);
+      if (focusSection) setSectionFilter(focusSection);
+    });
   }, [data, searchParams]);
 
   const toggle = (id: string) => setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        searchRef.current?.focus();
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, []);
-
-  if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
-  if (error) return <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">{t('status.error', { error })}</div>;
-  if (!data) return null;
-
   const sectionTitleMap: Record<string, string> = {};
-  for (const sec of data.sections || []) {
+  for (const sec of data?.sections || []) {
     sectionTitleMap[sec.section_id] = sec.title;
   }
 
-  const grouped: Record<string, Rule[]> = {};
-  for (const rule of data.rules || []) {
-    if (!grouped[rule.section_id]) grouped[rule.section_id] = [];
-    grouped[rule.section_id].push(rule);
-  }
+  const grouped = useMemo(() => {
+    const result: Record<string, Rule[]> = {};
+    for (const rule of data?.rules || []) {
+      if (!result[rule.section_id]) result[rule.section_id] = [];
+      result[rule.section_id].push(rule);
+    }
+    return result;
+  }, [data]);
 
-  const sectionOrder = (data.sections || [])
-    .sort((a, b) => b.total_citations - a.total_citations)
-    .map((s) => s.section_id);
-  for (const id of Object.keys(grouped)) {
-    if (!sectionOrder.includes(id)) sectionOrder.push(id);
-  }
+  const sectionOrder = useMemo(() => {
+    const order = [...(data?.sections || [])]
+      .sort((a, b) => b.total_citations - a.total_citations)
+      .map((s) => s.section_id);
+    for (const id of Object.keys(grouped)) {
+      if (!order.includes(id)) order.push(id);
+    }
+    return order;
+  }, [data, grouped]);
 
   const filteredGrouped = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
@@ -123,6 +116,21 @@ function RulesContent() {
   }, [searchQuery, sectionFilter, grouped, sectionOrder]);
 
   const filteredCount = Object.values(filteredGrouped).flat().length;
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
+  if (error) return <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">{t('status.error', { error })}</div>;
+  if (!data) return null;
 
   return (
     <div className="space-y-6">
