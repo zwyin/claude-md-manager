@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import fs from 'fs';
-import Database from 'better-sqlite3';
 import { execFileSync } from 'child_process';
 
 // Mock modules
@@ -261,9 +260,6 @@ describe('publishDrafts', () => {
     const drafts = [
       { rule_id: 'core', frontmatter_yaml: 'id: core\ntitle: Core\norder: 10', markdown_body: 'body', order_override: null, created_at: '2026-01-01', updated_at: '2026-01-01' },
     ];
-    const allRulesResponse = mockStatement({
-      all: [{ rule_id: 'core', order_override: null }],
-    });
 
     // First call: SELECT * FROM rule_drafts → returns drafts
     // Subsequent calls: INSERT, DELETE, etc.

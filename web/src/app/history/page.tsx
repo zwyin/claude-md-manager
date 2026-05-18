@@ -8,7 +8,7 @@ import { Clock, GitCompare, RotateCcw, Check, X, FileText } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { toast } from 'sonner';
-import type { SnapshotInfo, DiffLine, DiffResult } from '@/lib/snapshots';
+import type { SnapshotInfo, DiffResult } from '@/lib/snapshots';
 
 export default function HistoryPage() {
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
