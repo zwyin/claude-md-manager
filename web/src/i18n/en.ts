@@ -84,6 +84,8 @@ const en: Dict = {
   'history.rollbackConfirm': 'Confirm Rollback',
   'history.rollbackSuccess': 'Successfully rolled back to {ts}',
   'history.rollbackFailed': 'Rollback failed',
+  'history.diffFailed': 'Diff comparison failed, please try again',
+  'history.contentFailed': 'Failed to load content',
   'history.diff.title': 'Snapshot Comparison',
   'history.diff.stats': '{added} added, {removed} removed',
   'history.diff.noDiff': 'Both versions are identical',

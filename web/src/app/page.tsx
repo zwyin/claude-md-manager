@@ -11,6 +11,7 @@ import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
 import { useChartTheme } from '@/hooks/use-chart-theme';
 import { fetchJson } from '@/lib/fetch';
+import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 
 interface Rule {
   rule_id: string; section_id: string; section_title: string;
@@ -24,8 +25,6 @@ interface DashboardData {
   rules: Rule[]; sections: Section[];
   total_rules: number; total_sessions: number; active_rule_pct: number;
 }
-
-const CHART_COLORS = ['#6366f1', '#818cf8', '#a78bfa', '#c4b5fd', '#8b5cf6', '#7c3aed'];
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -80,23 +79,23 @@ export default function DashboardPage() {
           label={t('dashboard.totalRules')}
           value={data.total_rules}
           sublabel={t('dashboard.inSections', { count: sections.length })}
-          color="#6366f1"
+          color={STAT_COLORS.rules}
         />
         <StatCard
           label={t('dashboard.totalSessions')}
           value={data.total_sessions}
-          color="#3b82f6"
+          color={STAT_COLORS.sessions}
         />
         <StatCard
           label={<TermTooltip term={t('term.activeRate')} explanation={t('term.activeRate.desc')} />}
           value={data.active_rule_pct}
           percentage
-          color="#10b981"
+          color={STAT_COLORS.activeRate}
         />
         <StatCard
           label={<TermTooltip term={t('term.citation')} explanation={t('term.citation.desc')} />}
           value={totalCitations}
-          color="#8b5cf6"
+          color={STAT_COLORS.citations}
         />
       </div>
 
@@ -140,7 +139,7 @@ export default function DashboardPage() {
                   {...tooltipStyle}
                   formatter={(value, _name, props) => [value, (props as { payload: { fullName: string } }).payload.fullName]}
                 />
-                <Bar dataKey="citations" fill="#6366f1" radius={[0, 4, 4, 0]} maxBarSize={20} />
+                <Bar dataKey="citations" fill={PRIMARY} radius={[0, 4, 4, 0]} maxBarSize={20} />
               </BarChart>
             </ResponsiveContainer>
           </div>

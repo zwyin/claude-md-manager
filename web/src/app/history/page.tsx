@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Clock, GitCompare, RotateCcw, Check, X, FileText } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { fetchJson } from '@/lib/fetch';
+import { toast } from 'sonner';
 
 interface SnapshotInfo {
   filename: string;
@@ -66,8 +67,9 @@ export default function HistoryPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setDiffResult(data);
-    } catch {
+    } catch (err) {
       setDiffResult(null);
+      toast.error(t('history.diffFailed'));
     } finally {
       setDiffLoading(false);
     }
@@ -89,6 +91,7 @@ export default function HistoryPage() {
       }
     } catch {
       setRollbackStatus({ ts: filename, ok: false, msg: t('history.rollbackFailed') });
+      toast.error(t('history.rollbackFailed'));
     }
     setRollbackTarget(null);
     clearTimeout(timerRef.current);
@@ -106,6 +109,7 @@ export default function HistoryPage() {
       setContentText(data.content || '');
     } catch {
       setContentText('');
+      toast.error(t('history.contentFailed'));
     } finally {
       setContentLoading(false);
     }

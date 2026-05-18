@@ -15,6 +15,7 @@ import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
 import { useChartTheme } from '@/hooks/use-chart-theme';
 import { fetchJson } from '@/lib/fetch';
+import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 
 interface TopRule { rule_id: string; title: string; citation_count: number; }
 interface ColdRule { rule_id: string; title: string; days_since_last_citation: number | null; }
@@ -27,8 +28,6 @@ interface AnalyticsData {
   category_distribution: CategoryDist[];
   citation_trend: TrendPoint[];
 }
-
-const CHART_COLORS = ['#6366f1', '#818cf8', '#a78bfa', '#c4b5fd', '#8b5cf6', '#7c3aed', '#4f46e5'];
 
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
@@ -98,9 +97,9 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <StatCard label={t('dashboard.totalRules')} value={data.total_rules} color="#6366f1" />
-        <StatCard label={<TermTooltip term={t('term.citation')} explanation={t('term.citation.desc')} />} value={data.total_citations} color="#10b981" />
-        <StatCard label={t('dashboard.totalSessions')} value={data.total_sessions} color="#3b82f6" />
+        <StatCard label={t('dashboard.totalRules')} value={data.total_rules} color={STAT_COLORS.rules} />
+        <StatCard label={<TermTooltip term={t('term.citation')} explanation={t('term.citation.desc')} />} value={data.total_citations} color={STAT_COLORS.activeRate} />
+        <StatCard label={t('dashboard.totalSessions')} value={data.total_sessions} color={STAT_COLORS.sessions} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -177,14 +176,14 @@ export default function AnalyticsPage() {
                 <AreaChart data={data.citation_trend} margin={{ left: 0, right: 20 }}>
                   <defs>
                     <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#6366f1" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                      <stop offset="0%" stopColor={PRIMARY} stopOpacity={0.3} />
+                      <stop offset="100%" stopColor={PRIMARY} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="period" tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
                   <YAxis tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
                   <RechartsTooltip {...tooltipStyle} />
-                  <Area type="monotone" dataKey="count" stroke="#6366f1" fill="url(#trendGradient)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="count" stroke={PRIMARY} fill="url(#trendGradient)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

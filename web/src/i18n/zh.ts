@@ -99,6 +99,8 @@ const zh = {
   'history.rollbackConfirm': '确认回滚',
   'history.rollbackSuccess': '已成功回滚到 {ts}',
   'history.rollbackFailed': '回滚失败',
+  'history.diffFailed': '对比失败，请重试',
+  'history.contentFailed': '内容加载失败',
   'history.diff.title': '快照对比',
   'history.diff.stats': '{added} 行新增，{removed} 行删除',
   'history.diff.noDiff': '两个版本完全相同',

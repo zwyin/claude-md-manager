@@ -10,6 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Search, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { fetchJson } from '@/lib/fetch';
+import { SECTION_COLORS, PRIMARY } from '@/lib/chart-colors';
 
 interface Rule {
   rule_id: string; section_id: string; section_title: string;
@@ -24,19 +25,17 @@ interface RulesData {
   rules: Rule[]; sections: Section[]; total_rules: number;
 }
 
-const SECTION_COLORS = ['#6366f1', '#8b5cf6', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
-
 function MiniSparkline({ session, matches }: { session: number; matches: number }) {
   const max = Math.max(session, matches, 1);
   const h1 = 16 - (session / max) * 12;
   const h2 = 16 - (matches / max) * 12;
   return (
     <svg width="48" height="16" viewBox="0 0 48 16" className="shrink-0">
-      <line x1="12" y1={h1} x2="36" y2={h2} stroke="#6366f1" strokeWidth="1.5" />
-      <line x1="0" y1="16" x2="48" y2="16" stroke="#6366f1" strokeWidth="0" />
-      <polygon points={`0,16 12,${h1} 36,${h2} 48,16`} fill="#6366f1" fillOpacity="0.15" />
-      <circle cx="12" cy={h1} r="2" fill="#6366f1" />
-      <circle cx="36" cy={h2} r="2" fill="#6366f1" />
+      <line x1="12" y1={h1} x2="36" y2={h2} stroke={PRIMARY} strokeWidth="1.5" />
+      <line x1="0" y1="16" x2="48" y2="16" stroke={PRIMARY} strokeWidth="0" />
+      <polygon points={`0,16 12,${h1} 36,${h2} 48,16`} fill={PRIMARY} fillOpacity="0.15" />
+      <circle cx="12" cy={h1} r="2" fill={PRIMARY} />
+      <circle cx="36" cy={h2} r="2" fill={PRIMARY} />
     </svg>
   );
 }

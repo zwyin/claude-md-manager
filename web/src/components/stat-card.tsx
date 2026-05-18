@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
+import { PRIMARY } from '@/lib/chart-colors';
 
 interface StatCardProps {
   label: ReactNode;
@@ -13,7 +14,7 @@ interface StatCardProps {
   percentage?: boolean;
 }
 
-export function StatCard({ label, value, sublabel, trend, color = '#6366f1', percentage }: StatCardProps) {
+export function StatCard({ label, value, sublabel, trend, color = PRIMARY, percentage }: StatCardProps) {
   const [displayValue, setDisplayValue] = useState(0);
   const targetValue = typeof value === 'string' ? parseInt(value, 10) || 0 : value;
   const rafRef = useRef<number>(0);
