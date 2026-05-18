@@ -21,6 +21,7 @@ export default function EditorPage() {
   const [publishing, setPublishing] = useState(false);
   const { t } = useI18n();
   const initialLoadDone = useRef(false);
+  const prevSelectedId = useRef<string | null>(null);
 
   const selectedRule = rules.find((r) => r.rule_id === selectedId) ?? null;
 
@@ -41,9 +42,13 @@ export default function EditorPage() {
   }, [t]);
 
   useEffect(() => {
-    if (!selectedRule) return;
+    if (!selectedId || prevSelectedId.current === selectedId) return;
+    prevSelectedId.current = selectedId;
 
-    fetch(`/api/editor/rules/${encodeURIComponent(selectedRule.rule_id)}/draft`)
+    const currentRule = rules.find((r) => r.rule_id === selectedId);
+    if (!currentRule) return;
+
+    fetch(`/api/editor/rules/${encodeURIComponent(selectedId)}/draft`)
       .then((r) => {
         if (r.status === 404) return null;
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -55,13 +60,13 @@ export default function EditorPage() {
           setBody(draft.markdown_body);
           setHasDraft(true);
         } else {
-          setFrontmatter(selectedRule.frontmatter_yaml);
-          setBody(selectedRule.markdown_body);
+          setFrontmatter(currentRule.frontmatter_yaml);
+          setBody(currentRule.markdown_body);
           setHasDraft(false);
         }
       })
       .catch(() => toast.error(t('editor.draftLoadFailed')));
-  }, [selectedId, rules, selectedRule, t]);
+  }, [selectedId, rules, t]);
 
   const handleSaveDraft = useCallback(async () => {
     if (!selectedId) return;
