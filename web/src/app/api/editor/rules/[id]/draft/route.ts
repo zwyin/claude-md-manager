@@ -22,6 +22,9 @@ export async function PUT(
   const { id } = await params;
   try {
     const body = await request.json();
+    if (!body || typeof body.frontmatter_yaml !== 'string' || typeof body.markdown_body !== 'string') {
+      return NextResponse.json({ error: 'frontmatter_yaml and markdown_body are required strings' }, { status: 400 });
+    }
     saveDraft(
       decodeURIComponent(id),
       body.frontmatter_yaml,
