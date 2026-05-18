@@ -242,6 +242,23 @@ describe('getAllRulesWithDraftStatus', () => {
     expect(rules[0].title).toBe('partial'); // falls back to ruleId
     expect(rules[0].order).toBe(999); // falls back to default
   });
+
+  it('sorts by order when no draft overrides exist', () => {
+    vi.mocked(fs.readdirSync).mockReturnValue(['a.md', 'b.md'] as unknown as string[]);
+    vi.mocked(fs.readFileSync).mockImplementation(((_path: unknown) => {
+      const p = String(_path);
+      if (p.includes('a.md')) return '---\nid: a\ntitle: A\norder: 30\n---\nA body';
+      if (p.includes('b.md')) return '---\nid: b\ntitle: B\norder: 10\n---\nB body';
+      return '';
+    })) as unknown as typeof fs.readFileSync;
+
+    mockPrepare.mockReturnValue(mockStatement({ all: [] }));
+
+    const rules = getAllRulesWithDraftStatus();
+    expect(rules).toHaveLength(2);
+    expect(rules[0].rule_id).toBe('b'); // order 10 < 30
+    expect(rules[1].rule_id).toBe('a');
+  });
 });
 
 // ── publishDrafts ──
@@ -393,6 +410,30 @@ describe('publishDrafts', () => {
 
     const result = publishDrafts();
     expect(result.error).toBe('string error');
+  });
+
+  it('falls back to default message when assemble Error has empty message and no stderr', () => {
+    const drafts = [
+      { rule_id: 'core', frontmatter_yaml: 'id: core\norder: 10', markdown_body: 'body', order_override: null, created_at: '2026-01-01', updated_at: '2026-01-01' },
+    ];
+
+    let prepareCallCount = 0;
+    mockPrepare.mockImplementation(() => {
+      prepareCallCount++;
+      if (prepareCallCount === 1) return mockStatement({ all: drafts });
+      return mockStatement({});
+    });
+
+    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as unknown as string[]);
+    vi.mocked(fs.readFileSync).mockReturnValue('---\nid: core\norder: 10\n---\nbody');
+    vi.mocked(execFileSync).mockImplementation(() => {
+      const err = new Error('') as Error & { stderr?: string };
+      err.stderr = '';
+      throw err;
+    });
+
+    const result = publishDrafts();
+    expect(result.error).toBe('assemble.py failed');
   });
 
   it('preserves disk content for reorder-only drafts with empty yaml/body', () => {
