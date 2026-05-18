@@ -155,6 +155,7 @@ export default function HistoryPage() {
                       <div className="flex items-center gap-3">
                         <button
                           onClick={() => toggleSelect(s.filename)}
+                          aria-label={t('history.selectSnapshot', { ts: formatTs(s.timestamp) })}
                           className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-indigo-500 border-indigo-500' : 'border-muted-foreground/30 hover:border-indigo-400'}`}
                         >
                           {isSelected && <Check className="w-3 h-3 text-white" />}
@@ -176,7 +177,7 @@ export default function HistoryPage() {
                               <Check className="w-4 h-4 mr-1" />
                               {t('history.rollbackConfirm')}
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={() => setRollbackTarget(null)}>
+                            <Button size="sm" variant="ghost" onClick={() => setRollbackTarget(null)} aria-label={t('editor.cancel')}>
                               <X className="w-4 h-4" />
                             </Button>
                           </div>
@@ -209,7 +210,7 @@ export default function HistoryPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-medium">{contentView}</h3>
-              <Button size="sm" variant="ghost" onClick={() => setContentView(null)}>
+              <Button size="sm" variant="ghost" onClick={() => setContentView(null)} aria-label={t('history.close')}>
                 <X className="w-4 h-4" />
               </Button>
             </div>

@@ -54,6 +54,7 @@ const zh = {
   'rules.sort.citations': '按引用数',
   'rules.sort.name': '按名称',
   'rules.noResults': '没有匹配的规则',
+  'rules.clearSearch': '清除搜索',
 
   // Rules 详情
   'ruleDetail.backTo': '返回 {section}',
@@ -115,6 +116,8 @@ const zh = {
   'history.diff.noResult': '无法生成对比结果',
   'history.content': '查看内容',
   'history.size': '{size} 字节',
+  'history.selectSnapshot': '选择快照 {ts}',
+  'history.close': '关闭',
 
   // Analytics
   'analytics.title': '数据分析',
