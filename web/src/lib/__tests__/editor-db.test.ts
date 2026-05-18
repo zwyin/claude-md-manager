@@ -220,6 +220,29 @@ describe('getAllRulesWithDraftStatus', () => {
     expect(rules[1].rule_id).toBe('intro');
     expect(rules[1].has_draft).toBe(false);
   });
+
+  it('handles rule file with no frontmatter', () => {
+    vi.mocked(fs.readdirSync).mockReturnValue(['bare.md'] as any);
+    vi.mocked(fs.readFileSync).mockReturnValue('Just plain markdown, no frontmatter');
+
+    const rules = getAllRulesWithDraftStatus();
+    expect(rules).toHaveLength(1);
+    expect(rules[0].rule_id).toBe('');
+    expect(rules[0].title).toBe('');
+    expect(rules[0].order).toBe(999);
+    expect(rules[0].markdown_body).toBe('Just plain markdown, no frontmatter');
+  });
+
+  it('handles rule file with missing YAML fields', () => {
+    vi.mocked(fs.readdirSync).mockReturnValue(['partial.md'] as any);
+    vi.mocked(fs.readFileSync).mockReturnValue('---\nid: partial\n---\nbody only');
+
+    const rules = getAllRulesWithDraftStatus();
+    expect(rules).toHaveLength(1);
+    expect(rules[0].rule_id).toBe('partial');
+    expect(rules[0].title).toBe('partial'); // falls back to ruleId
+    expect(rules[0].order).toBe(999); // falls back to default
+  });
 });
 
 // ── publishDrafts ──
@@ -352,5 +375,27 @@ describe('publishDrafts', () => {
 
     const result = publishDrafts();
     expect(result.error).toBe('spawn failed');
+  });
+
+  it('handles non-Error thrown from assemble', () => {
+    const drafts = [
+      { rule_id: 'core', frontmatter_yaml: 'id: core\norder: 10', markdown_body: 'body', order_override: null, created_at: '2026-01-01', updated_at: '2026-01-01' },
+    ];
+
+    let prepareCallCount = 0;
+    mockPrepare.mockImplementation(() => {
+      prepareCallCount++;
+      if (prepareCallCount === 1) return mockStatement({ all: drafts });
+      return mockStatement({});
+    });
+
+    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as any);
+    vi.mocked(fs.readFileSync).mockReturnValue('---\nid: core\norder: 10\n---\nbody');
+    vi.mocked(execFileSync).mockImplementation(() => {
+      throw 'string error'; // non-Error thrown value
+    });
+
+    const result = publishDrafts();
+    expect(result.error).toBe('string error');
   });
 });
