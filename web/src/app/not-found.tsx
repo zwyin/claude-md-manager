@@ -6,13 +6,13 @@ export default function NotFound() {
       <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
         <span className="text-2xl font-bold text-muted-foreground">404</span>
       </div>
-      <h2 className="text-lg font-semibold">Page not found</h2>
-      <p className="text-sm text-muted-foreground">The page you are looking for does not exist.</p>
+      <h2 className="text-lg font-semibold">页面未找到</h2>
+      <p className="text-sm text-muted-foreground">您访问的页面不存在</p>
       <Link
         href="/"
         className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
       >
-        Back to dashboard
+        返回仪表盘
       </Link>
     </div>
   );
