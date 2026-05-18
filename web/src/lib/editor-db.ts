@@ -202,8 +202,9 @@ export function publishDrafts(): { rulesChanged: number; snapshotName: string | 
       if (output.includes("Built CLAUDE.md")) {
         snapshotName = new Date().toISOString().replace(/[:.]/g, "-");
       }
-    } catch (err: any) {
-      errorMsg = err.stderr || err.message || "assemble.py failed";
+    } catch (err: unknown) {
+      const e = err instanceof Error ? err : new Error(String(err));
+      errorMsg = (e as Error & { stderr?: string }).stderr || e.message || "assemble.py failed";
     }
 
     // Record publish event

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, GitCompare, RotateCcw, Check, X, FileText } from 'lucide-react';
 import { useI18n } from '@/i18n';
-import { fetchJson } from '@/lib/fetch';
+import { useFetch } from '@/hooks/use-fetch';
 import { toast } from 'sonner';
 
 interface SnapshotInfo {
@@ -30,9 +30,8 @@ interface DiffResult {
 
 export default function HistoryPage() {
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const [snapshots, setSnapshots] = useState<SnapshotInfo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: historyData, loading, error } = useFetch<{ snapshots: SnapshotInfo[] }>('/api/history');
+  const snapshots = historyData?.snapshots ?? [];
   const [selected, setSelected] = useState<string[]>([]);
   const [diffResult, setDiffResult] = useState<DiffResult | null>(null);
   const [diffLoading, setDiffLoading] = useState(false);
@@ -42,13 +41,6 @@ export default function HistoryPage() {
   const [contentText, setContentText] = useState<string>('');
   const [contentLoading, setContentLoading] = useState(false);
   const { t } = useI18n();
-
-  useEffect(() => {
-    fetchJson<{ snapshots: SnapshotInfo[] }>('/api/history')
-      .then((json) => { setSnapshots(json.snapshots || []); setLoading(false); })
-      .catch((err) => { setError(err.message); setLoading(false); });
-    return () => clearTimeout(timerRef.current);
-  }, []);
 
   const toggleSelect = useCallback((filename: string) => {
     setSelected((prev) => {

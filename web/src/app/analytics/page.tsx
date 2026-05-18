@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,7 @@ import { StatCard } from '@/components/stat-card';
 import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
 import { useChartTheme } from '@/hooks/use-chart-theme';
-import { fetchJson } from '@/lib/fetch';
+import { useFetch } from '@/hooks/use-fetch';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 
 interface TopRule { rule_id: string; title: string; citation_count: number; }
@@ -30,22 +30,18 @@ interface AnalyticsData {
 }
 
 export default function AnalyticsPage() {
-  const [data, setData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [trendMode, setTrendMode] = useState<'day' | 'week' | 'month'>('day');
   const [timeRange, setTimeRange] = useState<number | undefined>(undefined);
   const { t } = useI18n();
   const chartTheme = useChartTheme();
 
-  useEffect(() => {
-    setLoading(true);
+  const url = useMemo(() => {
     const params = new URLSearchParams({ trend_group: trendMode });
     if (timeRange) params.set('days', String(timeRange));
-    fetchJson<AnalyticsData>(`/api/analytics?${params}`)
-      .then((json) => { setData(json); setLoading(false); })
-      .catch((err) => { setError(err.message); setLoading(false); });
+    return `/api/analytics?${params}`;
   }, [trendMode, timeRange]);
+
+  const { data, loading, error } = useFetch<AnalyticsData>(url);
 
   if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
   if (error) return <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">{t('status.error', { error })}</div>;

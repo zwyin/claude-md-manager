@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Search, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
-import { fetchJson } from '@/lib/fetch';
+import { useFetch } from '@/hooks/use-fetch';
 import { SECTION_COLORS, PRIMARY } from '@/lib/chart-colors';
 
 interface Rule {
@@ -49,9 +49,7 @@ export default function RulesPage() {
 }
 
 function RulesContent() {
-  const [data, setData] = useState<RulesData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, loading, error } = useFetch<RulesData>('/api/rules');
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [sectionFilter, setSectionFilter] = useState<string>('all');
@@ -60,20 +58,15 @@ function RulesContent() {
   const { t } = useI18n();
 
   useEffect(() => {
-    fetchJson<RulesData>('/api/rules')
-      .then((json) => {
-        setData(json);
-        const open: Record<string, boolean> = {};
-        const focusSection = searchParams.get('section');
-        (json.rules || []).forEach((r: Rule) => {
-          open[r.section_id] = focusSection ? r.section_id === focusSection : true;
-        });
-        setOpenSections(open);
-        if (focusSection) setSectionFilter(focusSection);
-        setLoading(false);
-      })
-      .catch((err) => { setError(err.message); setLoading(false); });
-  }, [searchParams]);
+    if (!data) return;
+    const open: Record<string, boolean> = {};
+    const focusSection = searchParams.get('section');
+    (data.rules || []).forEach((r: Rule) => {
+      open[r.section_id] = focusSection ? r.section_id === focusSection : true;
+    });
+    setOpenSections(open);
+    if (focusSection) setSectionFilter(focusSection);
+  }, [data, searchParams]);
 
   const toggle = (id: string) => setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
 

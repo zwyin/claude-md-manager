@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
-import { fetchJson } from '@/lib/fetch';
+import { useFetch } from '@/hooks/use-fetch';
 
 interface Rule {
   rule_id: string; section_id: string; title: string; keywords: string[];
@@ -26,24 +26,13 @@ interface SiblingRule {
 export default function RuleDetailPage() {
   const params = useParams();
   const ruleId = params?.id as string;
-  const [rule, setRule] = useState<Rule | null>(null);
-  const [citations, setCitations] = useState<CitationRecord[]>([]);
-  const [siblings, setSiblings] = useState<SiblingRule[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { t } = useI18n();
 
-  useEffect(() => {
-    if (!ruleId) return;
-    fetchJson<{ rule: Rule; citations: CitationRecord[]; siblings: SiblingRule[] }>(`/api/rules/${encodeURIComponent(ruleId)}`)
-      .then((json) => {
-        setRule(json.rule);
-        setCitations(json.citations || []);
-        setSiblings(json.siblings || []);
-        setLoading(false);
-      })
-      .catch((err) => { setError(err.message); setLoading(false); });
-  }, [ruleId]);
+  const url = ruleId ? `/api/rules/${encodeURIComponent(ruleId)}` : null;
+  const { data: resp, loading, error } = useFetch<{ rule: Rule; citations: CitationRecord[]; siblings: SiblingRule[] }>(url);
+  const rule = resp?.rule ?? null;
+  const citations = resp?.citations ?? [];
+  const siblings = resp?.siblings ?? [];
 
   if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
   if (error) return (

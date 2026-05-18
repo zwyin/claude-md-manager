@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +10,7 @@ import { StatCard } from '@/components/stat-card';
 import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
 import { useChartTheme } from '@/hooks/use-chart-theme';
-import { fetchJson } from '@/lib/fetch';
+import { useFetch } from '@/hooks/use-fetch';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 
 interface Rule {
@@ -27,18 +27,10 @@ interface DashboardData {
 }
 
 export default function DashboardPage() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, loading, error } = useFetch<DashboardData>('/api/rules');
   const [coldOpen, setColdOpen] = useState(false);
   const { t } = useI18n();
   const chartTheme = useChartTheme();
-
-  useEffect(() => {
-    fetchJson<DashboardData>('/api/rules')
-      .then((json) => { setData(json); setLoading(false); })
-      .catch((err) => { setError(err.message); setLoading(false); });
-  }, []);
 
   if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
   if (error) return <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">{t('status.error', { error })}</div>;
