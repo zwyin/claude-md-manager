@@ -4,7 +4,6 @@ import type {
   RuleWithStats,
   CitationRecord,
   CitationTimePoint,
-  HistoryEntry,
   AnalyticsData,
   TopRule,
   ColdRule,
@@ -221,71 +220,6 @@ export function getCitations(filters: {
       .all() as CitationTimePoint[];
 
     return rows;
-  } finally {
-    db.close();
-  }
-}
-
-// ── History ──
-
-export function getHistory(): HistoryEntry[] {
-  const db = getDb();
-  try {
-    // Derive history from distinct updated_at snapshots
-    const rows = db
-      .prepare(
-        `
-        SELECT
-          DATE(updated_at) AS snapshot_ts,
-          COUNT(*) AS rule_count,
-          source_file
-        FROM rules_metadata
-        GROUP BY snapshot_ts, source_file
-        ORDER BY snapshot_ts DESC
-        `
-      )
-      .all() as HistoryEntry[];
-
-    return rows;
-  } finally {
-    db.close();
-  }
-}
-
-// ── Snapshot (for rollback) ──
-
-export function getSnapshot(ts: string): {
-  rules: Array<{
-    rule_id: string;
-    section_id: string;
-    title: string;
-    keywords: string;
-    source_file: string;
-    updated_at: string;
-  }>;
-} | null {
-  const db = getDb();
-  try {
-    const rules = db
-      .prepare(
-        `
-        SELECT rule_id, section_id, title, keywords, source_file, updated_at
-        FROM rules_metadata
-        WHERE DATE(updated_at) <= DATE(?)
-        ORDER BY updated_at DESC
-        `
-      )
-      .all(ts) as Array<{
-      rule_id: string;
-      section_id: string;
-      title: string;
-      keywords: string;
-      source_file: string;
-      updated_at: string;
-    }>;
-
-    if (rules.length === 0) return null;
-    return { rules };
   } finally {
     db.close();
   }
