@@ -144,13 +144,13 @@ export function saveReorder(items: ReorderItem[]): void {
 
 // ── Validate ──
 
-export interface ValidationError {
+export interface DraftValidationIssue {
   rule_id: string;
   message: string;
 }
 
-export function validateDrafts(drafts: Array<{ rule_id: string; frontmatter_yaml: string }>): ValidationError[] {
-  const errors: ValidationError[] = [];
+export function validateDrafts(drafts: Array<{ rule_id: string; frontmatter_yaml: string }>): DraftValidationIssue[] {
+  const errors: DraftValidationIssue[] = [];
   for (const d of drafts) {
     const yaml = d.frontmatter_yaml;
     const id = parseYamlField(yaml, "id");

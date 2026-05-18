@@ -144,7 +144,7 @@ def rollback(timestamp: str) -> bool:
     return True
 
 
-def git_commit_if_changed(content: str, changed_files: list[str] = None):
+def git_commit_if_changed(content: str, changed_files: list[str] | None = None):
     """Auto git commit if content changed."""
     import subprocess
     try:
@@ -175,7 +175,7 @@ def git_commit_if_changed(content: str, changed_files: list[str] = None):
         env["GIT_DIR"] = str(PROJECT_DIR / ".git")
         env["GIT_WORK_TREE"] = str(PROJECT_DIR)
 
-        subprocess.run(["git", "add", "-A"], cwd=PROJECT_DIR, check=True, env=env)
+        subprocess.run(["git", "add", "data/history/", "rules/"], cwd=PROJECT_DIR, check=True, env=env)
 
         ts = datetime.now().strftime("%Y-%m-%d %H:%M")
         msg = f"build: update CLAUDE.md at {ts}"
