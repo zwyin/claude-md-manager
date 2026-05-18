@@ -135,11 +135,13 @@ export interface RuleDetail {
 
 export function getRuleDetail(
   ruleId: string,
-  days?: number
+  days?: number,
+  db?: Database.Database
 ): { rule: RuleDetail; citations: CitationRecord[]; siblings: Array<{ rule_id: string; title: string; match_count: number; session_count: number }> } | null {
-  const db = getDb();
+  const own = !db;
+  const conn = db || getDb();
   try {
-    const ruleRow = db
+    const ruleRow = conn
       .prepare('SELECT * FROM rules_metadata WHERE rule_id = ?')
       .get(ruleId) as {
       rule_id: string;
@@ -157,7 +159,7 @@ export function getRuleDetail(
       : '';
     const timeParams = days ? [`-${days}`] : [];
 
-    const citationCountRow = db
+    const citationCountRow = conn
       .prepare(
         `SELECT COUNT(*) AS citation_count, MAX(r.timestamp) AS last_cited
          FROM rule_references r WHERE r.rule_id = ? ${timeFilter}`
@@ -165,7 +167,7 @@ export function getRuleDetail(
       .bind(ruleId, ...timeParams)
       .get() as { citation_count: number; last_cited: string | null };
 
-    const citations = db
+    const citations = conn
       .prepare(
         `
         SELECT r.id, r.rule_id, r.session_id, r.matched_keyword, r.timestamp,
@@ -179,7 +181,7 @@ export function getRuleDetail(
       .bind(ruleId, ...timeParams)
       .all() as CitationRecord[];
 
-    const siblings = db
+    const siblings = conn
       .prepare(
         `
         SELECT m.rule_id, m.title,
@@ -208,7 +210,7 @@ export function getRuleDetail(
       siblings,
     };
   } finally {
-    db.close();
+    if (own) conn.close();
   }
 }
 

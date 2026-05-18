@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Database from 'better-sqlite3';
+import path from 'path';
 import { getRuleDetail } from '@/lib/db';
 import { parseDays, sanitizeRuleId } from '@/lib/api-utils';
 import { handleApiError } from '@/lib/api-handler';
@@ -12,13 +14,18 @@ export async function GET(
     const { searchParams } = request.nextUrl;
     const days = parseDays(searchParams.get('days'));
 
-    const result = getRuleDetail(sanitizeRuleId(id), days);
+    const db = new Database(path.join(process.cwd(), '..', 'data', 'usage.db'), { readonly: true });
+    try {
+      const result = getRuleDetail(sanitizeRuleId(id), days, db);
 
-    if (!result) {
-      return NextResponse.json({ error: 'Rule not found' }, { status: 404 });
+      if (!result) {
+        return NextResponse.json({ error: 'Rule not found' }, { status: 404 });
+      }
+
+      return NextResponse.json(result);
+    } finally {
+      db.close();
     }
-
-    return NextResponse.json(result);
   } catch (error) {
     return handleApiError(error);
   }
