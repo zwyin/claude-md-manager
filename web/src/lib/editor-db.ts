@@ -182,13 +182,14 @@ export function publishDrafts(): { rulesChanged: number; snapshotName: string | 
       if (!rule) continue;
       written++;
 
-      // Apply order override to frontmatter
-      let yaml = draft.frontmatter_yaml;
+      // Fall back to disk content for reorder-only drafts (empty yaml/body)
+      let yaml = draft.frontmatter_yaml || rule.frontmatter_yaml;
+      let body = draft.markdown_body || rule.markdown_body;
       if (draft.order_override !== null) {
         yaml = yaml.replace(/^order:\s*\d+/m, `order: ${draft.order_override}`);
       }
 
-      const content = `---\n${yaml}\n---\n${draft.markdown_body}`;
+      const content = `---\n${yaml}\n---\n${body}`;
       fs.writeFileSync(path.join(RULES_DIR, rule.source_file), content, "utf-8");
     }
 

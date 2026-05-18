@@ -394,4 +394,29 @@ describe('publishDrafts', () => {
     const result = publishDrafts();
     expect(result.error).toBe('string error');
   });
+
+  it('preserves disk content for reorder-only drafts with empty yaml/body', () => {
+    const drafts = [
+      { rule_id: 'core', frontmatter_yaml: '', markdown_body: '', order_override: 5, created_at: '2026-01-01', updated_at: '2026-01-01' },
+    ];
+
+    let prepareCallCount = 0;
+    mockPrepare.mockImplementation(() => {
+      prepareCallCount++;
+      if (prepareCallCount === 1) return mockStatement({ all: drafts });
+      return mockStatement({});
+    });
+
+    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as unknown as string[]);
+    vi.mocked(fs.readFileSync).mockReturnValue('---\nid: core\ntitle: Core\norder: 10\n---\nOriginal body');
+    vi.mocked(execFileSync).mockReturnValue('Built CLAUDE.md');
+
+    publishDrafts();
+    const written = vi.mocked(fs.writeFileSync).mock.calls[0];
+    expect(written[1]).toContain('id: core');
+    expect(written[1]).toContain('title: Core');
+    expect(written[1]).toContain('order: 5');
+    expect(written[1]).toContain('Original body');
+    expect(written[1]).not.toContain('order: 10');
+  });
 });
