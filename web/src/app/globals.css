@@ -5,21 +5,6 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --sidebar-bg: #1a1a2e;
-  --sidebar-hover: #16213e;
-  --sidebar-active: #0f3460;
-  --sidebar-text: #a0aec0;
-  --sidebar-text-active: #e2e8f0;
-  --content-bg: #0f172a;
-  --card-bg: #1e293b;
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --border-color: #334155;
-  --accent-green: #4ade80;
-  --accent-red: #f87171;
-  --accent-amber: #fbbf24;
-  --accent-blue: #60a5fa;
   --background: #0f172a;
   --foreground: #e2e8f0;
   --card: #1e293b;
@@ -55,8 +40,8 @@
 }
 
 @theme inline {
-  --color-background: var(--content-bg);
-  --color-foreground: var(--text-primary);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: ui-monospace, monospace;
   --font-heading: var(--font-sans);
@@ -124,7 +109,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: var(--muted-foreground);
 }
 
 .dark {
