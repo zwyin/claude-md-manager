@@ -7,11 +7,13 @@ import pytest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hooks"))
+import db as db_mod
 sl = importlib.import_module("session-logger")
 
 parse_all_rules = sl.parse_all_rules
 scan_session = sl.scan_session
 find_latest_session = sl.find_latest_session
+main = sl.main
 
 
 @pytest.fixture
@@ -246,3 +248,142 @@ class TestFindLatestSession:
         result = find_latest_session()
         assert result is not None
         assert result.name == "new.jsonl"
+
+
+class TestScanSessionEdgeCases:
+    def test_content_as_string(self):
+        km = {"hello": [("r1", "hello")]}
+        lines = [
+            json.dumps({"type": "assistant", "message": {
+                "content": "say hello world"
+            }}),
+        ]
+        f = Path("/tmp/test_scan_str.jsonl")
+        f.write_text("\n".join(lines), encoding="utf-8")
+        matches = scan_session(f, km)
+        assert len(matches) == 1
+
+    def test_empty_text_block(self):
+        km = {"hello": [("r1", "hello")]}
+        lines = [
+            json.dumps({"type": "assistant", "message": {
+                "content": [{"type": "text", "text": "   "}]
+            }}),
+        ]
+        f = Path("/tmp/test_scan_empty.jsonl")
+        f.write_text("\n".join(lines), encoding="utf-8")
+        matches = scan_session(f, km)
+        assert len(matches) == 0
+
+    def test_non_dict_content_block(self):
+        km = {"hello": [("r1", "hello")]}
+        lines = [
+            json.dumps({"type": "assistant", "message": {
+                "content": [{"type": "image", "url": "http://example.com"}]
+            }}),
+        ]
+        f = Path("/tmp/test_scan_nondict.jsonl")
+        f.write_text("\n".join(lines), encoding="utf-8")
+        matches = scan_session(f, km)
+        assert len(matches) == 0
+
+
+class TestMainSyncMetadata:
+    def test_sync_metadata(self, rules_dir, tmp_path, monkeypatch, capsys):
+        _write_rule(rules_dir, "test.md", """
+id: sec1
+rules:
+  - id: sec1.r1
+    title: Rule One
+    keywords:
+      - hello
+""")
+        db_path = tmp_path / "test_sync.db"
+        monkeypatch.setattr(db_mod, "DB_PATH", db_path)
+        monkeypatch.setattr(sys, "argv", ["session-logger.py", "--sync-metadata"])
+
+        main()
+        captured = capsys.readouterr()
+        assert "Synced 1 rules, 1 sections" in captured.out
+
+    def test_no_session_found(self, rules_dir, tmp_path, monkeypatch, capsys):
+        _write_rule(rules_dir, "test.md", """
+id: sec1
+rules:
+  - id: sec1.r1
+    title: Rule One
+    keywords:
+      - hello
+""")
+        monkeypatch.setattr(sl, "CLAUDE_DIR", tmp_path / "nonexistent")
+        monkeypatch.setattr(sys, "argv", ["session-logger.py"])
+
+        main()
+        captured = capsys.readouterr()
+        assert "No session file found" in captured.err
+
+    def test_no_keywords(self, tmp_path, monkeypatch, capsys):
+        rules = tmp_path / "rules"
+        rules.mkdir()
+        (rules / "empty.md").write_text("---\ntitle: No Rules\n---\nbody\n", encoding="utf-8")
+        monkeypatch.setattr(sl, "RULES_DIR", rules)
+
+        # Create a fake session file
+        projects = tmp_path / "projects" / "proj"
+        projects.mkdir(parents=True)
+        session = projects / "test.jsonl"
+        session.write_text("data", encoding="utf-8")
+        monkeypatch.setattr(sl, "CLAUDE_DIR", tmp_path)
+        monkeypatch.setattr(sys, "argv", ["session-logger.py"])
+
+        main()
+        captured = capsys.readouterr()
+        assert "No keywords loaded" in captured.err
+
+    def test_explicit_session_path(self, rules_dir, tmp_path, monkeypatch, capsys):
+        _write_rule(rules_dir, "test.md", """
+id: sec1
+rules:
+  - id: sec1.r1
+    title: Rule One
+    keywords:
+      - hello
+""")
+        db_path = tmp_path / "test_explicit.db"
+        monkeypatch.setattr(db_mod, "DB_PATH", db_path)
+
+        # Create a session file with a match
+        session = tmp_path / "explicit.jsonl"
+        lines = [
+            json.dumps({"type": "assistant", "message": {
+                "content": [{"type": "text", "text": "say hello"}]
+            }}),
+        ]
+        session.write_text("\n".join(lines), encoding="utf-8")
+        monkeypatch.setattr(sys, "argv", ["session-logger.py", str(session)])
+
+        main()
+        captured = capsys.readouterr()
+        assert "1 keyword matches" in captured.out
+
+    def test_session_no_matches(self, rules_dir, tmp_path, monkeypatch, capsys):
+        _write_rule(rules_dir, "test.md", """
+id: sec1
+rules:
+  - id: sec1.r1
+    title: Rule One
+    keywords:
+      - rareword123
+""")
+        session = tmp_path / "nomatch.jsonl"
+        lines = [
+            json.dumps({"type": "assistant", "message": {
+                "content": [{"type": "text", "text": "nothing relevant"}]
+            }}),
+        ]
+        session.write_text("\n".join(lines), encoding="utf-8")
+        monkeypatch.setattr(sys, "argv", ["session-logger.py", str(session)])
+
+        main()
+        captured = capsys.readouterr()
+        assert "no rule matches found" in captured.out
