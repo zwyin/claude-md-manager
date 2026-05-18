@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRuleDetail } from '@/lib/db';
+import { parseDays, sanitizeRuleId } from '@/lib/api-utils';
 
 export async function GET(
   request: NextRequest,
@@ -8,11 +9,9 @@ export async function GET(
   try {
     const { id } = await params;
     const { searchParams } = request.nextUrl;
-    const days = searchParams.get('days')
-      ? parseInt(searchParams.get('days')!, 10)
-      : undefined;
+    const days = parseDays(searchParams.get('days'));
 
-    const result = getRuleDetail(id, days);
+    const result = getRuleDetail(sanitizeRuleId(id), days);
 
     if (!result) {
       return NextResponse.json({ error: 'Rule not found' }, { status: 404 });

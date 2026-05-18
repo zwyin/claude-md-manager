@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRulesWithStats, getSectionsWithStats, getTotalSessionCount } from '@/lib/db';
+import { parseDays } from '@/lib/api-utils';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
-    const days = searchParams.get('days')
-      ? parseInt(searchParams.get('days')!, 10)
-      : undefined;
+    const days = parseDays(searchParams.get('days'));
 
     const rules = getRulesWithStats(days);
     const total_rules = rules.length;

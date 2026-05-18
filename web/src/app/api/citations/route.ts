@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCitations } from '@/lib/db';
+import { parseDays, parseEnum } from '@/lib/api-utils';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
     const rule_id = searchParams.get('rule_id') || undefined;
-    const days = searchParams.get('days')
-      ? parseInt(searchParams.get('days')!, 10)
-      : undefined;
-    const group_by = (searchParams.get('group_by') as 'day' | 'week' | 'month') || 'day';
+    const days = parseDays(searchParams.get('days'));
+    const group_by = parseEnum(searchParams.get('group_by'), ['day', 'week', 'month'] as const, 'day');
 
     const citations = getCitations({ rule_id, days, group_by });
     return NextResponse.json(citations);

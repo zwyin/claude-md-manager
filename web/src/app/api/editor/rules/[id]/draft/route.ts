@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDraft, saveDraft, deleteDraft } from "@/lib/editor-db";
+import { sanitizeRuleId } from "@/lib/api-utils";
 
 export async function GET(
   _request: NextRequest,
@@ -7,7 +8,7 @@ export async function GET(
 ) {
   const { id } = await params;
   try {
-    const draft = getDraft(decodeURIComponent(id));
+    const draft = getDraft(sanitizeRuleId(id));
     if (!draft) return NextResponse.json(null, { status: 404 });
     return NextResponse.json(draft);
   } catch (error) {
@@ -26,7 +27,7 @@ export async function PUT(
       return NextResponse.json({ error: 'frontmatter_yaml and markdown_body are required strings' }, { status: 400 });
     }
     saveDraft(
-      decodeURIComponent(id),
+      sanitizeRuleId(id),
       body.frontmatter_yaml,
       body.markdown_body,
       body.order_override
@@ -43,7 +44,7 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
-    deleteDraft(decodeURIComponent(id));
+    deleteDraft(sanitizeRuleId(id));
     return NextResponse.json({ ok: true });
   } catch (error) {
     return NextResponse.json({ error: String(error) }, { status: 500 });
