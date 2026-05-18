@@ -70,23 +70,32 @@ def find_latest_session() -> Path | None:
 
     Claude Code stores sessions as <uuid>.jsonl directly in
     ~/.claude/projects/<project-dir>/ (no conversations/ subdirectory).
+
+    Optimization: only scan files modified in the last hour, since
+    the hook runs during active sessions.
     """
-    candidates = []
+    import time
     projects_dir = CLAUDE_DIR / "projects"
     if not projects_dir.exists():
         return None
 
-    # Scan all project directories for JSONL files
+    cutoff = time.time() - 3600  # 1 hour ago
+    best_path: Path | None = None
+    best_mtime = 0.0
+
     for project_dir in projects_dir.iterdir():
         if not project_dir.is_dir():
             continue
-        for jsonl_file in project_dir.glob("*.jsonl"):
-            candidates.append(jsonl_file)
+        try:
+            for jsonl_file in project_dir.glob("*.jsonl"):
+                mtime = jsonl_file.stat().st_mtime
+                if mtime >= cutoff and mtime > best_mtime:
+                    best_mtime = mtime
+                    best_path = jsonl_file
+        except PermissionError:
+            continue
 
-    if not candidates:
-        return None
-
-    return max(candidates, key=lambda p: p.stat().st_mtime)
+    return best_path
 
 
 def scan_session(jsonl_path: Path, keyword_map: dict) -> list:
