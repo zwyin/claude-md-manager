@@ -20,8 +20,6 @@ const zh = {
   'dashboard.subtitle': 'CLAUDE.md 规则概览与统计数据',
   'dashboard.totalRules': '总规则数',
   'dashboard.totalSessions': '总会话数',
-  'dashboard.activeRate': '规则活跃率',
-  'dashboard.totalCitations': '引用总量',
   'dashboard.inSections': '{count} 个章节',
   'dashboard.sections': '章节概览',
   'dashboard.sections.subtitle': '按引用次数排序的章节',
@@ -29,7 +27,6 @@ const zh = {
   'dashboard.coldRules.count': '{count} 条规则',
 
   // 表格通用
-  'table.section': '章节',
   'table.rules': '子规则',
   'table.sessions': '会话数',
   'table.time': '时间',
@@ -51,7 +48,6 @@ const zh = {
   'ruleDetail.section': '所属章节',
   'ruleDetail.source': '来源文件',
   'ruleDetail.lastCited': '最后引用',
-  'ruleDetail.keywords': '关键词',
   'ruleDetail.sameSection': '同章节规则',
   'ruleDetail.noCitations': '暂无引用数据',
   'ruleDetail.showing': '显示 {shown} / {total} 条',
