@@ -52,6 +52,7 @@ import {
   saveReorder,
   getPublishHistory,
   getAllRulesWithDraftStatus,
+  publishDrafts,
 } from '../editor-db';
 
 beforeEach(() => {
@@ -218,5 +219,94 @@ describe('getAllRulesWithDraftStatus', () => {
     expect(rules[0].draft_order_override).toBe(5);
     expect(rules[1].rule_id).toBe('intro');
     expect(rules[1].has_draft).toBe(false);
+  });
+});
+
+// ── publishDrafts ──
+
+describe('publishDrafts', () => {
+  it('returns early when no drafts exist', () => {
+    const stmt = mockStatement({ all: [] });
+    mockPrepare.mockReturnValue(stmt);
+
+    const result = publishDrafts();
+    expect(result).toEqual({ rulesChanged: 0, snapshotName: null });
+    expect(fs.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  it('writes drafts to disk and runs assemble', () => {
+    const drafts = [
+      { rule_id: 'core', frontmatter_yaml: 'id: core\ntitle: Core\norder: 10', markdown_body: 'body', order_override: null, created_at: '2026-01-01', updated_at: '2026-01-01' },
+    ];
+    const allRulesResponse = mockStatement({
+      all: [{ rule_id: 'core', order_override: null }],
+    });
+
+    // First call: SELECT * FROM rule_drafts → returns drafts
+    // Subsequent calls: INSERT, DELETE, etc.
+    let prepareCallCount = 0;
+    mockPrepare.mockImplementation(() => {
+      prepareCallCount++;
+      if (prepareCallCount === 1) return mockStatement({ all: drafts });
+      return mockStatement({});
+    });
+
+    // Mock getAllRulesWithDraftStatus's filesystem reads
+    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as unknown as fs.Dirent[]);
+    vi.mocked(fs.readFileSync).mockReturnValue('---\nid: core\ntitle: Core\norder: 10\n---\nCore body');
+
+    // Mock assemble.py success
+    vi.mocked(execFileSync).mockReturnValue('Built CLAUDE.md at /some/path');
+
+    const result = publishDrafts();
+    expect(result.rulesChanged).toBe(1);
+    expect(fs.writeFileSync).toHaveBeenCalled();
+    expect(execFileSync).toHaveBeenCalledWith('python', ['build/assemble.py'], expect.any(Object));
+  });
+
+  it('handles assemble.py failure gracefully', () => {
+    const drafts = [
+      { rule_id: 'core', frontmatter_yaml: 'id: core\norder: 10', markdown_body: 'body', order_override: null, created_at: '2026-01-01', updated_at: '2026-01-01' },
+    ];
+
+    let prepareCallCount = 0;
+    mockPrepare.mockImplementation(() => {
+      prepareCallCount++;
+      if (prepareCallCount === 1) return mockStatement({ all: drafts });
+      return mockStatement({});
+    });
+
+    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as unknown as fs.Dirent[]);
+    vi.mocked(fs.readFileSync).mockReturnValue('---\nid: core\norder: 10\n---\nbody');
+    vi.mocked(execFileSync).mockImplementation(() => {
+      const err = new Error('assemble failed') as Error & { stderr?: string };
+      err.stderr = 'Traceback...';
+      throw err;
+    });
+
+    const result = publishDrafts();
+    expect(result.error).toBe('Traceback...');
+  });
+
+  it('applies order override to frontmatter', () => {
+    const drafts = [
+      { rule_id: 'core', frontmatter_yaml: 'id: core\norder: 10', markdown_body: 'body', order_override: 5, created_at: '2026-01-01', updated_at: '2026-01-01' },
+    ];
+
+    let prepareCallCount = 0;
+    mockPrepare.mockImplementation(() => {
+      prepareCallCount++;
+      if (prepareCallCount === 1) return mockStatement({ all: drafts });
+      return mockStatement({});
+    });
+
+    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as unknown as fs.Dirent[]);
+    vi.mocked(fs.readFileSync).mockReturnValue('---\nid: core\norder: 10\n---\nbody');
+    vi.mocked(execFileSync).mockReturnValue('Built CLAUDE.md');
+
+    publishDrafts();
+    const written = vi.mocked(fs.writeFileSync).mock.calls[0];
+    expect(written[1]).toContain('order: 5');
+    expect(written[1]).not.toContain('order: 10');
   });
 });
