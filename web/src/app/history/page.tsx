@@ -150,7 +150,7 @@ export default function HistoryPage() {
               const isConfirming = rollbackTarget === s.filename;
               return (
                 <div key={s.filename} className="relative">
-                  <div className={`absolute -left-5 top-4 w-3 h-3 rounded-full border-2 border-slate-900 transition-colors ${isSelected ? 'bg-indigo-400' : 'bg-indigo-500'}`} />
+                  <div className={`absolute -left-5 top-4 w-3 h-3 rounded-full border-2 border-card transition-colors ${isSelected ? 'bg-indigo-400' : 'bg-indigo-500'}`} />
                   <Card className={`rounded-xl border bg-card ml-4 transition-colors ${isSelected ? 'border-indigo-500/50' : 'border-border'}`}>
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
