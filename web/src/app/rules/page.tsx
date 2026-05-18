@@ -42,7 +42,7 @@ function MiniSparkline({ session, matches }: { session: number; matches: number 
 
 export default function RulesPage() {
   return (
-    <Suspense fallback={<div className="text-muted-foreground p-4">Loading...</div>}>
+    <Suspense fallback={<div className="text-muted-foreground p-4">加载中...</div>}>
       <RulesContent />
     </Suspense>
   );
