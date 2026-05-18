@@ -57,43 +57,57 @@ export default function EditorPage() {
 
   const handleSaveDraft = useCallback(async () => {
     if (!selectedId) return;
-    await fetch(`/api/editor/rules/${encodeURIComponent(selectedId)}/draft`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        frontmatter_yaml: frontmatter,
-        markdown_body: body,
-      }),
-    });
-    setHasDraft(true);
-    const res = await fetch("/api/editor/rules");
-    const data = await res.json();
-    setRules(data.rules);
-  }, [selectedId, frontmatter, body]);
+    try {
+      const res = await fetch(`/api/editor/rules/${encodeURIComponent(selectedId)}/draft`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          frontmatter_yaml: frontmatter,
+          markdown_body: body,
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setHasDraft(true);
+      toast.success(t('editor.draftSaved'));
+      const refreshed = await fetch("/api/editor/rules").then((r) => r.json());
+      setRules(refreshed.rules);
+    } catch (err) {
+      toast.error(t('editor.draftSaveFailed'));
+    }
+  }, [selectedId, frontmatter, body, t]);
 
   const handleDiscardDraft = useCallback(async () => {
     if (!selectedId) return;
-    await fetch(`/api/editor/rules/${encodeURIComponent(selectedId)}/draft`, {
-      method: "DELETE",
-    });
-    setFrontmatter(selectedRule?.frontmatter_yaml ?? "");
-    setBody(selectedRule?.markdown_body ?? "");
-    setHasDraft(false);
-    const res = await fetch("/api/editor/rules");
-    const data = await res.json();
-    setRules(data.rules);
-  }, [selectedId, selectedRule]);
+    try {
+      const res = await fetch(`/api/editor/rules/${encodeURIComponent(selectedId)}/draft`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setFrontmatter(selectedRule?.frontmatter_yaml ?? "");
+      setBody(selectedRule?.markdown_body ?? "");
+      setHasDraft(false);
+      toast.success(t('editor.draftDiscarded'));
+      const refreshed = await fetch("/api/editor/rules").then((r) => r.json());
+      setRules(refreshed.rules);
+    } catch (err) {
+      toast.error(t('editor.draftDiscardFailed'));
+    }
+  }, [selectedId, selectedRule, t]);
 
   const handleReorder = useCallback(async (items: Array<{ rule_id: string; order: number }>) => {
-    await fetch("/api/editor/reorder", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(items),
-    });
-    const res = await fetch("/api/editor/rules");
-    const data = await res.json();
-    setRules(data.rules);
-  }, []);
+    try {
+      const res = await fetch("/api/editor/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(items),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const refreshed = await fetch("/api/editor/rules").then((r) => r.json());
+      setRules(refreshed.rules);
+    } catch (err) {
+      toast.error(t('editor.reorderFailed'));
+    }
+  }, [t]);
 
   const handlePublish = useCallback(async () => {
     setPublishing(true);
@@ -101,12 +115,12 @@ export default function EditorPage() {
       const res = await fetch("/api/editor/publish", { method: "POST" });
       const data = await res.json();
       if (data.error) {
-        toast.error(`Publish failed: ${data.error}`);
+        toast.error(t('editor.publishFailed', { error: data.error }));
       } else {
         toast.success(t('editor.published', { count: data.rulesChanged }));
       }
-    } catch (err) {
-      toast.error(`Publish error: ${err}`);
+    } catch {
+      toast.error(t('editor.publishFailed', { error: 'Network error' }));
     } finally {
       setPublishing(false);
       setShowPublish(false);
