@@ -81,4 +81,23 @@ export interface AnalyticsData {
   top_rules: TopRule[];
   cold_rules: ColdRule[];
   category_distribution: CategoryDistribution[];
+  citation_trend: CitationTimePoint[];
+}
+
+export interface RuleDetail {
+  rule_id: string;
+  section_id: string;
+  title: string;
+  keywords: string[];
+  source_file: string;
+  updated_at: string;
+  citation_count: number;
+  last_cited: string | null;
+}
+
+export interface SiblingRule {
+  rule_id: string;
+  title: string;
+  match_count: number;
+  session_count: number;
 }

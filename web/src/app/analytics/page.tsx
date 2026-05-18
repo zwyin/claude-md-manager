@@ -17,18 +17,7 @@ import { useChartTheme } from '@/hooks/use-chart-theme';
 import { useFetch } from '@/hooks/use-fetch';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
-
-interface TopRule { rule_id: string; title: string; citation_count: number; }
-interface ColdRule { rule_id: string; title: string; days_since_last_citation: number | null; }
-interface CategoryDist { section_id: string; rule_count: number; citation_count: number; }
-interface TrendPoint { period: string; count: number; }
-
-interface AnalyticsData {
-  total_rules: number; total_citations: number; total_sessions: number;
-  top_rules: TopRule[]; cold_rules: ColdRule[];
-  category_distribution: CategoryDist[];
-  citation_trend: TrendPoint[];
-}
+import type { AnalyticsData } from '@/lib/types';
 
 export default function AnalyticsPage() {
   const [trendMode, setTrendMode] = useState<'day' | 'week' | 'month'>('day');

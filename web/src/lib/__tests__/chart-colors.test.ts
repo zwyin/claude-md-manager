@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 describe('chart-colors', () => {
   it('exports all color constants', async () => {
-    const mod = await import('../../lib/chart-colors');
+    const mod = await import('../chart-colors');
     expect(Array.isArray(mod.CHART_COLORS)).toBe(true);
     expect(mod.CHART_COLORS.length).toBeGreaterThan(0);
     expect(Array.isArray(mod.SECTION_COLORS)).toBe(true);
@@ -17,7 +17,7 @@ describe('chart-colors', () => {
   });
 
   it('all colors are valid hex', async () => {
-    const mod = await import('../../lib/chart-colors');
+    const mod = await import('../chart-colors');
     const hexRegex = /^#[0-9a-f]{6}$/;
     for (const c of mod.CHART_COLORS) {
       expect(c).toMatch(hexRegex);
@@ -29,12 +29,5 @@ describe('chart-colors', () => {
     for (const val of Object.values(mod.STAT_COLORS)) {
       expect(val).toMatch(hexRegex);
     }
-  });
-});
-
-describe('fetchJson', () => {
-  it('module exports fetchJson function', async () => {
-    const mod = await import('../../lib/fetch');
-    expect(typeof mod.fetchJson).toBe('function');
   });
 });

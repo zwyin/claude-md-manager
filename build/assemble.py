@@ -55,7 +55,7 @@ def build_output(rules: list[tuple[str, dict, str]]) -> str:
     """Assemble all rule bodies into a single CLAUDE.md content."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
     parts = [HEADER_TEMPLATE.format(timestamp=timestamp)]
-    for i, (name, meta, body) in enumerate(rules):
+    for i, (_, _, body) in enumerate(rules):
         body_stripped = body.strip()
         if body_stripped:
             parts.append(body_stripped)

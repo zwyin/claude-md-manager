@@ -9,18 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
-
-interface Rule {
-  rule_id: string; section_id: string; title: string; keywords: string[];
-  source_file: string; updated_at: string; citation_count: number; last_cited: string | null;
-}
-interface CitationRecord {
-  id: number; rule_id: string; session_id: string; matched_keyword: string;
-  timestamp: string; model: string | null; task_summary: string | null;
-}
-interface SiblingRule {
-  rule_id: string; title: string; session_count: number; match_count: number;
-}
+import type { RuleDetail, CitationRecord, SiblingRule } from '@/lib/types';
 
 export default function RuleDetailPage() {
   const params = useParams();
@@ -28,7 +17,7 @@ export default function RuleDetailPage() {
   const { t, locale } = useI18n();
 
   const url = ruleId ? `/api/rules/${encodeURIComponent(ruleId)}` : null;
-  const { data: resp, loading, error } = useFetch<{ rule: Rule; citations: CitationRecord[]; siblings: SiblingRule[] }>(url);
+  const { data: resp, loading, error } = useFetch<{ rule: RuleDetail; citations: CitationRecord[]; siblings: SiblingRule[] }>(url);
   const rule = resp?.rule ?? null;
   const citations = resp?.citations ?? [];
   const siblings = resp?.siblings ?? [];

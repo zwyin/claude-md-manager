@@ -2,6 +2,8 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import type {
   RuleWithStats,
+  RuleDetail,
+  SiblingRule,
   CitationRecord,
   CitationTimePoint,
   AnalyticsData,
@@ -122,22 +124,11 @@ export function getRulesWithStats(days?: number, db?: Database.Database): RuleWi
   }
 }
 
-export interface RuleDetail {
-  rule_id: string;
-  section_id: string;
-  title: string;
-  keywords: string[];
-  source_file: string;
-  updated_at: string;
-  citation_count: number;
-  last_cited: string | null;
-}
-
 export function getRuleDetail(
   ruleId: string,
   days?: number,
   db?: Database.Database
-): { rule: RuleDetail; citations: CitationRecord[]; siblings: Array<{ rule_id: string; title: string; match_count: number; session_count: number }> } | null {
+): { rule: RuleDetail; citations: CitationRecord[]; siblings: SiblingRule[] } | null {
   const own = !db;
   const conn = db || getDb();
   try {
@@ -293,7 +284,7 @@ export function getCitations(filters: {
 
 // ── Analytics ──
 
-export function getAnalytics(days?: number, db?: Database.Database): AnalyticsData {
+export function getAnalytics(days?: number, db?: Database.Database): Omit<AnalyticsData, 'citation_trend'> {
   const own = !db;
   const conn = db || getDb();
   try {
