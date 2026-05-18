@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCitations } from '@/lib/db';
-import { parseDays, parseEnum } from '@/lib/api-utils';
+import { parseDays, parseEnum, sanitizeRuleId } from '@/lib/api-utils';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
-    const rule_id = searchParams.get('rule_id') || undefined;
+    const rawRuleId = searchParams.get('rule_id') || undefined;
+    const rule_id = rawRuleId ? sanitizeRuleId(rawRuleId) : undefined;
     const days = parseDays(searchParams.get('days'));
     const group_by = parseEnum(searchParams.get('group_by'), ['day', 'week', 'month'] as const, 'day');
 
