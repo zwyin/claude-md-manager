@@ -1,17 +1,21 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
+import { Search, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
 
 interface Rule {
   rule_id: string; section_id: string; section_title: string;
   title: string; keywords: string[]; session_count: number; match_count: number;
+  source_file?: string;
 }
 interface Section {
   section_id: string; title: string; source_file: string;
@@ -53,6 +57,8 @@ function RulesContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sectionFilter, setSectionFilter] = useState<string>('all');
   const searchParams = useSearchParams();
   const { t } = useI18n();
 
@@ -96,6 +102,27 @@ function RulesContent() {
     if (!sectionOrder.includes(id)) sectionOrder.push(id);
   }
 
+  const filteredGrouped = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    const result: Record<string, Rule[]> = {};
+    for (const sectionId of sectionOrder) {
+      if (sectionFilter !== 'all' && sectionId !== sectionFilter) continue;
+      const rules = (grouped[sectionId] || []).filter((rule) => {
+        if (!q) return true;
+        return (
+          rule.title.toLowerCase().includes(q) ||
+          rule.rule_id.toLowerCase().includes(q) ||
+          rule.keywords.some((k) => k.toLowerCase().includes(q)) ||
+          rule.source_file?.toLowerCase().includes(q)
+        );
+      });
+      if (rules.length > 0) result[sectionId] = rules;
+    }
+    return result;
+  }, [searchQuery, sectionFilter, grouped, sectionOrder]);
+
+  const filteredCount = Object.values(filteredGrouped).flat().length;
+
   return (
     <div className="space-y-6">
       <div>
@@ -105,9 +132,56 @@ function RulesContent() {
         </p>
       </div>
 
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('rules.searchPlaceholder')}
+            className="pl-9 h-9 text-sm"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant={sectionFilter === 'all' ? 'default' : 'ghost'}
+            onClick={() => setSectionFilter('all')}
+            className="text-xs h-9"
+          >
+            {t('rules.allSections')}
+          </Button>
+          {sectionOrder.map((id) => {
+            const title = sectionTitleMap[id] || id;
+            return (
+              <Button
+                key={id}
+                size="sm"
+                variant={sectionFilter === id ? 'default' : 'ghost'}
+                onClick={() => setSectionFilter(id)}
+                className="text-xs h-9"
+              >
+                {title}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
+      {filteredCount === 0 && searchQuery && (
+        <div className="text-center py-8 text-muted-foreground text-sm">
+          {t('rules.noResults')}
+        </div>
+      )}
+
       <div className="space-y-3">
         {sectionOrder.map((sectionId, sIdx) => {
-          const rules = grouped[sectionId];
+          const rules = filteredGrouped[sectionId];
           if (!rules) return null;
           const isOpen = openSections[sectionId] !== false;
           const totalMatches = rules.reduce((s, r) => s + r.match_count, 0);

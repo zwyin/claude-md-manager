@@ -33,15 +33,18 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [trendMode, setTrendMode] = useState<'day' | 'week' | 'month'>('day');
+  const [timeRange, setTimeRange] = useState<number | undefined>(undefined);
   const { t } = useI18n();
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/analytics?trend_group=${trendMode}`)
+    const params = new URLSearchParams({ trend_group: trendMode });
+    if (timeRange) params.set('days', String(timeRange));
+    fetch(`/api/analytics?${params}`)
       .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
       .then((json) => { setData(json); setLoading(false); })
       .catch((err) => { setError(err.message); setLoading(false); });
-  }, [trendMode]);
+  }, [trendMode, timeRange]);
 
   if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
   if (error) return <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">{t('status.error', { error })}</div>;
@@ -66,9 +69,30 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t('analytics.title')}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t('analytics.subtitle')}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{t('analytics.title')}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('analytics.subtitle')}</p>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="text-xs text-muted-foreground mr-1">{t('analytics.timeRange')}:</span>
+          {([
+            { value: undefined, key: 'all' },
+            { value: 7, key: '7d' },
+            { value: 30, key: '30d' },
+            { value: 90, key: '90d' },
+          ] as const).map(({ value, key }) => (
+            <Button
+              key={key}
+              size="sm"
+              variant={timeRange === value ? 'default' : 'ghost'}
+              onClick={() => setTimeRange(value)}
+              className="text-xs h-7 px-2"
+            >
+              {t(`analytics.time.${key}`)}
+            </Button>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
