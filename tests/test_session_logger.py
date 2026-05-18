@@ -216,3 +216,33 @@ class TestFindLatestSession:
         monkeypatch.setattr(sl, "CLAUDE_DIR", tmp_path)
         result = find_latest_session()
         assert result is None
+
+    def test_skips_old_files(self, tmp_path, monkeypatch):
+        projects = tmp_path / "projects"
+        proj = projects / "proj"
+        proj.mkdir(parents=True)
+        old_file = proj / "old.jsonl"
+        old_file.write_text("old", encoding="utf-8")
+        import os
+        # Set mtime to 2 hours ago
+        old_mtime = old_file.stat().st_mtime - 7200
+        os.utime(old_file, (old_mtime, old_mtime))
+        monkeypatch.setattr(sl, "CLAUDE_DIR", tmp_path)
+        result = find_latest_session()
+        assert result is None
+
+    def test_prefers_recent_over_old(self, tmp_path, monkeypatch):
+        projects = tmp_path / "projects"
+        proj = projects / "proj"
+        proj.mkdir(parents=True)
+        old_file = proj / "old.jsonl"
+        old_file.write_text("old", encoding="utf-8")
+        import os
+        old_mtime = old_file.stat().st_mtime - 7200
+        os.utime(old_file, (old_mtime, old_mtime))
+        new_file = proj / "new.jsonl"
+        new_file.write_text("new", encoding="utf-8")
+        monkeypatch.setattr(sl, "CLAUDE_DIR", tmp_path)
+        result = find_latest_session()
+        assert result is not None
+        assert result.name == "new.jsonl"
