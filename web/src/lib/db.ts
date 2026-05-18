@@ -270,25 +270,12 @@ export function getAnalytics(days?: number): AnalyticsData {
       ? `WHERE timestamp >= datetime('now', '-${days} days')`
       : '';
 
-    const totalRules = (
-      db.prepare('SELECT COUNT(*) AS c FROM rules_metadata').get() as {
-        c: number;
-      }
-    ).c;
-
-    const totalCitations = (
-      db
-        .prepare(`SELECT COUNT(*) AS c FROM rule_references ${timeFilter}`)
-        .get() as { c: number }
-    ).c;
-
-    const totalSessions = (
-      db
-        .prepare(
-          `SELECT COUNT(DISTINCT session_id) AS c FROM rule_references ${timeFilter}`
-        )
-        .get() as { c: number }
-    ).c;
+    const stats = db.prepare(`
+      SELECT
+        (SELECT COUNT(*) FROM rules_metadata) AS total_rules,
+        (SELECT COUNT(*) FROM rule_references ${timeFilter}) AS total_citations,
+        (SELECT COUNT(DISTINCT session_id) FROM rule_references ${timeFilter}) AS total_sessions
+    `).get() as { total_rules: number; total_citations: number; total_sessions: number };
 
     // Top 10 rules by citation count
     const topRules = db
@@ -338,9 +325,9 @@ export function getAnalytics(days?: number): AnalyticsData {
       .all() as CategoryDistribution[];
 
     return {
-      total_rules: totalRules,
-      total_citations: totalCitations,
-      total_sessions: totalSessions,
+      total_rules: stats.total_rules,
+      total_citations: stats.total_citations,
+      total_sessions: stats.total_sessions,
       top_rules: topRules,
       cold_rules: coldRules,
       category_distribution: categoryDistribution,
