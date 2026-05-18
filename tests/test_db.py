@@ -183,3 +183,56 @@ class TestGetRuleStats:
         assert len(stats) == 1
         assert stats[0]["session_count"] == 0
         assert stats[0]["match_count"] == 0
+
+    def test_multiple_rules_ordering(self, conn):
+        sync_rules_metadata(conn, [
+            {"rule_id": "r1", "section_id": "sec1", "title": "Rule 1",
+             "keywords": [], "source_file": "a.md"},
+            {"rule_id": "r2", "section_id": "sec1", "title": "Rule 2",
+             "keywords": [], "source_file": "b.md"},
+        ])
+        record_references(conn, "s1", [{"rule_id": "r1", "keyword": "kw"}])
+        record_references(conn, "s1", [{"rule_id": "r1", "keyword": "kw2"}])
+        record_references(conn, "s2", [{"rule_id": "r2", "keyword": "kw"}])
+        stats = get_rule_stats(conn, days=30)
+        assert len(stats) == 2
+        # r1 has 2 matches across 1 session, r2 has 1 match across 1 session
+        assert stats[0]["rule_id"] == "r1"
+        assert stats[0]["match_count"] == 2
+
+    def test_returns_keywords_json(self, conn):
+        sync_rules_metadata(conn, [
+            {"rule_id": "r1", "section_id": "sec1", "title": "Rule 1",
+             "keywords": ["TDD", "coverage"], "source_file": "a.md"},
+        ])
+        stats = get_rule_stats(conn, days=30)
+        assert json.loads(stats[0]["keywords"]) == ["TDD", "coverage"]
+
+
+class TestSyncRulesMetadataCleanup:
+    def test_stale_rules_not_removed(self, conn):
+        """sync_rules_metadata does not delete rules that are not in the input."""
+        sync_rules_metadata(conn, [
+            {"rule_id": "r1", "section_id": "sec1", "title": "Keep",
+             "keywords": [], "source_file": "a.md"},
+        ])
+        sync_rules_metadata(conn, [
+            {"rule_id": "r2", "section_id": "sec1", "title": "New",
+             "keywords": [], "source_file": "b.md"},
+        ])
+        count = conn.execute("SELECT COUNT(*) FROM rules_metadata").fetchone()[0]
+        assert count == 2
+
+
+class TestSyncSectionsMetadataCleanup:
+    def test_stale_sections_not_removed(self, conn):
+        sync_sections_metadata(conn, [
+            {"section_id": "sec1", "title": "Keep",
+             "source_file": "a.md", "rule_count": 1},
+        ])
+        sync_sections_metadata(conn, [
+            {"section_id": "sec2", "title": "New",
+             "source_file": "b.md", "rule_count": 2},
+        ])
+        count = conn.execute("SELECT COUNT(*) FROM sections_metadata").fetchone()[0]
+        assert count == 2
