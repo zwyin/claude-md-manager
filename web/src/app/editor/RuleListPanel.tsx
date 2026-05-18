@@ -30,7 +30,10 @@ const SortableCard = memo(function SortableCard({ rule, isSelected, onSelect }: 
       style={style}
       {...attributes}
       {...listeners}
+      aria-pressed={isSelected}
+      aria-label={rule.title}
       onClick={onSelect}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } }}
       className={`px-3 py-2 cursor-pointer border-b border-border last:border-b-0 transition-colors border-l-2 ${
         isSelected
           ? "bg-primary/10 border-l-primary"
