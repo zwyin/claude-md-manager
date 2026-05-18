@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
     const rules = getRulesWithStats(days);
     const total_rules = rules.length;
-    const active_rules = rules.filter((r: any) => (r.citation_count || 0) > 0).length;
+    const active_rules = rules.filter((r) => (r.citation_count || 0) > 0).length;
     const active_rule_pct = total_rules > 0 ? Math.round((active_rules / total_rules) * 100) : 0;
 
     return NextResponse.json({

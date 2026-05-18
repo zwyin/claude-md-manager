@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ interface DiffResult {
 }
 
 export default function HistoryPage() {
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [snapshots, setSnapshots] = useState<SnapshotInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +46,7 @@ export default function HistoryPage() {
     fetchJson<{ snapshots: SnapshotInfo[] }>('/api/history')
       .then((json) => { setSnapshots(json.snapshots || []); setLoading(false); })
       .catch((err) => { setError(err.message); setLoading(false); });
+    return () => clearTimeout(timerRef.current);
   }, []);
 
   const toggleSelect = useCallback((filename: string) => {
@@ -89,7 +91,8 @@ export default function HistoryPage() {
       setRollbackStatus({ ts: filename, ok: false, msg: t('history.rollbackFailed') });
     }
     setRollbackTarget(null);
-    setTimeout(() => setRollbackStatus(null), 3000);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setRollbackStatus(null), 3000);
   }, [t]);
 
   const handleViewContent = useCallback(async (filename: string) => {

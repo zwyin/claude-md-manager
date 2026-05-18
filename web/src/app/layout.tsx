@@ -12,7 +12,10 @@ import { ErrorBoundary } from "@/components/error-boundary";
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "CLAUDE.md Manager",
+  title: {
+    default: "CLAUDE.md Manager",
+    template: "%s | CLAUDE.md Manager",
+  },
   description: "CLAUDE.md 规则管理面板",
 };
 
