@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import type { RuleFile } from "./types";
 import { useI18n } from "@/i18n";
@@ -13,10 +14,20 @@ interface PublishDialogProps {
 export function PublishDialog({ rules, onPublish, onCancel }: PublishDialogProps) {
   const draftRules = rules.filter((r) => r.has_draft);
   const { t } = useI18n();
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    dialogRef.current?.focus();
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onCancel]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true">
-      <div className="bg-card border border-border rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+      <div ref={dialogRef} tabIndex={-1} className="bg-card border border-border rounded-lg p-6 max-w-md w-full mx-4 shadow-xl outline-none">
         <h3 className="text-lg font-semibold mb-4">{t('editor.publishTitle')}</h3>
         <p className="text-sm text-muted-foreground mb-3">
           {t('editor.publishDesc')}
