@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRuleDetail } from '@/lib/db';
 import { parseDays, sanitizeRuleId } from '@/lib/api-utils';
+import { handleApiError } from '@/lib/api-handler';
 
 export async function GET(
   request: NextRequest,
@@ -19,9 +20,6 @@ export async function GET(
 
     return NextResponse.json(result);
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to fetch rule detail', details: String(error) },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

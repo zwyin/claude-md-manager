@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDraft, saveDraft, deleteDraft } from "@/lib/editor-db";
 import { sanitizeRuleId } from "@/lib/api-utils";
+import { handleApiError } from "@/lib/api-handler";
 
 export async function GET(
   _request: NextRequest,
@@ -12,7 +13,7 @@ export async function GET(
     if (!draft) return NextResponse.json(null, { status: 404 });
     return NextResponse.json(draft);
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -34,7 +35,7 @@ export async function PUT(
     );
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -47,6 +48,6 @@ export async function DELETE(
     deleteDraft(sanitizeRuleId(id));
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    return handleApiError(error);
   }
 }

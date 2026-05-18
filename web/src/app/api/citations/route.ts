@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCitations } from '@/lib/db';
 import { parseDays, parseEnum, sanitizeRuleId } from '@/lib/api-utils';
+import { handleApiError } from '@/lib/api-handler';
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,9 +14,6 @@ export async function GET(request: NextRequest) {
     const citations = getCitations({ rule_id, days, group_by });
     return NextResponse.json(citations);
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to fetch citations', details: String(error) },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

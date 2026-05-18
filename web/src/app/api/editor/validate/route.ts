@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateDrafts } from "@/lib/editor-db";
 import { sanitizeRuleId } from "@/lib/api-utils";
+import { handleApiError } from "@/lib/api-handler";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,6 +22,6 @@ export async function POST(request: NextRequest) {
     const errors = validateDrafts(drafts);
     return NextResponse.json({ valid: errors.length === 0, errors });
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    return handleApiError(error);
   }
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseDays, parseEnum, sanitizeRuleId } from '../api-utils';
+import { parseDays, parseEnum, sanitizeRuleId, ValidationError } from '../api-utils';
 
 describe('parseDays', () => {
   it('returns undefined for null', () => {
@@ -77,5 +77,27 @@ describe('sanitizeRuleId', () => {
 
   it('rejects IDs with slashes', () => {
     expect(() => sanitizeRuleId('path/to/rule')).toThrow();
+  });
+
+  it('throws ValidationError for invalid IDs', () => {
+    expect(() => sanitizeRuleId('../etc')).toThrow(ValidationError);
+  });
+});
+
+describe('handleApiError', () => {
+  it('returns 400 for ValidationError', async () => {
+    const { handleApiError } = await import('../api-handler');
+    const result = handleApiError(new ValidationError('bad input'));
+    const body = await result.json();
+    expect(result.status).toBe(400);
+    expect(body.error).toBe('bad input');
+  });
+
+  it('returns 500 for generic errors', async () => {
+    const { handleApiError } = await import('../api-handler');
+    const result = handleApiError(new Error('something broke'));
+    const body = await result.json();
+    expect(result.status).toBe(500);
+    expect(body.error).toBe('Internal server error');
   });
 });

@@ -1,3 +1,10 @@
+export class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
 export function parseDays(raw: string | null): number | undefined {
   if (!raw) return undefined;
   const n = parseInt(raw, 10);
@@ -14,7 +21,7 @@ const RULE_ID_RE = /^[a-zA-Z0-9._-]+$/;
 export function sanitizeRuleId(id: string): string {
   const decoded = decodeURIComponent(id);
   if (!RULE_ID_RE.test(decoded)) {
-    throw new Error(`Invalid rule ID: ${decoded}`);
+    throw new ValidationError(`Invalid rule ID: ${decoded}`);
   }
   return decoded;
 }
