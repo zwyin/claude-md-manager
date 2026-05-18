@@ -266,26 +266,27 @@ export function getCitations(filters: {
 export function getAnalytics(days?: number): AnalyticsData {
   const db = getDb();
   try {
-    const timeFilter = days
+    const subqueryFilter = days
       ? `WHERE timestamp >= datetime('now', '-${days} days')`
+      : '';
+    const joinFilter = days
+      ? `AND r.timestamp >= datetime('now', '-${days} days')`
       : '';
 
     const stats = db.prepare(`
       SELECT
         (SELECT COUNT(*) FROM rules_metadata) AS total_rules,
-        (SELECT COUNT(*) FROM rule_references ${timeFilter}) AS total_citations,
-        (SELECT COUNT(DISTINCT session_id) FROM rule_references ${timeFilter}) AS total_sessions
+        (SELECT COUNT(*) FROM rule_references ${subqueryFilter}) AS total_citations,
+        (SELECT COUNT(DISTINCT session_id) FROM rule_references ${subqueryFilter}) AS total_sessions
     `).get() as { total_rules: number; total_citations: number; total_sessions: number };
 
-    // Top 10 rules by citation count
     const topRules = db
       .prepare(
         `
         SELECT m.rule_id, m.title, COUNT(r.id) AS citation_count
         FROM rule_references r
         JOIN rules_metadata m ON m.rule_id = r.rule_id
-        ${timeFilter ? timeFilter.replace('WHERE', 'AND').replace('timestamp', 'r.timestamp') : ''}
-        ${timeFilter ? '' : 'WHERE 1=1'}
+        WHERE 1=1 ${joinFilter}
         GROUP BY m.rule_id
         ORDER BY citation_count DESC
         LIMIT 10
@@ -293,14 +294,13 @@ export function getAnalytics(days?: number): AnalyticsData {
       )
       .all() as TopRule[];
 
-    // Cold rules: zero citations in the period
     const coldRules = db
       .prepare(
         `
         SELECT m.rule_id, m.title,
                CAST(julianday('now') - julianday(MAX(r.timestamp)) AS INTEGER) AS days_since_last_citation
         FROM rules_metadata m
-        LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${timeFilter ? timeFilter.replace('WHERE', 'AND').replace('timestamp', 'r.timestamp') : ''}
+        LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${joinFilter}
         GROUP BY m.rule_id
         HAVING COUNT(r.id) = 0 OR MAX(r.timestamp) IS NULL
         ORDER BY days_since_last_citation DESC
@@ -309,7 +309,6 @@ export function getAnalytics(days?: number): AnalyticsData {
       )
       .all() as ColdRule[];
 
-    // Category distribution
     const categoryDistribution = db
       .prepare(
         `
@@ -317,7 +316,7 @@ export function getAnalytics(days?: number): AnalyticsData {
                COUNT(DISTINCT m.rule_id) AS rule_count,
                COUNT(r.id) AS citation_count
         FROM rules_metadata m
-        LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${timeFilter ? timeFilter.replace('WHERE', 'AND').replace('timestamp', 'r.timestamp') : ''}
+        LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${joinFilter}
         GROUP BY m.section_id
         ORDER BY citation_count DESC
         `
