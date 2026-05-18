@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,10 @@ export default function HistoryPage() {
   const [contentText, setContentText] = useState<string>('');
   const [contentLoading, setContentLoading] = useState(false);
   const { t } = useI18n();
+
+  useEffect(() => {
+    return () => clearTimeout(timerRef.current);
+  }, []);
 
   const toggleSelect = useCallback((filename: string) => {
     setSelected((prev) => {
