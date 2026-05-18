@@ -15,7 +15,7 @@ export function PublishDialog({ rules, onPublish, onCancel }: PublishDialogProps
   const { t } = useI18n();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true">
       <div className="bg-card border border-border rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
         <h3 className="text-lg font-semibold mb-4">{t('editor.publishTitle')}</h3>
         <p className="text-sm text-muted-foreground mb-3">
