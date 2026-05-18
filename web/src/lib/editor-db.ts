@@ -176,9 +176,11 @@ export function publishDrafts(): { rulesChanged: number; snapshotName: string | 
 
     // Write each draft to its rule file
     const allRules = getAllRulesWithDraftStatus();
+    let written = 0;
     for (const draft of drafts) {
       const rule = allRules.find((r) => r.rule_id === draft.rule_id);
       if (!rule) continue;
+      written++;
 
       // Apply order override to frontmatter
       let yaml = draft.frontmatter_yaml;
@@ -212,7 +214,7 @@ export function publishDrafts(): { rulesChanged: number; snapshotName: string | 
       `INSERT INTO publish_history (published_at, rules_changed, snapshot_name, status, error_message)
        VALUES (datetime('now'), ?, ?, ?, ?)`
     ).run(
-      drafts.length,
+      written,
       snapshotName,
       errorMsg ? "failed" : "success",
       errorMsg
@@ -223,7 +225,7 @@ export function publishDrafts(): { rulesChanged: number; snapshotName: string | 
       db.prepare("DELETE FROM rule_drafts").run();
     }
 
-    return { rulesChanged: drafts.length, snapshotName, error: errorMsg ?? undefined };
+    return { rulesChanged: written, snapshotName, error: errorMsg ?? undefined };
   } finally {
     db.close();
   }

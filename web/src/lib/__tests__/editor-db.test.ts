@@ -309,4 +309,48 @@ describe('publishDrafts', () => {
     expect(written[1]).toContain('order: 5');
     expect(written[1]).not.toContain('order: 10');
   });
+
+  it('skips drafts with no matching rule file and counts correctly', () => {
+    const drafts = [
+      { rule_id: 'orphan', frontmatter_yaml: 'id: orphan\norder: 1', markdown_body: 'body', order_override: null, created_at: '2026-01-01', updated_at: '2026-01-01' },
+      { rule_id: 'core', frontmatter_yaml: 'id: core\norder: 10', markdown_body: 'body', order_override: null, created_at: '2026-01-01', updated_at: '2026-01-01' },
+    ];
+
+    let prepareCallCount = 0;
+    mockPrepare.mockImplementation(() => {
+      prepareCallCount++;
+      if (prepareCallCount === 1) return mockStatement({ all: drafts });
+      return mockStatement({});
+    });
+
+    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as unknown as fs.Dirent[]);
+    vi.mocked(fs.readFileSync).mockReturnValue('---\nid: core\norder: 10\n---\nbody');
+    vi.mocked(execFileSync).mockReturnValue('Built CLAUDE.md');
+
+    const result = publishDrafts();
+    expect(result.rulesChanged).toBe(1);
+    expect(fs.writeFileSync).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles assemble error without stderr falling back to message', () => {
+    const drafts = [
+      { rule_id: 'core', frontmatter_yaml: 'id: core\norder: 10', markdown_body: 'body', order_override: null, created_at: '2026-01-01', updated_at: '2026-01-01' },
+    ];
+
+    let prepareCallCount = 0;
+    mockPrepare.mockImplementation(() => {
+      prepareCallCount++;
+      if (prepareCallCount === 1) return mockStatement({ all: drafts });
+      return mockStatement({});
+    });
+
+    vi.mocked(fs.readdirSync).mockReturnValue(['core.md'] as unknown as fs.Dirent[]);
+    vi.mocked(fs.readFileSync).mockReturnValue('---\nid: core\norder: 10\n---\nbody');
+    vi.mocked(execFileSync).mockImplementation(() => {
+      throw new Error('spawn failed');
+    });
+
+    const result = publishDrafts();
+    expect(result.error).toBe('spawn failed');
+  });
 });
