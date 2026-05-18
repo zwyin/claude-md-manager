@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { computeDiff } from '@/lib/snapshots';
+import { handleApiError } from '@/lib/api-handler';
 
 export async function GET(request: Request) {
   try {
@@ -32,9 +33,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json(result);
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to compute diff', details: String(error) },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

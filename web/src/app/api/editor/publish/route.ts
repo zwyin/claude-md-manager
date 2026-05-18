@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { publishDrafts } from "@/lib/editor-db";
+import { handleApiError } from "@/lib/api-handler";
 
 export async function POST() {
   try {
@@ -9,6 +10,6 @@ export async function POST() {
     }
     return NextResponse.json(result);
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    return handleApiError(error);
   }
 }

@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server';
 import { listSnapshotFiles } from '@/lib/snapshots';
+import { handleApiError } from '@/lib/api-handler';
 
 export async function GET() {
   try {
     const snapshots = listSnapshotFiles();
     return NextResponse.json({ snapshots });
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to fetch history', details: String(error) },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

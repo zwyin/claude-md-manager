@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAnalytics, getCitations } from '@/lib/db';
 import { parseDays, parseEnum } from '@/lib/api-utils';
+import { handleApiError } from '@/lib/api-handler';
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,9 +14,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ ...analytics, citation_trend });
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to fetch analytics', details: String(error) },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

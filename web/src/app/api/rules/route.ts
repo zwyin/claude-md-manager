@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRulesWithStats, getSectionsWithStats, getTotalSessionCount } from '@/lib/db';
 import { parseDays } from '@/lib/api-utils';
+import { handleApiError } from '@/lib/api-handler';
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,9 +21,6 @@ export async function GET(request: NextRequest) {
       active_rule_pct,
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to fetch rules', details: String(error) },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

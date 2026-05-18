@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { rollbackToSnapshot } from '@/lib/snapshots';
+import { handleApiError } from '@/lib/api-handler';
 
 export async function POST(request: Request) {
   try {
@@ -20,9 +21,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, filename: safe });
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Rollback failed', details: String(error) },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

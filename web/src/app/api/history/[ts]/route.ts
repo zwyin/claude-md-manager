@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSnapshotContent, listSnapshotFiles } from '@/lib/snapshots';
+import { handleApiError } from '@/lib/api-handler';
 
 const TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}$/;
 
@@ -33,9 +34,6 @@ export async function GET(
       content,
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to fetch snapshot', details: String(error) },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
