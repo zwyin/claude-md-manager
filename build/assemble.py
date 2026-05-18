@@ -11,9 +11,7 @@ Usage:
 """
 
 import argparse
-import os
 import re
-import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -158,7 +156,7 @@ def git_commit_if_changed(content: str, changed_files: list[str] | None = None):
         return
 
     # Save snapshot
-    snapshot_name = save_snapshot(content)
+    save_snapshot(content)
 
     # Check if output changed
     existing = ""
@@ -171,11 +169,7 @@ def git_commit_if_changed(content: str, changed_files: list[str] | None = None):
 
     # Stage and commit
     try:
-        env = os.environ.copy()
-        env["GIT_DIR"] = str(PROJECT_DIR / ".git")
-        env["GIT_WORK_TREE"] = str(PROJECT_DIR)
-
-        subprocess.run(["git", "add", "data/history/", "rules/"], cwd=PROJECT_DIR, check=True, env=env)
+        subprocess.run(["git", "add", "data/history/", "rules/"], cwd=PROJECT_DIR, check=True)
 
         ts = datetime.now().strftime("%Y-%m-%d %H:%M")
         msg = f"build: update CLAUDE.md at {ts}"
@@ -184,7 +178,7 @@ def git_commit_if_changed(content: str, changed_files: list[str] | None = None):
 
         subprocess.run(
             ["git", "commit", "-m", msg],
-            cwd=PROJECT_DIR, check=True, env=env
+            cwd=PROJECT_DIR, check=True
         )
         print(f"Committed: {msg}")
     except subprocess.CalledProcessError as e:
