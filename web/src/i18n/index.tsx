@@ -25,7 +25,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem('lang');
     if (saved && dicts[saved]) {
-      queueMicrotask(() => setLangState(saved));
+      queueMicrotask(() => {
+        setLangState(saved);
+        document.documentElement.lang = localeMap[saved] || 'zh-CN';
+      });
     }
   }, []);
 

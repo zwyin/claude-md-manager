@@ -9,8 +9,11 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const lang = (typeof window !== 'undefined' && localStorage.getItem('lang')) || 'zh';
+  const htmlLang = lang === 'en' ? 'en-US' : 'zh-CN';
+
   return (
-    <html lang="zh-CN">
+    <html lang={htmlLang}>
       <body>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '2rem', backgroundColor: '#0f172a', color: '#e2e8f0', fontFamily: 'system-ui, sans-serif' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>{t('errorBoundary.title')}</h2>
