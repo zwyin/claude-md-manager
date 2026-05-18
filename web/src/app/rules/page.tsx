@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Search, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
+import { fetchJson } from '@/lib/fetch';
 
 interface Rule {
   rule_id: string; section_id: string; section_title: string;
@@ -59,8 +60,7 @@ function RulesContent() {
   const { t } = useI18n();
 
   useEffect(() => {
-    fetch('/api/rules')
-      .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
+    fetchJson<RulesData>('/api/rules')
       .then((json) => {
         setData(json);
         const open: Record<string, boolean> = {};

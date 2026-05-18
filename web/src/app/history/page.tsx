@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, GitCompare, RotateCcw, Check, X, FileText } from 'lucide-react';
 import { useI18n } from '@/i18n';
+import { fetchJson } from '@/lib/fetch';
 
 interface SnapshotInfo {
   filename: string;
@@ -41,8 +42,7 @@ export default function HistoryPage() {
   const { t } = useI18n();
 
   useEffect(() => {
-    fetch('/api/history')
-      .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
+    fetchJson<{ snapshots: SnapshotInfo[] }>('/api/history')
       .then((json) => { setSnapshots(json.snapshots || []); setLoading(false); })
       .catch((err) => { setError(err.message); setLoading(false); });
   }, []);

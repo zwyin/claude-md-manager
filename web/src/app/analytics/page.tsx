@@ -14,6 +14,7 @@ import { StatCard } from '@/components/stat-card';
 import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
 import { useChartTheme } from '@/hooks/use-chart-theme';
+import { fetchJson } from '@/lib/fetch';
 
 interface TopRule { rule_id: string; title: string; citation_count: number; }
 interface ColdRule { rule_id: string; title: string; days_since_last_citation: number | null; }
@@ -42,8 +43,7 @@ export default function AnalyticsPage() {
     setLoading(true);
     const params = new URLSearchParams({ trend_group: trendMode });
     if (timeRange) params.set('days', String(timeRange));
-    fetch(`/api/analytics?${params}`)
-      .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
+    fetchJson<AnalyticsData>(`/api/analytics?${params}`)
       .then((json) => { setData(json); setLoading(false); })
       .catch((err) => { setError(err.message); setLoading(false); });
   }, [trendMode, timeRange]);

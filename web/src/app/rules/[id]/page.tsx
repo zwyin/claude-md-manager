@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
+import { fetchJson } from '@/lib/fetch';
 
 interface Rule {
   rule_id: string; section_id: string; title: string; keywords: string[];
@@ -34,8 +35,7 @@ export default function RuleDetailPage() {
 
   useEffect(() => {
     if (!ruleId) return;
-    fetch(`/api/rules/${encodeURIComponent(ruleId)}`)
-      .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
+    fetchJson<{ rule: Rule; citations: CitationRecord[]; siblings: SiblingRule[] }>(`/api/rules/${encodeURIComponent(ruleId)}`)
       .then((json) => {
         setRule(json.rule);
         setCitations(json.citations || []);

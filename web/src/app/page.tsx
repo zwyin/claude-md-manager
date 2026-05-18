@@ -10,6 +10,7 @@ import { StatCard } from '@/components/stat-card';
 import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
 import { useChartTheme } from '@/hooks/use-chart-theme';
+import { fetchJson } from '@/lib/fetch';
 
 interface Rule {
   rule_id: string; section_id: string; section_title: string;
@@ -35,8 +36,7 @@ export default function DashboardPage() {
   const chartTheme = useChartTheme();
 
   useEffect(() => {
-    fetch('/api/rules')
-      .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
+    fetchJson<DashboardData>('/api/rules')
       .then((json) => { setData(json); setLoading(false); })
       .catch((err) => { setError(err.message); setLoading(false); });
   }, []);
