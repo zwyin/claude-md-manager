@@ -32,9 +32,9 @@ get_db = _db.get_db
 record_references = _db.record_references
 upsert_session = _db.upsert_session
 sync_rules_metadata = _db.sync_rules_metadata
-load_keyword_map = _sl.load_keyword_map
+sync_sections_metadata = _db.sync_sections_metadata
+parse_all_rules = _sl.parse_all_rules
 scan_session = _sl.scan_session
-get_rules_metadata = _sl.get_rules_metadata
 
 CLAUDE_DIR = Path.home() / ".claude"
 
@@ -71,7 +71,7 @@ def main():
         print("No session files found.")
         return
 
-    keyword_map = load_keyword_map()
+    keyword_map, rules_data, sections_data = parse_all_rules()
     if not keyword_map:
         print("No keywords loaded from rules.")
         return
@@ -84,8 +84,8 @@ def main():
 
     if not args.dry_run:
         conn = get_db()
-        rules_data = get_rules_metadata()
         sync_rules_metadata(conn, rules_data)
+        sync_sections_metadata(conn, sections_data)
     else:
         conn = None
 
