@@ -8,25 +8,7 @@ import { Clock, GitCompare, RotateCcw, Check, X, FileText } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { toast } from 'sonner';
-
-interface SnapshotInfo {
-  filename: string;
-  timestamp: string;
-  size: number;
-}
-
-interface DiffLine {
-  type: 'added' | 'removed' | 'unchanged';
-  content: string;
-  lineNum: { old?: number; new?: number };
-}
-
-interface DiffResult {
-  from: string;
-  to: string;
-  lines: DiffLine[];
-  stats: { added: number; removed: number; unchanged: number };
-}
+import type { SnapshotInfo, DiffLine, DiffResult } from '@/lib/snapshots';
 
 export default function HistoryPage() {
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
