@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       rules,
-      sections: getSectionsWithStats(),
+      sections: getSectionsWithStats(days),
       total_rules,
       total_sessions: getTotalSessionCount(days),
       active_rule_pct,

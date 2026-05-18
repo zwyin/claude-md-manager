@@ -27,9 +27,14 @@ export interface SectionWithStats {
   total_sessions: number;
 }
 
-export function getSectionsWithStats(): SectionWithStats[] {
+export function getSectionsWithStats(days?: number): SectionWithStats[] {
   const db = getDb();
   try {
+    const timeFilter = days
+      ? `AND r.timestamp >= datetime('now', ? || ' days')`
+      : '';
+    const params = days ? [`-${days}`] : [];
+
     return db
       .prepare(
         `
@@ -45,13 +50,14 @@ export function getSectionsWithStats(): SectionWithStats[] {
           SELECT section_id, COUNT(r.id) AS citation_count,
                  COUNT(DISTINCT r.session_id) AS session_count
           FROM rules_metadata m
-          LEFT JOIN rule_references r ON r.rule_id = m.rule_id
+          LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${timeFilter}
           GROUP BY m.rule_id
         ) agg ON agg.section_id = s.section_id
         GROUP BY s.section_id
         ORDER BY total_citations DESC
         `
       )
+      .bind(...params)
       .all() as SectionWithStats[];
   } finally {
     db.close();
