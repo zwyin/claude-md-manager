@@ -14,6 +14,11 @@ export async function GET(request: Request) {
       );
     }
 
+    const safePattern = /^[a-zA-Z0-9._-]+$/;
+    if (!safePattern.test(from) || !safePattern.test(to)) {
+      return NextResponse.json({ error: 'Invalid filename' }, { status: 400 });
+    }
+
     const fromFile = from.endsWith('.md') ? from : `${from}.md`;
     const toFile = to.endsWith('.md') ? to : `${to}.md`;
 
