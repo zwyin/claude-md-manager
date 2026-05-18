@@ -81,4 +81,23 @@ describe('diffLines', () => {
     const unchanged = result.filter((l) => l.type === 'unchanged').length;
     expect(added + removed + unchanged).toBe(result.length);
   });
+
+  it('handles lines with special characters', () => {
+    const result = diffLines(['<div class="x">'], ['<div class="y">']);
+    expect(result).toHaveLength(2);
+    expect(result[0].type).toBe('removed');
+    expect(result[1].type).toBe('added');
+  });
+
+  it('handles empty string lines', () => {
+    const result = diffLines(['', 'a'], ['', 'b']);
+    expect(result.some((l) => l.type === 'unchanged' && l.content === '')).toBe(true);
+  });
+
+  it('handles single line diff', () => {
+    const result = diffLines(['hello'], ['world']);
+    expect(result).toHaveLength(2);
+    expect(result[0].type).toBe('removed');
+    expect(result[1].type).toBe('added');
+  });
 });

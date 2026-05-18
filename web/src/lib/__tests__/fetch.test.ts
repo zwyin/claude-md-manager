@@ -30,4 +30,30 @@ describe('fetchJson', () => {
     await fetchJson('http://test/path?q=1');
     expect(calledUrl).toBe('http://test/path?q=1');
   });
+
+  it('throws on network error', async () => {
+    globalThis.fetch = vi.fn(async () => { throw new TypeError('Failed to fetch'); });
+    const { fetchJson } = await import('../fetch');
+    await expect(fetchJson('http://test')).rejects.toThrow('Failed to fetch');
+  });
+
+  it('throws on invalid JSON response', async () => {
+    globalThis.fetch = vi.fn(async () => new Response('not json', { status: 200 }));
+    const { fetchJson } = await import('../fetch');
+    await expect(fetchJson('http://test')).rejects.toThrow();
+  });
+
+  it('returns empty object for empty JSON body', async () => {
+    globalThis.fetch = vi.fn(async () => new Response('{}', { status: 200 }));
+    const { fetchJson } = await import('../fetch');
+    const result = await fetchJson('http://test');
+    expect(result).toEqual({});
+  });
+
+  it('returns array for JSON array response', async () => {
+    globalThis.fetch = vi.fn(async () => new Response('[1,2,3]', { status: 200 }));
+    const { fetchJson } = await import('../fetch');
+    const result = await fetchJson<number[]>('http://test');
+    expect(result).toEqual([1, 2, 3]);
+  });
 });

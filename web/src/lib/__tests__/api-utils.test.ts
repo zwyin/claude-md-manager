@@ -65,4 +65,17 @@ describe('sanitizeRuleId', () => {
   it('accepts simple alphanumeric IDs', () => {
     expect(sanitizeRuleId('abc123')).toBe('abc123');
   });
+
+  it('accepts IDs with dots', () => {
+    expect(sanitizeRuleId('section.rule')).toBe('section.rule');
+    expect(sanitizeRuleId('core-principles.brain')).toBe('core-principles.brain');
+  });
+
+  it('rejects empty string', () => {
+    expect(() => sanitizeRuleId('')).toThrow();
+  });
+
+  it('rejects IDs with slashes', () => {
+    expect(() => sanitizeRuleId('path/to/rule')).toThrow();
+  });
 });

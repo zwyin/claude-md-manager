@@ -9,7 +9,7 @@ export function parseEnum<T extends string>(raw: string | null, allowed: readonl
   return allowed.includes(raw as T) ? (raw as T) : fallback;
 }
 
-const RULE_ID_RE = /^[a-zA-Z0-9_-]+$/;
+const RULE_ID_RE = /^[a-zA-Z0-9._-]+$/;
 
 export function sanitizeRuleId(id: string): string {
   const decoded = decodeURIComponent(id);
