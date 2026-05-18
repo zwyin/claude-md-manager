@@ -18,7 +18,10 @@ export const PreviewPanel = memo(function PreviewPanel({ markdownBody }: Preview
       <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
         {t('editor.preview')}
       </div>
-      <div className="prose prose-sm prose-invert max-w-none">
+      <div className="prose prose-sm prose-invert max-w-none
+        prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground
+        prose-code:text-foreground prose-a:text-indigo-400
+        prose-code:before:content-[''] prose-code:after:content-['']">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {markdownBody}
         </ReactMarkdown>
