@@ -94,7 +94,7 @@ def record_references(conn: sqlite3.Connection, session_id: str, matches: list):
     conn.commit()
 
 
-def upsert_session(conn: sqlite3.Connection, session_id: str, model: str = None, summary: str = None):
+def upsert_session(conn: sqlite3.Connection, session_id: str, model: str | None = None, summary: str | None = None):
     """Insert or update a session record."""
     conn.execute(
         """INSERT INTO sessions (session_id, ended_at, model, task_summary)

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useI18n } from "@/i18n";
@@ -9,7 +10,7 @@ interface PreviewPanelProps {
   title: string;
 }
 
-export function PreviewPanel({ markdownBody, title }: PreviewPanelProps) {
+export const PreviewPanel = memo(function PreviewPanel({ markdownBody, title }: PreviewPanelProps) {
   const { t } = useI18n();
 
   return (
@@ -24,4 +25,4 @@ export function PreviewPanel({ markdownBody, title }: PreviewPanelProps) {
       </div>
     </div>
   );
-}
+});

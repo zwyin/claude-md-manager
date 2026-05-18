@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
@@ -14,7 +15,7 @@ interface RuleListPanelProps {
   onReorder: (items: Array<{ rule_id: string; order: number }>) => void;
 }
 
-function SortableCard({ rule, isSelected, onSelect }: { rule: RuleFile; isSelected: boolean; onSelect: () => void }) {
+const SortableCard = memo(function SortableCard({ rule, isSelected, onSelect }: { rule: RuleFile; isSelected: boolean; onSelect: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: rule.rule_id });
   const { t } = useI18n();
 
@@ -50,7 +51,7 @@ function SortableCard({ rule, isSelected, onSelect }: { rule: RuleFile; isSelect
       </div>
     </div>
   );
-}
+});
 
 export function RuleListPanel({ rules, selectedId, onSelect, onReorder }: RuleListPanelProps) {
   const { t } = useI18n();
