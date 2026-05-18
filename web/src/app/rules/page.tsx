@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
@@ -147,30 +146,16 @@ function RulesContent() {
             </button>
           )}
         </div>
-        <div className="flex gap-1">
-          <Button
-            size="sm"
-            variant={sectionFilter === 'all' ? 'default' : 'ghost'}
-            onClick={() => setSectionFilter('all')}
-            className="text-xs h-9"
-          >
-            {t('rules.allSections')}
-          </Button>
-          {sectionOrder.map((id) => {
-            const title = sectionTitleMap[id] || id;
-            return (
-              <Button
-                key={id}
-                size="sm"
-                variant={sectionFilter === id ? 'default' : 'ghost'}
-                onClick={() => setSectionFilter(id)}
-                className="text-xs h-9"
-              >
-                {title}
-              </Button>
-            );
-          })}
-        </div>
+        <select
+          value={sectionFilter}
+          onChange={(e) => setSectionFilter(e.target.value)}
+          className="h-9 text-sm rounded-md border border-border bg-card text-foreground px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        >
+          <option value="all">{t('rules.allSections')}</option>
+          {sectionOrder.map((id) => (
+            <option key={id} value={id}>{sectionTitleMap[id] || id}</option>
+          ))}
+        </select>
       </div>
 
       {filteredCount === 0 && searchQuery && (

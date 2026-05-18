@@ -53,12 +53,6 @@ export interface CitationTimePoint {
   count: number;
 }
 
-export interface HistoryEntry {
-  snapshot_ts: string;
-  rule_count: number;
-  source_file: string;
-}
-
 export interface TopRule {
   rule_id: string;
   title: string;
