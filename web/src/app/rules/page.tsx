@@ -11,18 +11,10 @@ import { Search, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { SECTION_COLORS, PRIMARY } from '@/lib/chart-colors';
+import type { RuleWithStats, SectionWithStats } from '@/lib/types';
 
-interface Rule {
-  rule_id: string; section_id: string; section_title: string;
-  title: string; keywords: string[]; session_count: number; match_count: number;
-  source_file?: string;
-}
-interface Section {
-  section_id: string; title: string; source_file: string;
-  rule_count: number; total_citations: number; total_sessions: number;
-}
 interface RulesData {
-  rules: Rule[]; sections: Section[]; total_rules: number;
+  rules: RuleWithStats[]; sections: SectionWithStats[]; total_rules: number;
 }
 
 function MiniSparkline({ session, matches }: { session: number; matches: number }) {
@@ -61,7 +53,7 @@ function RulesContent() {
     if (!data) return;
     const open: Record<string, boolean> = {};
     const focusSection = searchParams.get('section');
-    (data.rules || []).forEach((r: Rule) => {
+    (data.rules || []).forEach((r) => {
       open[r.section_id] = focusSection ? r.section_id === focusSection : true;
     });
     queueMicrotask(() => {
@@ -78,7 +70,7 @@ function RulesContent() {
   }
 
   const grouped = useMemo(() => {
-    const result: Record<string, Rule[]> = {};
+    const result: Record<string, RuleWithStats[]> = {};
     for (const rule of data?.rules || []) {
       if (!result[rule.section_id]) result[rule.section_id] = [];
       result[rule.section_id].push(rule);
@@ -98,7 +90,7 @@ function RulesContent() {
 
   const filteredGrouped = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    const result: Record<string, Rule[]> = {};
+    const result: Record<string, RuleWithStats[]> = {};
     for (const sectionId of sectionOrder) {
       if (sectionFilter !== 'all' && sectionId !== sectionFilter) continue;
       const rules = (grouped[sectionId] || []).filter((rule) => {

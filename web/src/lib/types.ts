@@ -27,6 +27,15 @@ export interface Session {
 
 // ── API response types ──
 
+export interface SectionWithStats {
+  section_id: string;
+  title: string;
+  source_file: string;
+  rule_count: number;
+  total_citations: number;
+  total_sessions: number;
+}
+
 export interface RuleWithStats {
   rule_id: string;
   section_id: string;

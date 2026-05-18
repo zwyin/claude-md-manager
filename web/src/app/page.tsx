@@ -13,17 +13,10 @@ import { useChartTheme } from '@/hooks/use-chart-theme';
 import { useFetch } from '@/hooks/use-fetch';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
+import type { RuleWithStats, SectionWithStats } from '@/lib/types';
 
-interface Rule {
-  rule_id: string; section_id: string; section_title: string;
-  title: string; keywords: string[]; session_count: number; match_count: number;
-}
-interface Section {
-  section_id: string; title: string; source_file: string;
-  rule_count: number; total_citations: number; total_sessions: number;
-}
 interface DashboardData {
-  rules: Rule[]; sections: Section[];
+  rules: RuleWithStats[]; sections: SectionWithStats[];
   total_rules: number; total_sessions: number; active_rule_pct: number;
 }
 

@@ -4,6 +4,7 @@ import type {
   RuleWithStats,
   RuleDetail,
   SiblingRule,
+  SectionWithStats,
   CitationRecord,
   CitationTimePoint,
   AnalyticsData,
@@ -19,15 +20,6 @@ function getDb(): Database.Database {
 }
 
 // ── Sections ──
-
-export interface SectionWithStats {
-  section_id: string;
-  title: string;
-  source_file: string;
-  rule_count: number;
-  total_citations: number;
-  total_sessions: number;
-}
 
 export function getSectionsWithStats(days?: number, db?: Database.Database): SectionWithStats[] {
   const own = !db;
