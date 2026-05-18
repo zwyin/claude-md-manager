@@ -26,6 +26,10 @@ describe('parseDays', () => {
   it('returns undefined for float', () => {
     expect(parseDays('3.14')).toBeUndefined();
   });
+
+  it('returns undefined for empty string', () => {
+    expect(parseDays('')).toBeUndefined();
+  });
 });
 
 describe('parseEnum', () => {
@@ -41,6 +45,10 @@ describe('parseEnum', () => {
 
   it('returns fallback for invalid value', () => {
     expect(parseEnum('year', allowed, 'day')).toBe('day');
+  });
+
+  it('returns fallback for empty string', () => {
+    expect(parseEnum('', allowed, 'day')).toBe('day');
   });
 });
 
@@ -81,6 +89,10 @@ describe('sanitizeRuleId', () => {
 
   it('throws ValidationError for invalid IDs', () => {
     expect(() => sanitizeRuleId('../etc')).toThrow(ValidationError);
+  });
+
+  it('decodes percent-encoded valid IDs', () => {
+    expect(sanitizeRuleId('core-principles.brain')).toBe('core-principles.brain');
   });
 });
 
