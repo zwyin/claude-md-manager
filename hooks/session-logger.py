@@ -12,10 +12,8 @@ Usage:
 """
 
 import json
-import os
 import re
 import sys
-from datetime import datetime
 from pathlib import Path
 
 # Add parent to path for imports
@@ -29,33 +27,12 @@ RULES_DIR = PROJECT_DIR / "rules"
 CLAUDE_DIR = Path.home() / ".claude"
 
 
-def load_keyword_map() -> dict:
-    """Load keyword → rule_id mapping from all rule files.
-    
-    Returns: {keyword_lower: [(rule_id, keyword_original), ...]}
-    """
+def parse_all_rules() -> tuple[dict, list, list]:
+    """Parse all rule files once, returning keyword_map, rules_data, sections_data."""
     import yaml as _yaml
-    keyword_map = {}
-    for f in RULES_DIR.glob("*.md"):
-        content = f.read_text(encoding="utf-8")
-        match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
-        if not match:
-            continue
-        meta = _yaml.safe_load(match.group(1)) or {}
-        for rule in meta.get("rules", []):
-            rule_id = rule.get("id", "")
-            for kw in rule.get("keywords", []):
-                kw_lower = kw.lower()
-                if kw_lower not in keyword_map:
-                    keyword_map[kw_lower] = []
-                keyword_map[kw_lower].append((rule_id, kw))
-    return keyword_map
-
-
-def get_rules_metadata() -> list:
-    """Extract rules metadata from all rule files for DB sync."""
-    import yaml as _yaml
-    rules_data = []
+    keyword_map: dict = {}
+    rules_data: list = []
+    sections_data: list = []
     for f in RULES_DIR.glob("*.md"):
         content = f.read_text(encoding="utf-8")
         match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
@@ -63,37 +40,29 @@ def get_rules_metadata() -> list:
             continue
         meta = _yaml.safe_load(match.group(1)) or {}
         section_id = meta.get("id", "")
-        for rule in meta.get("rules", []):
+        rules = meta.get("rules", [])
+        if section_id:
+            sections_data.append({
+                "section_id": section_id,
+                "title": meta.get("title", section_id),
+                "source_file": f.name,
+                "rule_count": len(rules),
+            })
+        for rule in rules:
+            rule_id = rule.get("id", "")
             rules_data.append({
-                "rule_id": rule.get("id", ""),
+                "rule_id": rule_id,
                 "section_id": section_id,
                 "title": rule.get("title", ""),
                 "keywords": rule.get("keywords", []),
                 "source_file": f.name,
             })
-    return rules_data
-
-
-def get_sections_metadata() -> list:
-    """Extract section-level metadata from all rule files for DB sync."""
-    import yaml as _yaml
-    sections_data = []
-    for f in RULES_DIR.glob("*.md"):
-        content = f.read_text(encoding="utf-8")
-        match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
-        if not match:
-            continue
-        meta = _yaml.safe_load(match.group(1)) or {}
-        section_id = meta.get("id", "")
-        if not section_id:
-            continue
-        sections_data.append({
-            "section_id": section_id,
-            "title": meta.get("title", section_id),
-            "source_file": f.name,
-            "rule_count": len(meta.get("rules", [])),
-        })
-    return sections_data
+            for kw in rule.get("keywords", []):
+                kw_lower = kw.lower()
+                if kw_lower not in keyword_map:
+                    keyword_map[kw_lower] = []
+                keyword_map[kw_lower].append((rule_id, kw))
+    return keyword_map, rules_data, sections_data
 
 
 def find_latest_session() -> Path | None:
@@ -175,56 +144,51 @@ def scan_session(jsonl_path: Path, keyword_map: dict) -> list:
 def main():
     if "--sync-metadata" in sys.argv:
         conn = get_db()
-        rules_data = get_rules_metadata()
+        _, rules_data, sections_data = parse_all_rules()
         sync_rules_metadata(conn, rules_data)
-        sections_data = get_sections_metadata()
         sync_sections_metadata(conn, sections_data)
         print(f"Synced {len(rules_data)} rules, {len(sections_data)} sections")
         conn.close()
         return
-    
+
     # Determine session file
     if len(sys.argv) > 1 and not sys.argv[1].startswith("--"):
         session_path = Path(sys.argv[1])
     else:
         session_path = find_latest_session()
-    
+
     if not session_path or not session_path.exists():
         print("No session file found. Skipping.", file=sys.stderr)
         return
-    
+
     session_id = session_path.stem
-    
-    # Load keyword map
-    keyword_map = load_keyword_map()
+
+    # Parse all rules once (keyword map + metadata)
+    keyword_map, rules_data, sections_data = parse_all_rules()
     if not keyword_map:
         print("No keywords loaded from rules.", file=sys.stderr)
         return
-    
+
     # Scan session
     matches = scan_session(session_path, keyword_map)
-    
+
     if not matches:
         print(f"Session {session_id}: no rule matches found")
         return
-    
+
     # Record to database
     conn = get_db()
-    
-    # Sync metadata first
-    rules_data = get_rules_metadata()
+
+    # Sync metadata and record references
     sync_rules_metadata(conn, rules_data)
-    sections_data = get_sections_metadata()
     sync_sections_metadata(conn, sections_data)
-    
-    # Record references
     record_references(conn, session_id, matches)
     upsert_session(conn, session_id)
-    
+
     # Summary
     unique_rules = len(set(m["rule_id"] for m in matches))
     print(f"Session {session_id}: {len(matches)} keyword matches across {unique_rules} rules")
-    
+
     conn.close()
 
 

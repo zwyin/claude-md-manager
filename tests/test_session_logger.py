@@ -9,9 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hooks"))
 sl = importlib.import_module("session-logger")
 
-load_keyword_map = sl.load_keyword_map
-get_rules_metadata = sl.get_rules_metadata
-get_sections_metadata = sl.get_sections_metadata
+parse_all_rules = sl.parse_all_rules
 scan_session = sl.scan_session
 find_latest_session = sl.find_latest_session
 
@@ -42,7 +40,7 @@ rules:
       - TDD
       - coverage
 """)
-        km = load_keyword_map()
+        km, _, _ = parse_all_rules()
         assert "tdd" in km
         assert "coverage" in km
         assert km["tdd"][0][0] == "sec1.r1"
@@ -64,16 +62,16 @@ rules:
     keywords:
       - test
 """)
-        km = load_keyword_map()
+        km, _, _ = parse_all_rules()
         assert len(km["test"]) == 2
 
     def test_empty_dir(self, rules_dir):
-        km = load_keyword_map()
+        km, _, _ = parse_all_rules()
         assert km == {}
 
     def test_file_without_frontmatter(self, rules_dir):
         (rules_dir / "plain.md").write_text("Just plain text", encoding="utf-8")
-        km = load_keyword_map()
+        km, _, _ = parse_all_rules()
         assert km == {}
 
 
@@ -87,7 +85,7 @@ rules:
     keywords:
       - kw1
 """)
-        data = get_rules_metadata()
+        _, data, _ = parse_all_rules()
         assert len(data) == 1
         assert data[0]["rule_id"] == "sec1.r1"
         assert data[0]["section_id"] == "sec1"
@@ -105,7 +103,7 @@ rules:
     title: R2
     keywords: []
 """)
-        data = get_rules_metadata()
+        _, data, _ = parse_all_rules()
         assert len(data) == 2
 
 
@@ -122,7 +120,7 @@ rules:
     title: R2
     keywords: []
 """)
-        data = get_sections_metadata()
+        _, _, data = parse_all_rules()
         assert len(data) == 1
         assert data[0]["section_id"] == "sec1"
         assert data[0]["title"] == "My Section"
@@ -130,7 +128,7 @@ rules:
 
     def test_skips_no_id(self, rules_dir):
         (rules_dir / "noid.md").write_text("---\ntitle: No ID\n---\nbody\n", encoding="utf-8")
-        data = get_sections_metadata()
+        _, _, data = parse_all_rules()
         assert data == []
 
 

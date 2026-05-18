@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS publish_history (
 CREATE INDEX IF NOT EXISTS idx_refs_rule ON rule_references(rule_id);
 CREATE INDEX IF NOT EXISTS idx_refs_time ON rule_references(timestamp);
 CREATE INDEX IF NOT EXISTS idx_refs_session ON rule_references(session_id);
+CREATE INDEX IF NOT EXISTS idx_rules_section ON rules_metadata(section_id);
 """
 
 
