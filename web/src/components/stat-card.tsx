@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { memo, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import { PRIMARY } from '@/lib/chart-colors';
@@ -14,7 +14,7 @@ interface StatCardProps {
   percentage?: boolean;
 }
 
-export function StatCard({ label, value, sublabel, trend, color = PRIMARY, percentage }: StatCardProps) {
+function StatCardInner({ label, value, sublabel, trend, color = PRIMARY, percentage }: StatCardProps) {
   const [displayValue, setDisplayValue] = useState(0);
   const targetValue = typeof value === 'string' ? parseInt(value, 10) || 0 : value;
   const rafRef = useRef<number>(0);
@@ -81,3 +81,5 @@ export function StatCard({ label, value, sublabel, trend, color = PRIMARY, perce
     </Card>
   );
 }
+
+export const StatCard = memo(StatCardInner);

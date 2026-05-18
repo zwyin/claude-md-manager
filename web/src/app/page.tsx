@@ -11,6 +11,7 @@ import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
 import { useChartTheme } from '@/hooks/use-chart-theme';
 import { useFetch } from '@/hooks/use-fetch';
+import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 
 interface Rule {
@@ -31,6 +32,7 @@ export default function DashboardPage() {
   const [coldOpen, setColdOpen] = useState(false);
   const { t } = useI18n();
   const chartTheme = useChartTheme();
+  const tooltipStyle = useTooltipStyle();
 
   if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
   if (error) return <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">{t('status.error', { error })}</div>;
@@ -54,10 +56,6 @@ export default function DashboardPage() {
     citations: r.match_count,
     rule_id: r.rule_id,
   }));
-
-  const tooltipStyle = {
-    contentStyle: { backgroundColor: chartTheme.card, border: `1px solid ${chartTheme.border}`, borderRadius: '8px', color: chartTheme.foreground },
-  };
 
   return (
     <div className="space-y-6">

@@ -15,6 +15,7 @@ import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
 import { useChartTheme } from '@/hooks/use-chart-theme';
 import { useFetch } from '@/hooks/use-fetch';
+import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 
 interface TopRule { rule_id: string; title: string; citation_count: number; }
@@ -34,6 +35,7 @@ export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<number | undefined>(undefined);
   const { t } = useI18n();
   const chartTheme = useChartTheme();
+  const tooltipStyle = useTooltipStyle();
 
   const url = useMemo(() => {
     const params = new URLSearchParams({ trend_group: trendMode });
@@ -59,10 +61,6 @@ export default function AnalyticsPage() {
     value: c.citation_count,
     ruleCount: c.rule_count,
   }));
-
-  const tooltipStyle = {
-    contentStyle: { backgroundColor: chartTheme.card, border: `1px solid ${chartTheme.border}`, borderRadius: '8px', color: chartTheme.foreground },
-  };
 
   return (
     <div className="space-y-6">
