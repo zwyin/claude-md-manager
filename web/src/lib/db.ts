@@ -310,20 +310,25 @@ export function getAnalytics(days?: number): AnalyticsData {
       .bind(...joinParams)
       .all() as TopRule[];
 
+    const havingClause = days
+      ? `HAVING MAX(r.timestamp) IS NULL OR MAX(r.timestamp) < datetime('now', ? || ' days')`
+      : 'HAVING MAX(r.timestamp) IS NULL';
+    const coldParams = days ? [`-${days}`] : [];
+
     const coldRules = db
       .prepare(
         `
         SELECT m.rule_id, m.title,
                CAST(julianday('now') - julianday(MAX(r.timestamp)) AS INTEGER) AS days_since_last_citation
         FROM rules_metadata m
-        LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${joinFilter}
+        LEFT JOIN rule_references r ON r.rule_id = m.rule_id
         GROUP BY m.rule_id
-        HAVING COUNT(r.id) = 0 OR MAX(r.timestamp) IS NULL
+        ${havingClause}
         ORDER BY days_since_last_citation DESC
         LIMIT 20
         `
       )
-      .bind(...joinParams)
+      .bind(...coldParams)
       .all() as ColdRule[];
 
     const categoryDistribution = db
