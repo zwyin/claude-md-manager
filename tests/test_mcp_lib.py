@@ -234,6 +234,9 @@ class TestPublishErrors:
         history_dir = rules_dir.parent / "data" / "history"
         history_dir.mkdir(parents=True, exist_ok=True)
         monkeypatch.setattr(mcp_lib, "HISTORY_DIR", history_dir)
+        output = rules_dir.parent / "CLAUDE.md"
+        output.write_text("# old content", encoding="utf-8")
+        monkeypatch.setattr(mcp_lib, "OUTPUT_PATH", output)
 
         mcp_lib.save_draft_to_db("core", "id: core\ntitle: Core\norder: 10", "body")
 
@@ -250,6 +253,9 @@ class TestPublishErrors:
         history_dir = rules_dir.parent / "data" / "history"
         history_dir.mkdir(parents=True, exist_ok=True)
         monkeypatch.setattr(mcp_lib, "HISTORY_DIR", history_dir)
+        output = rules_dir.parent / "CLAUDE.md"
+        output.write_text("# old content", encoding="utf-8")
+        monkeypatch.setattr(mcp_lib, "OUTPUT_PATH", output)
 
         mcp_lib.save_draft_to_db("core", "id: core\ntitle: Core\norder: 10", "body")
 
@@ -265,6 +271,9 @@ class TestPublishErrors:
         history_dir = rules_dir.parent / "data" / "history"
         history_dir.mkdir(parents=True, exist_ok=True)
         monkeypatch.setattr(mcp_lib, "HISTORY_DIR", history_dir)
+        output = rules_dir.parent / "CLAUDE.md"
+        output.write_text("# old content", encoding="utf-8")
+        monkeypatch.setattr(mcp_lib, "OUTPUT_PATH", output)
 
         mcp_lib.save_draft_to_db("core", "id: core\ntitle: Core\norder: 10", "body")
 
