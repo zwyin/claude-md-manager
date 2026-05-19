@@ -96,6 +96,14 @@ describe('getSectionsWithStats', () => {
     const sec2 = result.find((s) => s.section_id === 'sec2');
     expect(sec2?.total_citations).toBe(0);
   });
+
+  it('filters by days', () => {
+    // days=1 should still see today's data
+    const result = getSectionsWithStats(1, db);
+    expect(result).toHaveLength(2);
+    const sec1 = result.find((s) => s.section_id === 'sec1');
+    expect(sec1?.total_citations).toBe(4);
+  });
 });
 
 describe('getRulesWithStats', () => {
@@ -112,6 +120,13 @@ describe('getRulesWithStats', () => {
     const result = getRulesWithStats(undefined, db);
     expect(result[0].rule_id).toBe('r1');
     expect(result[2].rule_id).toBe('r3');
+  });
+
+  it('filters by days', () => {
+    const result = getRulesWithStats(7, db);
+    expect(result).toHaveLength(3);
+    const r1 = result.find((r) => r.rule_id === 'r1');
+    expect(r1?.match_count).toBe(3);
   });
 });
 
@@ -130,6 +145,11 @@ describe('getRuleDetail', () => {
     const detail = getRuleDetail('nonexistent', undefined, db);
     expect(detail).toBeNull();
   });
+
+  it('filters detail citations by days', () => {
+    const detail = getRuleDetail('r1', 7, db);
+    expect(detail!.citations).toHaveLength(3);
+  });
 });
 
 describe('getTotalSessionCount', () => {
@@ -139,6 +159,12 @@ describe('getTotalSessionCount', () => {
 
   it('returns all sessions when no days filter', () => {
     expect(getTotalSessionCount(undefined, db)).toBe(3);
+  });
+
+  it('filters by days', () => {
+    // Sessions with started_at set should be counted
+    db.prepare("UPDATE sessions SET started_at = datetime('now')").run();
+    expect(getTotalSessionCount(1, db)).toBe(3);
   });
 });
 
@@ -160,6 +186,18 @@ describe('getCitations', () => {
     expect(result.length).toBeGreaterThanOrEqual(1);
     expect(result[0].period).toMatch(/^\d{4}-\d{2}$/);
   });
+
+  it('groups by week', () => {
+    const result = getCitations({ group_by: 'week' }, db);
+    expect(result.length).toBeGreaterThanOrEqual(1);
+    expect(result[0].period).toMatch(/^\d{4}-W\d{2}$/);
+  });
+
+  it('filters by days', () => {
+    const result = getCitations({ days: 7 }, db);
+    const total = result.reduce((sum, p) => sum + p.count, 0);
+    expect(total).toBe(4);
+  });
 });
 
 describe('getAnalytics', () => {
@@ -177,5 +215,11 @@ describe('getAnalytics', () => {
     const a = getAnalytics(undefined, db);
     const coldIds = a.cold_rules.map((r) => r.rule_id);
     expect(coldIds).toContain('r3');
+  });
+
+  it('filters by days', () => {
+    const a = getAnalytics(7, db);
+    expect(a.total_citations).toBe(4);
+    expect(a.top_rules).toHaveLength(2);
   });
 });
