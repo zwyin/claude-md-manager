@@ -6,6 +6,10 @@ web/.next/
 __pycache__/
 *.pyc
 .venv/
+.coverage
+
+# Lockfiles (root is a stub, real lock is in web/)
+/package-lock.json
 
 # Data
 data/usage.db
