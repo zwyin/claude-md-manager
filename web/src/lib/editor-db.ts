@@ -184,7 +184,7 @@ export function publishDrafts(): { rulesChanged: number; snapshotName: string | 
 
       // Fall back to disk content for reorder-only drafts (empty yaml/body)
       let yaml = draft.frontmatter_yaml || rule.frontmatter_yaml;
-      let body = draft.markdown_body || rule.markdown_body;
+      const body = draft.markdown_body || rule.markdown_body;
       if (draft.order_override !== null) {
         yaml = yaml.replace(/^order:\s*\d+/m, `order: ${draft.order_override}`);
       }
