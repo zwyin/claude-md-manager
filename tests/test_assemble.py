@@ -234,6 +234,11 @@ class TestSnapshots:
         with mock.patch.object(assemble, "HISTORY_DIR", empty):
             assert assemble.list_snapshots() == []
 
+    def test_list_nonexistent_dir(self, tmp_path):
+        nonexistent = tmp_path / "no_such_dir"
+        with mock.patch.object(assemble, "HISTORY_DIR", nonexistent):
+            assert assemble.list_snapshots() == []
+
     def test_sorted_newest_first(self, history_dir):
         # Write files with distinct timestamps manually
         for name in ["2026-01-01T10-00-00.md", "2026-01-01T11-00-00.md", "2026-01-01T12-00-00.md"]:

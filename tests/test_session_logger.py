@@ -233,6 +233,35 @@ class TestFindLatestSession:
         result = find_latest_session()
         assert result is None
 
+    def test_skips_non_dir_entries(self, tmp_path, monkeypatch):
+        projects = tmp_path / "projects"
+        projects.mkdir(parents=True)
+        (projects / "not_a_dir.txt").write_text("file", encoding="utf-8")
+        proj = projects / "proj"
+        proj.mkdir()
+        (proj / "session.jsonl").write_text("data", encoding="utf-8")
+        monkeypatch.setattr(sl, "CLAUDE_DIR", tmp_path)
+        result = find_latest_session()
+        assert result is not None
+        assert result.name == "session.jsonl"
+
+    def test_skips_permission_error(self, tmp_path, monkeypatch):
+        projects = tmp_path / "projects"
+        proj = projects / "proj"
+        proj.mkdir(parents=True)
+        (proj / "session.jsonl").write_text("data", encoding="utf-8")
+        monkeypatch.setattr(sl, "CLAUDE_DIR", tmp_path)
+        original_glob = Path.glob
+
+        def patched_glob(self, pattern):
+            if "proj" in str(self):
+                raise PermissionError("denied")
+            return original_glob(self, pattern)
+
+        monkeypatch.setattr(Path, "glob", patched_glob)
+        result = find_latest_session()
+        assert result is None
+
     def test_prefers_recent_over_old(self, tmp_path, monkeypatch):
         projects = tmp_path / "projects"
         proj = projects / "proj"
