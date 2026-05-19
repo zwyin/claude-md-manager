@@ -144,23 +144,6 @@ def sync_sections_metadata(conn: sqlite3.Connection, sections_data: list):
     conn.commit()
 
 
-def get_rule_stats(conn: sqlite3.Connection, days: int = 30) -> list:
-    """Get citation stats for all rules in the last N days."""
-    rows = conn.execute(
-        """SELECT rm.rule_id, rm.section_id, rm.title, rm.keywords,
-                  COUNT(DISTINCT rr.session_id) as session_count,
-                  COUNT(rr.id) as match_count,
-                  MAX(rr.timestamp) as last_referenced
-           FROM rules_metadata rm
-           LEFT JOIN rule_references rr ON rm.rule_id = rr.rule_id
-               AND rr.timestamp >= datetime('now', ?)
-           GROUP BY rm.rule_id
-           ORDER BY session_count DESC""",
-        (f"-{days} days",)
-    ).fetchall()
-    return [dict(r) for r in rows]
-
-
 if __name__ == "__main__":
     conn = get_db()
     db_path = str(DB_PATH)

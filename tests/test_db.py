@@ -12,7 +12,6 @@ from db import (
     upsert_session,
     sync_rules_metadata,
     sync_sections_metadata,
-    get_rule_stats,
 )
 
 
@@ -160,53 +159,6 @@ class TestSyncSectionsMetadata:
         row = conn.execute("SELECT * FROM sections_metadata WHERE section_id = 'sec1'").fetchone()
         assert row["title"] == "New Title"
         assert row["rule_count"] == 5
-
-
-class TestGetRuleStats:
-    def test_returns_rules_with_stats(self, conn):
-        sync_rules_metadata(conn, [
-            {"rule_id": "r1", "section_id": "sec1", "title": "Rule 1",
-             "keywords": [], "source_file": "a.md"},
-        ])
-        record_references(conn, "s1", [{"rule_id": "r1", "keyword": "kw"}])
-        stats = get_rule_stats(conn, days=30)
-        assert len(stats) == 1
-        assert stats[0]["rule_id"] == "r1"
-        assert stats[0]["session_count"] >= 1
-
-    def test_no_references(self, conn):
-        sync_rules_metadata(conn, [
-            {"rule_id": "r1", "section_id": "sec1", "title": "Rule 1",
-             "keywords": [], "source_file": "a.md"},
-        ])
-        stats = get_rule_stats(conn, days=30)
-        assert len(stats) == 1
-        assert stats[0]["session_count"] == 0
-        assert stats[0]["match_count"] == 0
-
-    def test_multiple_rules_ordering(self, conn):
-        sync_rules_metadata(conn, [
-            {"rule_id": "r1", "section_id": "sec1", "title": "Rule 1",
-             "keywords": [], "source_file": "a.md"},
-            {"rule_id": "r2", "section_id": "sec1", "title": "Rule 2",
-             "keywords": [], "source_file": "b.md"},
-        ])
-        record_references(conn, "s1", [{"rule_id": "r1", "keyword": "kw"}])
-        record_references(conn, "s1", [{"rule_id": "r1", "keyword": "kw2"}])
-        record_references(conn, "s2", [{"rule_id": "r2", "keyword": "kw"}])
-        stats = get_rule_stats(conn, days=30)
-        assert len(stats) == 2
-        # r1 has 2 matches across 1 session, r2 has 1 match across 1 session
-        assert stats[0]["rule_id"] == "r1"
-        assert stats[0]["match_count"] == 2
-
-    def test_returns_keywords_json(self, conn):
-        sync_rules_metadata(conn, [
-            {"rule_id": "r1", "section_id": "sec1", "title": "Rule 1",
-             "keywords": ["TDD", "coverage"], "source_file": "a.md"},
-        ])
-        stats = get_rule_stats(conn, days=30)
-        assert json.loads(stats[0]["keywords"]) == ["TDD", "coverage"]
 
 
 class TestSyncRulesMetadataCleanup:
