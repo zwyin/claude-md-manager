@@ -33,10 +33,6 @@ vi.mock('child_process', () => ({
 }));
 
 // Helpers
-function asReaddirResult(files: string[]) {
-  return files as unknown as ReturnType<typeof fs.readdirSync>;
-}
-
 function mockStatement(stmt: { all?: unknown; get?: unknown; run?: unknown }) {
   return {
     all: vi.fn(() => stmt.all ?? []),
