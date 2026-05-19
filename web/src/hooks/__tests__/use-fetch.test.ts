@@ -49,7 +49,7 @@ describe('useFetch', () => {
   });
 
   it('cancels pending request on unmount', async () => {
-    let resolveResponse: (r: Response) => void;
+    let resolveResponse: (response: Response) => void;
     globalThis.fetch = vi.fn(async () => new Promise<Response>((r) => { resolveResponse = r; }));
 
     const { result, unmount } = renderHook(() => useFetch('/api/test'));
