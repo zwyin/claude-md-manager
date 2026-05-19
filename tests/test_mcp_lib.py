@@ -219,6 +219,60 @@ class TestPublish:
         assert rule["order"] == 5
 
 
+class TestPublishErrors:
+    def test_assemble_failure_returns_error(self, db_with_drafts, rules_dir, monkeypatch):
+        history_dir = rules_dir.parent / "data" / "history"
+        history_dir.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setattr(mcp_lib, "HISTORY_DIR", history_dir)
+
+        mcp_lib.save_draft_to_db("core", "id: core\ntitle: Core\norder: 10", "body")
+
+        import subprocess
+        monkeypatch.setattr(subprocess, "run", lambda *a, **kw: subprocess.CompletedProcess([], 1, "", "assemble error"))
+
+        result = mcp_lib.publish_all_drafts()
+        assert result["error"] == "assemble error"
+        assert result["snapshot_name"] is None
+        # Drafts NOT cleared on failure
+        assert mcp_lib.get_draft_from_db("core") is not None
+
+    def test_assemble_timeout_returns_error(self, db_with_drafts, rules_dir, monkeypatch):
+        history_dir = rules_dir.parent / "data" / "history"
+        history_dir.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setattr(mcp_lib, "HISTORY_DIR", history_dir)
+
+        mcp_lib.save_draft_to_db("core", "id: core\ntitle: Core\norder: 10", "body")
+
+        import subprocess
+        def timeout_run(*a, **kw):
+            raise subprocess.TimeoutExpired([], 30)
+        monkeypatch.setattr(subprocess, "run", timeout_run)
+
+        result = mcp_lib.publish_all_drafts()
+        assert result["error"] == "assemble.py timed out"
+
+    def test_assemble_exception_returns_error(self, db_with_drafts, rules_dir, monkeypatch):
+        history_dir = rules_dir.parent / "data" / "history"
+        history_dir.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setattr(mcp_lib, "HISTORY_DIR", history_dir)
+
+        mcp_lib.save_draft_to_db("core", "id: core\ntitle: Core\norder: 10", "body")
+
+        import subprocess
+        monkeypatch.setattr(subprocess, "run", lambda *a, **kw: (_ for _ in ()).throw(OSError("boom")))
+
+        result = mcp_lib.publish_all_drafts()
+        assert "boom" in result["error"]
+
+
+class TestParseFrontmatter:
+    def test_no_frontmatter(self):
+        meta, yaml_str, body = mcp_lib.parse_frontmatter("just plain text")
+        assert meta == {}
+        assert yaml_str == ""
+        assert body == "just plain text"
+
+
 class TestReadClaudeMd:
     def test_returns_content(self, tmp_path, monkeypatch):
         f = tmp_path / "CLAUDE.md"
