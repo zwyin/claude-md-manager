@@ -161,6 +161,11 @@ class TestPublish:
         history_dir.mkdir(parents=True, exist_ok=True)
         monkeypatch.setattr(mcp_lib, "HISTORY_DIR", history_dir)
 
+        # Create a fake CLAUDE.md so _force_snapshot has something to back up
+        output = rules_dir.parent / "CLAUDE.md"
+        output.write_text("# old content", encoding="utf-8")
+        monkeypatch.setattr(mcp_lib, "OUTPUT_PATH", output)
+
         mcp_lib.save_draft_to_db("core", "id: core\ntitle: Updated\norder: 10", "updated body")
 
         # Mock assemble.py call
@@ -176,6 +181,11 @@ class TestPublish:
         assert result["rules_changed"] == 1
         assert result["snapshot_name"] is not None
         assert result.get("error") is None
+
+        # Verify pre-publish snapshot was created
+        snapshots = list(history_dir.glob("*.md"))
+        assert len(snapshots) >= 1
+        assert snapshots[0].read_text(encoding="utf-8") == "# old content"
 
         # Verify disk content updated
         rule = mcp_lib.read_rule_file("core")
@@ -232,7 +242,7 @@ class TestPublishErrors:
 
         result = mcp_lib.publish_all_drafts()
         assert result["error"] == "assemble error"
-        assert result["snapshot_name"] is None
+        assert result["snapshot_name"] is not None  # pre-publish snapshot still created
         # Drafts NOT cleared on failure
         assert mcp_lib.get_draft_from_db("core") is not None
 
@@ -271,6 +281,25 @@ class TestParseFrontmatter:
         assert meta == {}
         assert yaml_str == ""
         assert body == "just plain text"
+
+
+class TestForceSnapshot:
+    def test_creates_snapshot(self, tmp_path, monkeypatch):
+        output = tmp_path / "CLAUDE.md"
+        output.write_text("# content", encoding="utf-8")
+        history = tmp_path / "history"
+        monkeypatch.setattr(mcp_lib, "OUTPUT_PATH", output)
+        monkeypatch.setattr(mcp_lib, "HISTORY_DIR", history)
+
+        name = mcp_lib._force_snapshot()
+        assert name is not None
+        assert name.endswith(".md")
+        assert (history / name).read_text(encoding="utf-8") == "# content"
+
+    def test_returns_none_when_no_file(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(mcp_lib, "OUTPUT_PATH", tmp_path / "nonexistent.md")
+        monkeypatch.setattr(mcp_lib, "HISTORY_DIR", tmp_path / "history")
+        assert mcp_lib._force_snapshot() is None
 
 
 class TestReadClaudeMd:

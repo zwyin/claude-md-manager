@@ -170,9 +170,23 @@ def validate_all_drafts() -> list[dict]:
 
 # ── Publish ──
 
+def _force_snapshot() -> str | None:
+    """Force-save a snapshot of the current ~/.claude/CLAUDE.md before any changes.
+    Returns snapshot filename or None if file doesn't exist.
+    """
+    if not OUTPUT_PATH.exists():
+        return None
+    HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    name = f"{ts}.md"
+    (HISTORY_DIR / name).write_text(OUTPUT_PATH.read_text(encoding="utf-8"), encoding="utf-8")
+    return name
+
+
 def publish_all_drafts() -> dict:
     """Publish all drafts: write to rules/*.md, run assemble.py, clear drafts.
 
+    Force-snapshots the current CLAUDE.md before making any changes.
     Returns {rules_changed, snapshot_name, error?}.
     """
     db = get_db()
@@ -180,6 +194,9 @@ def publish_all_drafts() -> dict:
         drafts = db.execute("SELECT * FROM rule_drafts").fetchall()
         if not drafts:
             return {"rules_changed": 0, "snapshot_name": None}
+
+        # Force snapshot BEFORE any file writes
+        pre_snapshot = _force_snapshot()
 
         # Build a map of rule_id → source_file
         rules_map: dict[str, dict] = {}
@@ -212,7 +229,7 @@ def publish_all_drafts() -> dict:
             rule["source_file"].write_text(content, encoding="utf-8")
 
         # Run assemble.py
-        snapshot_name = None
+        snapshot_name = pre_snapshot
         error_msg = None
         try:
             result = subprocess.run(
@@ -220,9 +237,7 @@ def publish_all_drafts() -> dict:
                 capture_output=True, text=True, timeout=30,
                 cwd=str(PROJECT_DIR),
             )
-            if result.returncode == 0 and "Built CLAUDE.md" in result.stdout:
-                snapshot_name = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-            elif result.returncode != 0:
+            if result.returncode != 0:
                 error_msg = result.stderr.strip() or result.stdout.strip() or "assemble.py failed"
         except subprocess.TimeoutExpired:
             error_msg = "assemble.py timed out"
