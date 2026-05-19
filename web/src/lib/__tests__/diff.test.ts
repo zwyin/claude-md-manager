@@ -74,6 +74,16 @@ describe('diffLines', () => {
     expect(result.some((l) => l.type === 'added')).toBe(true);
   });
 
+  it('fallback handles from longer than to', () => {
+    const from = Array.from({ length: 5001 }, (_, i) => `line ${i}`);
+    const to = from.slice(0, 2500);
+    const result = diffLines(from, to);
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.some((l) => l.type === 'removed')).toBe(true);
+    const removed = result.filter((l) => l.type === 'removed');
+    expect(removed.length).toBe(2501);
+  });
+
   it('stats count matches line types', () => {
     const result = diffLines(['a', 'b'], ['a', 'c', 'd']);
     const added = result.filter((l) => l.type === 'added').length;
