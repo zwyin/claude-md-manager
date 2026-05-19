@@ -155,9 +155,6 @@ def git_commit_if_changed(content: str, changed_files: list[str] | None = None):
     except (subprocess.CalledProcessError, FileNotFoundError):
         return
 
-    # Save snapshot
-    save_snapshot(content)
-
     # Check if output changed
     existing = ""
     if OUTPUT_PATH.exists():
@@ -166,6 +163,9 @@ def git_commit_if_changed(content: str, changed_files: list[str] | None = None):
     if content == existing:
         print("No changes detected. Skipping commit.")
         return
+
+    # Save snapshot only when there are changes
+    save_snapshot(content)
 
     # Stage and commit
     try:
