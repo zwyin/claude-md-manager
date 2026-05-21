@@ -9,6 +9,21 @@ Usage:
     python session-logger.py                  # Auto-detect latest session
     python session-logger.py <jsonl_path>     # Process specific session file
     python session-logger.py --sync-metadata  # Sync rule metadata only
+
+Hook registration (async recommended for zero impact on Claude):
+    ~/.claude/settings.json:
+    {
+      "hooks": {
+        "PostToolUse": [{
+          "matcher": "",
+          "hooks": [{
+            "type": "command",
+            "command": "python3 /path/to/session-logger.py",
+            "async": true
+          }]
+        }]
+      }
+    }
 """
 
 import json
@@ -18,7 +33,9 @@ from pathlib import Path
 
 # Add parent to path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from db import get_db, record_references, upsert_session, sync_rules_metadata, sync_sections_metadata
+from db import (get_db, get_session_offset, record_references,
+                sync_rules_metadata, sync_sections_metadata, update_session_offset,
+                upsert_session)
 
 # Paths
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -26,13 +43,46 @@ PROJECT_DIR = SCRIPT_DIR.parent
 RULES_DIR = PROJECT_DIR / "rules"
 CLAUDE_DIR = Path.home() / ".claude"
 
+# CJK character range for keyword type detection
+_CJK_RE = re.compile(r'[一-鿿㐀-䶿]')
+
+
+def _build_pattern(keyword: str) -> re.Pattern:
+    """Build an appropriate regex pattern based on keyword type.
+
+    Three strategies:
+    1. CJK keywords: match with non-ASCII-alphanumeric boundaries
+    2. Multi-word phrases (spaces/hyphens): literal match with word boundaries
+    3. Pure English: standard \\b word boundaries
+    """
+    escaped = re.escape(keyword)
+    has_cjk = bool(_CJK_RE.search(keyword))
+    stripped = keyword.strip()
+    has_space = ' ' in stripped
+    has_hyphen = '-' in stripped and not stripped.startswith('-')
+
+    if has_cjk:
+        # CJK: allow match when preceded/followed by anything except ASCII alphanumeric
+        return re.compile(r'(?<![a-zA-Z0-9])' + escaped + r'(?![a-zA-Z0-9])', re.IGNORECASE)
+    elif has_space or has_hyphen:
+        # Multi-word phrase: literal match with flexible boundaries
+        return re.compile(r'(?<!\w)' + escaped + r'(?!\w)', re.IGNORECASE)
+    else:
+        # Pure English: standard word boundary
+        return re.compile(r'\b' + escaped + r'\b', re.IGNORECASE)
+
 
 def parse_all_rules() -> tuple[dict, list, list]:
-    """Parse all rule files once, returning keyword_map, rules_data, sections_data."""
+    """Parse all rule files, returning compiled_pattern_map, rules_data, sections_data.
+
+    compiled_pattern_map: {rule_id: [(compiled_regex, original_keyword)]}
+    """
     import yaml as _yaml
-    keyword_map: dict = {}
+    # keyword_to_rules: maps keyword to list of (rule_id, original_keyword)
+    keyword_to_rules: dict = {}
     rules_data: list = []
     sections_data: list = []
+
     for f in RULES_DIR.glob("*.md"):
         content = f.read_text(encoding="utf-8")
         match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
@@ -59,10 +109,18 @@ def parse_all_rules() -> tuple[dict, list, list]:
             })
             for kw in rule.get("keywords", []):
                 kw_lower = kw.lower()
-                if kw_lower not in keyword_map:
-                    keyword_map[kw_lower] = []
-                keyword_map[kw_lower].append((rule_id, kw))
-    return keyword_map, rules_data, sections_data
+                if kw_lower not in keyword_to_rules:
+                    keyword_to_rules[kw_lower] = []
+                keyword_to_rules[kw_lower].append((rule_id, kw))
+
+    # Build compiled pattern map: {keyword_lower: (compiled_regex, [(rule_id, original_kw)])}
+    pattern_map: dict = {}
+    for kw_lower, rule_pairs in keyword_to_rules.items():
+        # Use original keyword (first occurrence) to build pattern
+        original_kw = rule_pairs[0][1]
+        pattern_map[kw_lower] = (_build_pattern(original_kw), rule_pairs)
+
+    return pattern_map, rules_data, sections_data
 
 
 def find_latest_session() -> Path | None:
@@ -98,56 +156,92 @@ def find_latest_session() -> Path | None:
     return best_path
 
 
-def scan_session(jsonl_path: Path, keyword_map: dict) -> list:
+def _classify_confidence(keyword: str) -> str:
+    """Estimate match confidence based on keyword characteristics.
+
+    High: long precise phrase (>= 10 chars)
+    Medium: keyword with word boundary match (>= 4 chars)
+    Low: short keywords (< 4 chars)
+    """
+    if len(keyword) >= 10:
+        return "high"
+    if len(keyword) >= 4:
+        return "medium"
+    return "low"
+
+
+def scan_session(jsonl_path: Path, pattern_map: dict, start_line: int = 0) -> tuple[list, int]:
     """Scan a session JSONL file for keyword matches in assistant messages.
-    
-    Returns: [{"rule_id": "...", "keyword": "..."}, ...]
+
+    Args:
+        jsonl_path: Path to the JSONL session file
+        pattern_map: {keyword_lower: (compiled_regex, [(rule_id, original_kw)])}
+        start_line: Line number to start scanning from (inclusive, 0-based)
+
+    Returns: (matches, last_line_scanned)
+        matches: [{"rule_id": "...", "keyword": "...", "confidence": "..."}, ...]
+        last_line_scanned: 0-based line number of the last line processed
     """
     matches = []
     seen = set()
-    
+    last_line_scanned = start_line
+    # Track longest match per position per rule to deduplicate substring keywords
+    # {(rule_id, start_pos, end_pos): keyword}
+    longest_match: dict = {}
+
     try:
         with open(jsonl_path, "r", encoding="utf-8") as f:
-            for line in f:
+            for line_idx, line in enumerate(f):
+                if line_idx < start_line:
+                    continue
+
                 try:
                     entry = json.loads(line.strip())
                 except json.JSONDecodeError:
                     continue
-                
+
                 # Claude Code JSONL format: type="assistant", content in entry.message.content
                 entry_type = entry.get("type", "")
                 if entry_type != "assistant":
                     continue
-                
+
                 msg = entry.get("message", {})
                 content = msg.get("content", [])
                 if isinstance(content, list):
-                    # Extract text blocks
                     text_parts = []
                     for block in content:
                         if isinstance(block, dict) and block.get("type") == "text":
                             text_parts.append(block.get("text", ""))
                     content = " ".join(text_parts)
-                
+
                 if not isinstance(content, str) or not content.strip():
                     continue
-                
-                content_lower = content.lower()
-                for kw_lower, rule_pairs in keyword_map.items():
-                    if kw_lower in content_lower:
+
+                for _, (pattern, rule_pairs) in pattern_map.items():
+                    for m in pattern.finditer(content):
                         for rule_id, kw_original in rule_pairs:
+                            pos_key = (rule_id, m.start(), m.end())
+                            existing = longest_match.get(pos_key)
+                            if existing and len(existing) >= len(kw_original):
+                                continue
+                            longest_match[pos_key] = kw_original
                             match_key = (rule_id, kw_original)
                             if match_key not in seen:
                                 seen.add(match_key)
+                                confidence = _classify_confidence(kw_original)
                                 matches.append({
                                     "rule_id": rule_id,
                                     "keyword": kw_original,
+                                    "confidence": confidence,
                                 })
-    
+
+                last_line_scanned = line_idx
+
     except FileNotFoundError:
         print(f"Warning: session file not found: {jsonl_path}", file=sys.stderr)
-    
-    return matches
+        return matches, start_line
+
+    return matches, last_line_scanned
 
 
 def main():
@@ -172,31 +266,32 @@ def main():
 
     session_id = session_path.stem
 
-    # Parse all rules once (keyword map + metadata)
-    keyword_map, rules_data, sections_data = parse_all_rules()
-    if not keyword_map:
+    # Parse all rules once (pattern map + metadata)
+    pattern_map, rules_data, sections_data = parse_all_rules()
+    if not pattern_map:
         print("No keywords loaded from rules.", file=sys.stderr)
         return
 
-    # Scan session
-    matches = scan_session(session_path, keyword_map)
-
-    if not matches:
-        print(f"Session {session_id}: no rule matches found")
-        return
-
-    # Record to database
+    # Connect to DB and get last scanned offset
     conn = get_db()
+    upsert_session(conn, session_id)
+    start_line = get_session_offset(conn, session_id)
 
-    # Sync metadata and record references
+    # Scan session incrementally
+    matches, last_line = scan_session(session_path, pattern_map, start_line)
+
+    # Record results in a single transaction
     sync_rules_metadata(conn, rules_data)
     sync_sections_metadata(conn, sections_data)
-    record_references(conn, session_id, matches)
-    upsert_session(conn, session_id)
+    if matches:
+        record_references(conn, session_id, matches, source="hook_posttool")
+    update_session_offset(conn, session_id, last_line + 1)
+    conn.commit()
 
     # Summary
     unique_rules = len(set(m["rule_id"] for m in matches))
-    print(f"Session {session_id}: {len(matches)} keyword matches across {unique_rules} rules")
+    print(f"Session {session_id} (lines {start_line}-{last_line}): "
+          f"{len(matches)} matches across {unique_rules} rules")
 
     conn.close()
 
