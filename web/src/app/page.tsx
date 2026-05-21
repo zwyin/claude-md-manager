@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -25,6 +26,7 @@ export default function DashboardPage() {
   const { data, loading, error } = useFetch<DashboardData>('/api/rules');
   const [coldOpen, setColdOpen] = useState(false);
   const { t } = useI18n();
+  const router = useRouter();
   const chartTheme = useChartTheme();
   const tooltipStyle = useTooltipStyle();
 
@@ -113,9 +115,9 @@ export default function DashboardPage() {
                   {...tooltipStyle}
                   formatter={(value, _name, props) => [value, (props as { payload: { fullName: string } }).payload.fullName]}
                 />
-                <Bar dataKey="citations" radius={[0, 4, 4, 0]} maxBarSize={24}>
-                  {sectionChartData.map((_, i) => (
-                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                <Bar dataKey="citations" radius={[0, 4, 4, 0]} maxBarSize={24} style={{ cursor: 'pointer' }}>
+                  {sectionChartData.map((entry, i) => (
+                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} onClick={() => router.push(`/rules?section=${entry.section_id}`)} />
                   ))}
                 </Bar>
               </BarChart>

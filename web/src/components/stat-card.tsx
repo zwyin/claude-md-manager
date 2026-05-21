@@ -48,7 +48,9 @@ function StatCardInner({ label, value, sublabel, trend, color = PRIMARY, percent
 
   return (
     <Card className="rounded-xl border-border bg-card overflow-hidden">
-      <CardContent className="p-6">
+      <div className="flex">
+        <div className="w-1 shrink-0 rounded-l-xl" style={{ backgroundColor: color }} />
+        <CardContent className="p-5 pl-4 flex-1 min-w-0">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
           {label}
         </p>
@@ -80,6 +82,7 @@ function StatCardInner({ label, value, sublabel, trend, color = PRIMARY, percent
           </div>
         )}
       </CardContent>
+      </div>
     </Card>
   );
 }
