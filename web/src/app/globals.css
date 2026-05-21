@@ -157,4 +157,7 @@ body {
   html {
     @apply font-sans;
   }
+  .recharts-text {
+    fill: var(--muted-foreground);
+  }
 }
