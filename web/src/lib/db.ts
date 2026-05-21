@@ -169,6 +169,7 @@ export function getRuleDetail(
       .bind(ruleId, ...timeParams)
       .all() as CitationRecord[];
 
+    const totalSessionsForSiblings = getTotalSessionCount(days, conn);
     const siblings = conn
       .prepare(
         `
@@ -187,6 +188,12 @@ export function getRuleDetail(
       rule_id: string; title: string; match_count: number; session_count: number;
     }>;
 
+    const siblingsWithStats = siblings.map((s) => ({
+      ...s,
+      session_coverage: totalSessionsForSiblings > 0 ? s.session_count / totalSessionsForSiblings : 0,
+      avg_depth: s.session_count > 0 ? s.match_count / s.session_count : 0,
+    }));
+
     return {
       rule: {
         ...ruleRow,
@@ -195,7 +202,7 @@ export function getRuleDetail(
         last_cited: citationCountRow.last_cited,
       },
       citations,
-      siblings,
+      siblings: siblingsWithStats,
     };
   } finally {
     if (own) conn.close();

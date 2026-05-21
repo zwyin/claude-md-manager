@@ -116,4 +116,6 @@ export interface SiblingRule {
   title: string;
   match_count: number;
   session_count: number;
+  session_coverage: number;
+  avg_depth: number;
 }

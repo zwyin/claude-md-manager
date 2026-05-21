@@ -157,8 +157,10 @@ export default function RuleDetailPage() {
                   className="shrink-0 w-48 p-3 rounded-lg border border-border bg-accent/50 hover:border-indigo-500/30 transition-colors">
                   <p className="text-xs font-mono text-muted-foreground mb-1">{sib.rule_id}</p>
                   <p className="text-sm font-medium truncate">{sib.title}</p>
-                  <div className="flex gap-2 mt-2">
-                    <Badge variant="secondary" className="text-[10px]">{sib.match_count}</Badge>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    <Badge variant="secondary" className="text-[10px] font-mono">{sib.match_count} {t('table.matches').toLowerCase()}</Badge>
+                    <Badge variant="outline" className="text-[10px] font-mono" style={{ borderColor: STAT_COLORS.avgCoverage, color: STAT_COLORS.avgCoverage }}>{(sib.session_coverage * 100).toFixed(0)}%</Badge>
+                    <Badge variant="outline" className="text-[10px] font-mono" style={{ borderColor: STAT_COLORS.avgDepth, color: STAT_COLORS.avgDepth }}>{sib.avg_depth.toFixed(1)}</Badge>
                   </div>
                 </Link>
               ))}
