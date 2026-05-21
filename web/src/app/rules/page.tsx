@@ -56,6 +56,16 @@ function MiniDepthBar({ value, max }: { value: number; max: number }) {
   );
 }
 
+function MetricBar({ value, color }: { value: number; color: string }) {
+  const w = Math.round(value * 28);
+  return (
+    <svg width="32" height="16" viewBox="0 0 32 16" className="shrink-0" role="img" aria-label={`${(value * 100).toFixed(1)}%`}>
+      <rect x="2" y="5" width="28" height="6" rx="3" fill="#27272a" />
+      <rect x="2" y="5" width={Math.max(w, 2)} height="6" rx="3" fill={color} fillOpacity="0.8" />
+    </svg>
+  );
+}
+
 export default function RulesPage() {
   return (
     <Suspense fallback={<div className="flex items-center justify-center py-16"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
@@ -231,6 +241,9 @@ function RulesContent() {
                       <div className="flex items-center shrink-0 gap-1" style={{ width: '70px' }}>
                         <span className="text-center w-full"><TermTooltip term={t('metric.depth')} explanation={t('metric.depth.desc')} /></span>
                       </div>
+                      <div className="flex items-center shrink-0 gap-1" style={{ width: '80px' }}>
+                        <span className="text-center w-full"><TermTooltip term={t('metric.share')} explanation={t('metric.share.desc')} /></span>
+                      </div>
                     </div>
                     {rules.map((rule) => (
                       <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
@@ -250,6 +263,10 @@ function RulesContent() {
                         <div className="flex items-center justify-center shrink-0 gap-1" style={{ width: '70px' }}>
                           <MiniDepthBar value={rule.avg_depth} max={maxDepth} />
                           <Badge variant="outline" className="text-xs font-mono" title={`${rule.match_count}/${rule.session_count} ${t('table.matches').toLowerCase()}/${t('table.sessions').toLowerCase()}`}>{rule.avg_depth.toFixed(1)}</Badge>
+                        </div>
+                        <div className="flex items-center justify-center shrink-0 gap-1" style={{ width: '80px' }}>
+                          <MetricBar value={rule.citation_share} color={STAT_COLORS.citations} />
+                          <Badge variant="secondary" className="text-xs font-mono">{(rule.citation_share * 100).toFixed(1)}%</Badge>
                         </div>
                       </Link>
                     ))}
