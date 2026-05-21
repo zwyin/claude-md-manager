@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
 import { StatCard } from '@/components/stat-card';
+import { PageLoader, PageError } from '@/components/page-states';
 import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
 import { useChartTheme } from '@/hooks/use-chart-theme';
@@ -32,8 +33,8 @@ export default function DashboardPage() {
   usePageTitle('dashboard.title');
   const tooltipStyle = useTooltipStyle();
 
-  if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
-  if (error) return <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">{t('status.error', { error })}</div>;
+  if (loading) return <PageLoader message={t('status.loading')} />;
+  if (error) return <PageError message={t('status.error', { error })} />;
   if (!data) return null;
 
   const topRules = [...(data.rules || [])].sort((a, b) => b.match_count - a.match_count).slice(0, 10);

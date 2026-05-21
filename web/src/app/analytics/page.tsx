@@ -18,6 +18,7 @@ import { useChartTheme } from '@/hooks/use-chart-theme';
 import { useFetch } from '@/hooks/use-fetch';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { usePageTitle } from '@/hooks/use-page-title';
+import { PageLoader, PageError } from '@/components/page-states';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 import type { AnalyticsData } from '@/lib/types';
 
@@ -38,8 +39,8 @@ export default function AnalyticsPage() {
 
   const { data, loading, error } = useFetch<AnalyticsData>(url);
 
-  if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
-  if (error) return <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">{t('status.error', { error })}</div>;
+  if (loading) return <PageLoader message={t('status.loading')} />;
+  if (error) return <PageError message={t('status.error', { error })} />;
   if (!data) return null;
 
   const topRulesData = (data.top_rules || []).map((r) => ({

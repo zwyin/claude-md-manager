@@ -8,6 +8,7 @@ import { Clock, GitCompare, RotateCcw, Check, X, FileText } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useFetch } from '@/hooks/use-fetch';
+import { PageLoader, PageError } from '@/components/page-states';
 import { toast } from 'sonner';
 import type { SnapshotInfo, DiffResult } from '@/lib/snapshots';
 
@@ -95,8 +96,8 @@ export default function HistoryPage() {
     }
   }, [t]);
 
-  if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
-  if (error) return <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">{t('status.error', { error })}</div>;
+  if (loading) return <PageLoader message={t('status.loading')} />;
+  if (error) return <PageError message={t('status.error', { error })} />;
 
   const formatTs = (ts: string) => ts.replace('T', ' ').replace(/(\d{2})-(\d{2})-(\d{2})$/, '$1:$2:$3');
 

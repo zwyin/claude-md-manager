@@ -13,6 +13,7 @@ import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { STAT_COLORS } from '@/lib/chart-colors';
 import { DetailMetricBar, DepthGauge } from '@/components/metric-visualizations';
+import { PageLoader, PageError } from '@/components/page-states';
 import { useDynamicPageTitle } from '@/hooks/use-page-title';
 import type { RuleDetail, CitationRecord, SiblingRule } from '@/lib/types';
 
@@ -31,11 +32,11 @@ export default function RuleDetailPage() {
 
   useDynamicPageTitle(rule?.title);
 
-  if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
+  if (loading) return <PageLoader message={t('status.loading')} />;
   if (error) return (
     <div className="space-y-4">
       <Link href="/rules" className="text-sm text-indigo-400 hover:underline">&larr; {t('ruleDetail.backTo', { section: 'Rules' })}</Link>
-      <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">{t('status.error', { error })}</div>
+      <PageError message={t('status.error', { error })} />
     </div>
   );
   if (!rule) return null;
