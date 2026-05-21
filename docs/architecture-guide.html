@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLAUDE.md Manager - 项目演练 (Medium)</title>
+<style>
+:root{--bg:#fff;--bg2:#f8f9fa;--bg3:#e9ecef;--fg:#212529;--fg2:#495057;--fg3:#868e96;--accent:#4f46e5;--accent2:#6366f1;--border:#dee2e6;--code-bg:#f1f3f5;--code-fg:#d6336c;--success:#37b24d;--danger:#f03e3e;--warn:#f59f00;--sidebar-w:260px;--topbar-h:56px}
+[data-theme="dark"]{--bg:#1a1b1e;--bg2:#25262b;--bg3:#2c2e33;--fg:#c1c2c5;--fg2:#909296;--fg3:#5c5f66;--accent:#845ef7;--accent2:#9775fa;--border:#373a40;--code-bg:#2c2e33;--code-fg:#f783ac}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--fg);line-height:1.7}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code{background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:0.9em;font-family:"SF Mono",Monaco,Consolas,monospace;color:var(--code-fg)}
+pre{background:var(--code-bg);padding:16px;border-radius:8px;overflow-x:auto;margin:12px 0;font-size:0.85em;line-height:1.5}
+pre code{background:none;padding:0;color:var(--fg)}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9em}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
+th{background:var(--bg2);font-weight:600;color:var(--fg2)}
+blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:12px 0;background:var(--bg2);border-radius:0 6px 6px 0;color:var(--fg2)}
+hr{border:none;border-top:1px solid var(--border);margin:24px 0}
+h1{font-size:1.8em;margin-bottom:8px}
+h2{font-size:1.4em;margin:32px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+h3{font-size:1.15em;margin:20px 0 8px;color:var(--fg2)}
+ul,ol{padding-left:24px;margin:8px 0}
+li{margin:4px 0}
+
+/* Layout */
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;z-index:100;transition:transform 0.3s}
+.sidebar h2{font-size:1em;padding:16px;border-bottom:1px solid var(--border);margin:0;color:var(--fg3)}
+.sidebar ul{list-style:none;padding:0;margin:0}
+.sidebar li a{display:block;padding:8px 16px;font-size:0.85em;color:var(--fg2);border-left:3px solid transparent;transition:all 0.15s}
+.sidebar li a:hover,.sidebar li a.active{background:var(--bg3);color:var(--accent);border-left-color:var(--accent)}
+.content{margin-left:var(--sidebar-w);padding:calc(var(--topbar-h) + 24px) 40px 32px;max-width:960px}
+.section{display:none}
+.section.active{display:block}
+
+/* Top bar */
+.topbar{position:fixed;top:0;left:var(--sidebar-w);right:0;height:var(--topbar-h);background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:99}
+.topbar h3{font-size:0.9em;color:var(--fg3)}
+.topbar-actions{display:flex;gap:8px}
+.btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--fg);cursor:pointer;font-size:0.8em;transition:all 0.15s}
+.btn:hover{background:var(--bg3)}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-accent:hover{background:var(--accent2)}
+
+/* Expandable */
+.expandable{margin:12px 0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.expandable-header{padding:12px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:var(--bg2);font-weight:500;font-size:0.95em}
+.expandable-header:hover{background:var(--bg3)}
+.expandable-body{padding:16px;display:none}
+.expandable.open .expandable-body{display:block}
+.expandable-header .arrow{transition:transform 0.2s;font-size:0.8em}
+.expandable.open .expandable-header .arrow{transform:rotate(90deg)}
+
+/* Quiz */
+.quiz{margin:32px 0;padding:24px;background:var(--bg2);border-radius:12px;border:1px solid var(--border)}
+.quiz h3{margin-top:0;color:var(--accent)}
+.quiz-item{margin:16px 0;padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg)}
+.quiz-q{font-weight:600;margin-bottom:8px}
+.quiz-opts label{display:block;padding:6px 12px;margin:4px 0;border-radius:6px;cursor:pointer;transition:background 0.1s;font-size:0.9em}
+.quiz-opts label:hover{background:var(--bg3)}
+.quiz-opts input{margin-right:8px}
+.quiz-feedback{margin-top:8px;padding:8px 12px;border-radius:6px;font-size:0.85em;display:none}
+.quiz-feedback.correct{display:block;background:#d3f9d8;color:#2b8a3e}
+.quiz-feedback.wrong{display:block;background:#ffe3e3;color:#c92a2a}
+
+/* Mobile */
+@media(max-width:768px){
+.sidebar{transform:translateX(-100%)}
+.sidebar.open{transform:translateX(0)}
+.content{margin-left:0;padding:20px 16px}
+.topbar{left:0}
+.hamburger{display:block}
+}
+
+/* Print */
+@media print{.sidebar,.topbar{display:none}.content{margin:0;padding:0}.section{display:block!important}}
+</style>
+</head>
+<body data-theme="light">
+
+<nav class="sidebar" id="sidebar">
+<h2>CLAUDE.md Manager 演练</h2>
+<ul>
+<li><a href="#" data-ch="0" class="active">01 项目概述</a></li>
+<li><a href="#" data-ch="1">02 整体架构</a></li>
+<li><a href="#" data-ch="2">03 构建系统</a></li>
+<li><a href="#" data-ch="3">04 数据层</a></li>
+<li><a href="#" data-ch="4">05 引用追踪</a></li>
+<li><a href="#" data-ch="5">06 MCP Server</a></li>
+<li><a href="#" data-ch="6">07 Web 架构</a></li>
+<li><a href="#" data-ch="7">08 仪表盘页面</a></li>
+<li><a href="#" data-ch="8">09 API 层</a></li>
+<li><a href="#" data-ch="9">10 编辑器与草稿</a></li>
+<li><a href="#" data-ch="10">11 测试策略</a></li>
+<li><a href="#" data-ch="11">12 设计决策</a></li>
+</ul>
+</nav>
+
+<div class="topbar">
+<h3 id="topbar-title">01 项目概述</h3>
+<div class="topbar-actions">
+<button class="btn" id="btn-theme">Dark</button>
+<button class="btn" id="btn-prev" disabled>Prev</button>
+<button class="btn" id="btn-next">Next</button>
+</div>
+</div>
+
+<div class="content" id="content">
+
+<!-- Chapter 01 -->
+<div class="section active" data-ch="0">
+<h1>01 项目概述</h1>
+
+<h2>定位与动机</h2>
+<p>claude-md-manager 是一个模块化管理 <code>~/.claude/CLAUDE.md</code> 的工具链。Claude Code 使用这个文件作为全局指令——所有会话启动时自动加载。随着规则增多，单文件会膨胀到数千行，难以维护和追踪。</p>
+<p>本项目解决三个核心问题：</p>
+<ol>
+<li><strong>可维护性</strong> — 将单一 CLAUDE.md 拆分为 15 个独立的 rule 文件，每个文件带 YAML frontmatter</li>
+<li><strong>可观测性</strong> — 通过 Hook 机制追踪哪些规则被实际引用，并在仪表盘中可视化</li>
+<li><strong>安全性</strong> — Draft/Publish 工作流 + 自动快照，防止误操作破坏全局配置</li>
+</ol>
+
+<h2>技术栈</h2>
+<table>
+<tr><th>层</th><th>技术</th><th>用途</th></tr>
+<tr><td>构建系统</td><td>Python 3.10+ / PyYAML</td><td>解析 frontmatter、拼接规则、快照管理</td></tr>
+<tr><td>数据层</td><td>SQLite (stdlib + better-sqlite3)</td><td>引用记录、规则元数据、草稿、发布历史</td></tr>
+<tr><td>Hook</td><td>Python (PostToolUse Hook)</td><td>扫描 JSONL 会话日志，匹配关键词</td></tr>
+<tr><td>MCP Server</td><td>Python / FastMCP</td><td>暴露 10 个工具供 CLI 操作规则</td></tr>
+<tr><td>Web 仪表盘</td><td>Next.js 16 + React 19</td><td>可视化仪表盘 + 规则编辑器</td></tr>
+<tr><td>UI 组件</td><td>shadcn/ui + Tailwind CSS v4</td><td>Card、Table、Sidebar、Collapsible</td></tr>
+<tr><td>图表</td><td>Recharts 3.8.1</td><td>引用趋势、Top 10 规则</td></tr>
+<tr><td>代码编辑器</td><td>CodeMirror 6</td><td>YAML + Markdown 双栏编辑</td></tr>
+</table>
+
+<h2>项目规模</h2>
+<table>
+<tr><th>指标</th><th>数值</th></tr>
+<tr><td>源代码文件</td><td>86 个</td></tr>
+<tr><td>代码总行数</td><td>~8,896 行</td></tr>
+<tr><td>Python 后端</td><td>5 模块 + 4 测试套件 (~2,460 行测试)</td></tr>
+<tr><td>Web 前端</td><td>73 个源文件 (14 API routes + 6 页面)</td></tr>
+<tr><td>规则文件</td><td>15 个模块化规则</td></tr>
+<tr><td>MCP 工具</td><td>10 个</td></tr>
+</table>
+
+<h2>核心工作流</h2>
+<pre><code>rules/*.md → build/assemble.py → ~/.claude/CLAUDE.md
+                                       ↓
+Claude Code 会话 → JSONL 日志 → hooks/session-logger.py → SQLite
+                                                              ↓
+                              Web Dashboard / MCP Server ←──┘</code></pre>
+<ol>
+<li><strong>构建</strong>：<code>python build/assemble.py</code> 读取 rules/*.md，按 order 排序拼接为 CLAUDE.md</li>
+<li><strong>追踪</strong>：PostToolUse Hook 触发 session-logger.py，扫描会话日志匹配关键词</li>
+<li><strong>可视化</strong>：Web 仪表盘读取 SQLite 展示引用热力、冷门规则、趋势图表</li>
+<li><strong>编辑</strong>：Web 编辑器或 MCP Server 修改规则 → 保存草稿 → 验证 → 发布</li>
+</ol>
+</div>
+
+<!-- Chapter 02 -->
+<div class="section" data-ch="1">
+<h1>02 整体架构</h1>
+
+<h2>组件关系图</h2>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                     ~/.claude/CLAUDE.md                      │
+└───────────────────────────┬─────────────────────────────────┘
+                            │ 写入
+┌───────────────────────────▼─────────────────────────────────┐
+│                   build/assemble.py (247 行)                 │
+│         读取 rules/*.md → 排序 → 拼接 → 写入 + 快照          │
+└───────────┬───────────────────────────────────────┬─────────┘
+            │ 读取                                   │ 调用
+┌───────────▼───────────┐              ┌────────────▼──────────┐
+│   rules/*.md (15 文件) │◄─── 写入 ────│   mcp_server.py       │
+│   YAML + Markdown     │    发布      │   mcp_lib.py (10 tools)│
+└───────────────────────┘              └────────────┬──────────┘
+                                                    │
+                      ┌─────────────────────────────┤
+                      │ 共享                         │
+              ┌───────▼─────────────────────────────▼───────┐
+              │           data/usage.db (SQLite)             │
+              │  6 张表: rule_references | rules_metadata    │
+              │  sessions | sections_metadata                │
+              │  rule_drafts | publish_history               │
+              └───────────┬───────────────────┬─────────────┘
+                          │ 读取              │ 写入(草稿)
+              ┌───────────▼───────┐  ┌────────▼──────────────┐
+              │  Web Dashboard    │  │  session-logger.py     │
+              │  (Next.js 16)     │  │  (PostToolUse Hook)    │
+              │  14 API routes    │  │  扫描 JSONL → 匹配关键词│
+              └───────────────────┘  └────────────────────────┘</code></pre>
+
+<h2>模块职责划分</h2>
+<table>
+<tr><th>模块</th><th>文件</th><th>行数</th><th>职责</th></tr>
+<tr><td>构建系统</td><td>build/assemble.py</td><td>247</td><td>规则加载、frontmatter 解析、拼接、快照/回滚、git commit</td></tr>
+<tr><td>数据层</td><td>hooks/db.py</td><td>155</td><td>SQLite schema、引用记录、元数据同步</td></tr>
+<tr><td>Hook</td><td>hooks/session-logger.py</td><td>205</td><td>JSONL 扫描、关键词匹配、会话检测</td></tr>
+<tr><td>MCP 逻辑</td><td>mcp_lib.py</td><td>307</td><td>规则列表、草稿 CRUD、验证、发布</td></tr>
+<tr><td>MCP 入口</td><td>mcp_server.py</td><td>95</td><td>FastMCP 装饰器，10 个 @mcp.tool</td></tr>
+<tr><td>数据层(Web)</td><td>web/src/lib/db.ts</td><td>356</td><td>只读查询：sections、rules、citations</td></tr>
+<tr><td>编辑器数据层</td><td>web/src/lib/editor-db.ts</td><td>244</td><td>读写操作：草稿 CRUD、重排、发布</td></tr>
+<tr><td>API 层</td><td>web/src/app/api/**/*.ts</td><td>14 文件</td><td>Route Handlers</td></tr>
+</table>
+
+<h2>设计特点</h2>
+<ol>
+<li><strong>双数据层</strong>：Python 后端和 Node.js 前端共享同一个 SQLite 文件，各自维护连接逻辑</li>
+<li><strong>草稿安全网</strong>：所有修改通过草稿表暂存，发布前强制快照，失败不清空草稿</li>
+<li><strong>只读/读写分离</strong>：Web 仪表盘查询使用 readonly 连接，编辑器使用读写连接</li>
+</ol>
+</div>
+
+<!-- Chapter 03 -->
+<div class="section" data-ch="2">
+<h1>03 构建系统 assemble.py</h1>
+
+<p><code>build/assemble.py</code>（247 行）是整个系统的核心——将 <code>rules/*.md</code> 中的模块化规则文件组装为单一的 <code>~/.claude/CLAUDE.md</code>。</p>
+
+<h2>Frontmatter 解析</h2>
+<pre><code>def parse_frontmatter(content: str) -> tuple[dict, str]:
+    """Parse YAML frontmatter from markdown content."""
+    match = re.match(r"^---\n(.*?)\n---\n(.*)", content, re.DOTALL)
+    if not match:
+        return {}, content
+    meta = yaml.safe_load(match.group(1))
+    body = match.group(2)
+    return meta or {}, body</code></pre>
+<p>用正则提取 YAML 块和 Markdown 正文。返回 <code>(metadata_dict, body_string)</code> 元组。</p>
+
+<h2>规则加载与排序</h2>
+<pre><code>def load_rules() -> list[tuple[str, dict, str]]:
+    """Load all rule files, sorted by order."""
+    rules = []
+    for f in sorted(RULES_DIR.glob("*.md")):
+        content = f.read_text(encoding="utf-8")
+        meta, body = parse_frontmatter(content)
+        order = meta.get("order", 999)
+        rules.append((f.name, meta, body, order))
+    rules.sort(key=lambda x: x[3])
+    return [(name, meta, body) for name, meta, body, _ in rules]</code></pre>
+<p>先用文件名排序保证稳定性，再按 <code>order</code> 字段重新排序。缺失 order 的规则默认排到末尾。</p>
+
+<h2>校验系统</h2>
+<p>validate_rules() 检查三个维度：</p>
+<ul>
+<li><strong>id 唯一性</strong>：全局去重</li>
+<li><strong>子规则 id 前缀</strong>：<code>sub_rule.id</code> 必须以 <code>parent_rule.id.</code> 开头</li>
+<li><strong>关键词必填</strong>：每个子规则至少有一个 keyword</li>
+</ul>
+
+<h2>自动 Git Commit</h2>
+<p>只在输出实际变化时才创建快照和 commit。避免无意义的 git 历史膨胀。</p>
+
+<h2>CLI 接口</h2>
+<table>
+<tr><th>命令</th><th>功能</th></tr>
+<tr><td><code>python build/assemble.py</code></td><td>构建 + 写入 + 快照 + git commit</td></tr>
+<tr><td><code>--dry-run</code></td><td>预览到 stdout</td></tr>
+<tr><td><code>--validate</code></td><td>校验所有规则文件格式</td></tr>
+<tr><td><code>--list-snapshots</code></td><td>列出可用快照</td></tr>
+<tr><td><code>--rollback &lt;ts&gt;</code></td><td>回滚到指定快照</td></tr>
+</table>
+</div>
+
+<!-- Chapter 04 -->
+<div class="section" data-ch="3">
+<h1>04 数据层 db.py</h1>
+
+<p><code>hooks/db.py</code>（155 行）是 Python 端的 SQLite 数据层。被 <code>session-logger.py</code> 和 <code>mcp_lib.py</code> 共同依赖。</p>
+
+<h2>Schema 设计</h2>
+<p>6 张表、4 个索引：</p>
+<pre><code>rule_references    → 引用记录 (rule_id, session_id, matched_keyword, timestamp)
+sessions           → 会话信息 (session_id PK, model, task_summary)
+rules_metadata     → 规则元数据 (rule_id PK, section_id, title, keywords JSON)
+sections_metadata  → 章节元数据 (section_id PK, title, rule_count)
+rule_drafts        → 草稿 (rule_id PK, frontmatter_yaml, markdown_body, order_override)
+publish_history    → 发布历史 (id AUTO, rules_changed, snapshot_name, status)</code></pre>
+
+<h2>连接管理</h2>
+<pre><code>def get_db() -> sqlite3.Connection:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(DB_PATH))
+    conn.row_factory = sqlite3.Row
+    conn.executescript(SCHEMA_SQL)  # 幂等初始化
+    return conn</code></pre>
+<p>懒初始化：首次连接时自动创建 schema。Row factory 允许列名访问。调用方负责 <code>conn.close()</code>。</p>
+
+<h2>引用记录去重</h2>
+<p>双重去重策略：应用层 <code>seen</code> set + 数据库层 <code>INSERT OR IGNORE</code>。同一会话中同一规则的同一关键词只记录一次。</p>
+
+<h2>与 Web 端数据层对比</h2>
+<table>
+<tr><th>维度</th><th>Python (hooks/db.py)</th><th>TypeScript (db.ts)</th></tr>
+<tr><td>库</td><td>stdlib sqlite3</td><td>better-sqlite3</td></tr>
+<tr><td>模式</td><td>读写</td><td>只读</td></tr>
+<tr><td>用途</td><td>Hook 写入、MCP 草稿</td><td>API Route 读取统计</td></tr>
+</table>
+</div>
+
+<!-- Chapter 05 -->
+<div class="section" data-ch="4">
+<h1>05 引用追踪 session-logger.py</h1>
+
+<p><code>hooks/session-logger.py</code>（205 行）是 Claude Code 的 PostToolUse Hook。每次工具调用后自动触发。</p>
+
+<h2>触发机制</h2>
+<p>在 <code>~/.claude/settings.json</code> 注册：<code>matcher: ""</code> 匹配所有工具调用。</p>
+
+<h2>关键词索引</h2>
+<p><code>keyword_map</code> 将小写关键词映射到 <code>(rule_id, original_keyword)</code> 对。从 rules/*.md 的 frontmatter 中构建。</p>
+
+<h2>会话定位</h2>
+<pre><code>def find_latest_session() -> Path | None:
+    cutoff = time.time() - 3600  # 1 hour ago
+    for project_dir in projects_dir.iterdir():
+        for jsonl_file in project_dir.glob("*.jsonl"):
+            mtime = jsonl_file.stat().st_mtime
+            if mtime >= cutoff and mtime > best_mtime:
+                best_path = jsonl_file</code></pre>
+<p>性能优化：只扫描最近 1 小时内修改的 JSONL 文件。</p>
+
+<h2>JSONL 扫描逻辑</h2>
+<ol>
+<li><strong>过滤消息类型</strong>：只处理 <code>type == "assistant"</code> 的条目</li>
+<li><strong>提取文本</strong>：content 可能是 block 数组，提取 <code>type == "text"</code> 的块</li>
+<li><strong>大小写不敏感匹配</strong>：<code>kw_lower in content_lower</code></li>
+<li><strong>去重</strong>：同一规则+同一关键词只记一次</li>
+</ol>
+
+<h2>已知限制</h2>
+<ul>
+<li>每次触发扫描整个 JSONL 文件，会话增长后耗时增加</li>
+<li>使用子串匹配，不支持正则或语义匹配</li>
+<li>只返回单个最新会话，多会话并行可能遗漏</li>
+</ul>
+</div>
+
+<!-- Chapter 06 -->
+<div class="section" data-ch="5">
+<h1>06 MCP Server</h1>
+
+<p>基于 FastMCP 框架，通过 stdio transport 与 Claude Code CLI 通信，暴露 10 个工具。</p>
+
+<h2>10 个工具</h2>
+<table>
+<tr><th>工具</th><th>读/写</th><th>说明</th></tr>
+<tr><td>list_rules</td><td>读</td><td>列出所有规则及草稿状态</td></tr>
+<tr><td>get_rule</td><td>读</td><td>读取指定规则的完整内容</td></tr>
+<tr><td>get_draft</td><td>读</td><td>获取指定规则的草稿</td></tr>
+<tr><td>save_draft</td><td>写</td><td>保存草稿（不修改源文件）</td></tr>
+<tr><td>delete_draft</td><td>写</td><td>删除指定草稿</td></tr>
+<tr><td>validate_drafts</td><td>读</td><td>检查 frontmatter 完整性</td></tr>
+<tr><td>publish_drafts</td><td>写</td><td>发布所有草稿 + 重建 CLAUDE.md</td></tr>
+<tr><td>get_claude_md</td><td>读</td><td>读取当前 CLAUDE.md</td></tr>
+<tr><td>get_publish_history</td><td>读</td><td>获取发布记录</td></tr>
+<tr><td>list_snapshots</td><td>读</td><td>列出可用回滚快照</td></tr>
+</table>
+
+<h2>Draft/Publish 安全工作流</h2>
+<p>两阶段提交保证安全性：</p>
+
+<div class="expandable" id="ex-publish">
+<div class="expandable-header">发布流程详解 <span class="arrow">▶</span></div>
+<div class="expandable-body">
+<ol>
+<li><strong>Force Snapshot</strong>：在任何文件写入之前强制保存当前 CLAUDE.md</li>
+<li><strong>Build rule map</strong>：扫描 rules/*.md 建立 rule_id → source_file 映射</li>
+<li><strong>Write drafts</strong>：将每个草稿写入对应的 rule 文件</li>
+<li><strong>Run assemble.py</strong>：重建 CLAUDE.md</li>
+<li><strong>Record history</strong>：写入 publish_history 表</li>
+<li><strong>Clear drafts</strong>：成功才清空草稿表；失败则保留供重试</li>
+</ol>
+</div>
+</div>
+
+<h2>校验机制</h2>
+<p>发布前必须校验 YAML frontmatter 中包含三个必填字段：id、title、order。使用正则 <code>re.search(r"^field:", yaml, re.MULTILINE)</code> 检查。</p>
+</div>
+
+<!-- Chapter 07 -->
+<div class="section" data-ch="6">
+<h1>07 Web 仪表盘架构</h1>
+
+<h2>Provider 层级</h2>
+<pre><code>I18nProvider → TooltipProvider → SidebarProvider
+    └── AppSidebar + SidebarInset
+          └── TopBar + ErrorBoundary → {children}
+    └── Toaster (sonner)</code></pre>
+<p>Provider 嵌套顺序：I18n（最外层，所有组件需要翻译）→ Tooltip → Sidebar。</p>
+
+<h2>导航结构</h2>
+<p>5 个页面：Dashboard(/)、Rules(/rules)、Editor(/editor)、History(/history)、Analytics(/analytics)。</p>
+
+<h2>API 层架构</h2>
+<p>14 个 Route Handler，按功能分组：</p>
+<pre><code>api/
+├── analytics/          GET 分析数据
+├── citations/          GET 引用时间线
+├── editor/
+│   ├── publish/        POST 发布
+│   ├── validate/       POST 校验
+│   ├── reorder/        POST 重排序
+│   └── rules/[id]/draft/  GET/PUT/DELETE 草稿 CRUD
+├── history/            GET 快照列表, POST 回滚
+└── rules/[id]/         GET 规则详情+引用+兄弟规则</code></pre>
+
+<h2>国际化</h2>
+<p>React Context + <code>useI18n()</code> hook，翻译文件为 <code>zh.ts</code> 和 <code>en.ts</code>。</p>
+
+<h2>关键依赖</h2>
+<table>
+<tr><th>包</th><th>版本</th><th>角色</th></tr>
+<tr><td>next</td><td>16.2.6</td><td>App Router + SSR</td></tr>
+<tr><td>react</td><td>^19.2.6</td><td>UI 渲染</td></tr>
+<tr><td>better-sqlite3</td><td>^12.10.0</td><td>服务端 SQLite</td></tr>
+<tr><td>recharts</td><td>^3.8.1</td><td>图表</td></tr>
+<tr><td>tailwindcss</td><td>^4</td><td>CSS 框架</td></tr>
+</table>
+</div>
+
+<!-- Chapter 08 -->
+<div class="section" data-ch="7">
+<h1>08 仪表盘页面</h1>
+
+<h2>Dashboard 首页（/）</h2>
+<p>4 个区域：Stat Cards、Sections 柱状图、Top 10 Rules、Cold Rules 折叠列表。</p>
+
+<h2>Rules 页面（/rules）</h2>
+<p>功能特性：</p>
+<ul>
+<li><strong>搜索</strong>：Input + ⌘K 快捷键，搜索 title/rule_id/keywords/source_file</li>
+<li><strong>章节过滤</strong>：下拉按 section_id 过滤</li>
+<li><strong>分组展示</strong>：useMemo 按 section_id 分组，每组一个 Collapsible Card</li>
+<li><strong>MiniSparkline</strong>：纯 SVG 迷你趋势图，无外部依赖</li>
+</ul>
+
+<div class="expandable" id="ex-sparkline">
+<div class="expandable-header">MiniSparkline 实现 <span class="arrow">▶</span></div>
+<div class="expandable-body">
+<pre><code>function MiniSparkline({ session, matches }) {
+  const max = Math.max(session, matches, 1);
+  const h1 = 16 - (session / max) * 12;
+  const h2 = 16 - (matches / max) * 12;
+  return (
+    &lt;svg width="48" height="16" viewBox="0 0 48 16"&gt;
+      &lt;polygon points={`0,16 12,${h1} 36,${h2} 48,16`} fill={PRIMARY} fillOpacity="0.15" /&gt;
+      &lt;circle cx="12" cy={h1} r="2" fill={PRIMARY} /&gt;
+      &lt;circle cx="36" cy={h2} r="2" fill={PRIMARY} /&gt;
+    &lt;/svg&gt;
+  );
+}</code></pre>
+</div>
+</div>
+
+<h2>Analytics 页面（/analytics）</h2>
+<table>
+<tr><th>图表</th><th>类型</th><th>数据源</th></tr>
+<tr><td>Top Rules</td><td>水平 BarChart</td><td>data.top_rules</td></tr>
+<tr><td>Section Distribution</td><td>环形 PieChart</td><td>data.category_distribution</td></tr>
+<tr><td>Citation Trend</td><td>面积图 AreaChart</td><td>data.citation_trend</td></tr>
+<tr><td>Cold Rules</td><td>列表</td><td>data.cold_rules</td></tr>
+</table>
+<p>两个筛选维度：时间范围（all/7d/30d/90d）和趋势粒度（day/week/month）。</p>
+</div>
+
+<!-- Chapter 09 -->
+<div class="section" data-ch="8">
+<h1>09 API 层</h1>
+
+<h2>统一模式</h2>
+<p>每个 handler 遵循相同流程：解析参数 → 打开 DB → 调用数据函数 → 返回 JSON → 错误处理。</p>
+
+<h2>参数验证</h2>
+<table>
+<tr><th>函数</th><th>防护</th><th>攻击面</th></tr>
+<tr><td>parseDays</td><td>只接受正整数</td><td>SQL 注入</td></tr>
+<tr><td>parseEnum</td><td>白名单校验</td><td>枚举注入</td></tr>
+<tr><td>sanitizeRuleId</td><td>正则白名单</td><td>路径遍历</td></tr>
+</table>
+
+<h2>错误处理</h2>
+<p>ValidationError → 400 + 原始消息；其他错误 → 500 + "Internal server error"。</p>
+
+<h2>数据库连接传递</h2>
+<p>数据函数接受可选 <code>db</code> 参数。API handler 创建连接、调用多个函数、统一关闭——避免每个函数内部开关连接。</p>
+
+<h2>API 分组一览</h2>
+<p><strong>只读（7 个）</strong>：rules、rules/[id]、analytics、citations、history、history/[ts]、history/diff</p>
+<p><strong>读写（7 个）</strong>：editor/rules、editor/rules/[id]/draft (GET/PUT/DELETE)、editor/validate、editor/reorder、editor/publish、editor/publish-history、history/rollback</p>
+</div>
+
+<!-- Chapter 10 -->
+<div class="section" data-ch="9">
+<h1>10 编辑器与草稿系统</h1>
+
+<h2>3 栏布局</h2>
+<table>
+<tr><th>栏</th><th>宽度</th><th>组件</th><th>功能</th></tr>
+<tr><td>左</td><td>280px 固定</td><td>RuleListPanel</td><td>规则列表、草稿标记、拖拽排序</td></tr>
+<tr><td>中</td><td>flex-1</td><td>EditorPanel</td><td>YAML + Markdown 双栏编辑</td></tr>
+<tr><td>右</td><td>320px 固定</td><td>PreviewPanel</td><td>Markdown 实时预览</td></tr>
+</table>
+
+<h2>CodeMirror 双栏</h2>
+<p>两个实例：上方 YAML（40% 高度，yaml() 扩展）、下方 Markdown（60%，markdown() 扩展），dark 主题。</p>
+
+<h2>状态管理</h2>
+<p>8 个 state + 2 个 ref：rules、selectedId、frontmatter、body、hasDraft、showPublish、publishing，以及 initialLoadDone 和 prevSelectedId ref 防止重复操作。</p>
+
+<h2>Web 端 vs MCP 端</h2>
+<table>
+<tr><th>维度</th><th>Web (editor-db.ts)</th><th>MCP (mcp_lib.py)</th></tr>
+<tr><td>草稿保存</td><td>saveDraft() → SQLite</td><td>save_draft_to_db() → SQLite</td></tr>
+<tr><td>发布调用</td><td>execFileSync('python', ['build/assemble.py'])</td><td>subprocess.run([sys.executable, 'build/assemble.py'])</td></tr>
+<tr><td>快照</td><td>assemble.py 内部创建</td><td>_force_snapshot() 前置创建</td></tr>
+</table>
+</div>
+
+<!-- Chapter 11 -->
+<div class="section" data-ch="10">
+<h1>11 测试策略</h1>
+
+<h2>Python 后端测试</h2>
+<table>
+<tr><th>文件</th><th>行数</th><th>覆盖</th></tr>
+<tr><td>test_assemble.py</td><td>484</td><td>frontmatter 解析、排序、拼接、校验、快照、回滚</td></tr>
+<tr><td>test_db.py</td><td>190</td><td>schema、引用记录、元数据同步</td></tr>
+<tr><td>test_mcp_lib.py</td><td>359</td><td>草稿 CRUD、验证、发布（含错误路径）</td></tr>
+<tr><td>test_session_logger.py</td><td>418</td><td>关键词索引、JSONL 扫描、会话定位</td></tr>
+</table>
+<p>总计 1,451 行测试代码，覆盖率 96%+。使用内存 SQLite + 临时目录 + mock 环境。</p>
+
+<h2>Web 前端测试</h2>
+<table>
+<tr><th>文件</th><th>行数</th><th>覆盖</th></tr>
+<tr><td>editor-db.test.ts</td><td>463</td><td>草稿 CRUD、重排、发布</td></tr>
+<tr><td>db.test.ts</td><td>224</td><td>规则查询、章节统计</td></tr>
+<tr><td>diff.test.ts</td><td>113</td><td>差异计算</td></tr>
+<tr><td>api-utils.test.ts</td><td>115</td><td>参数验证边界</td></tr>
+<tr><td>snapshots.test.ts</td><td>137</td><td>快照管理</td></tr>
+<tr><td>其他 4 个文件</td><td>209</td><td>fetch、api-handler、chart-colors、use-fetch</td></tr>
+</table>
+<p>总计 1,261 行测试代码，覆盖率 97%+。使用内存 SQLite + vi.mock。</p>
+
+<h2>关键测试策略</h2>
+<ul>
+<li>内存 SQLite 而非 mock——保留真实 SQL 行为</li>
+<li>参数化测试覆盖边界情况</li>
+<li>发布流程包含成功和失败路径</li>
+</ul>
+</div>
+
+<!-- Chapter 12 -->
+<div class="section" data-ch="11">
+<h1>12 设计决策与创新点</h1>
+
+<h2>5 大创新点</h2>
+<ol>
+<li><strong>模块化 CLAUDE.md</strong> — 拆分为 15 个独立文件，git diff 友好</li>
+<li><strong>Draft/Publish 双阶段提交</strong> — 强制快照 + 确认后才生效</li>
+<li><strong>关键词级引用追踪</strong> — 精确到子规则的关键词粒度</li>
+<li><strong>双界面操作</strong> — MCP Server（CLI）+ Web 编辑器共享草稿状态</li>
+<li><strong>原子化自动 Git Commit</strong> — 有变化才 commit，快照+规则一并入库</li>
+</ol>
+
+<h2>5 个关键取舍</h2>
+
+<div class="expandable" id="ex-trade1">
+<div class="expandable-header">取舍 1：双数据层 vs 统一 API <span class="arrow">▶</span></div>
+<div class="expandable-body">
+<p><strong>选择</strong>：两套独立的数据访问层（Python + TypeScript），共享 SQLite。</p>
+<p><strong>原因</strong>：Python Hook 必须独立运行，Web 端需要 better-sqlite3 同步 API。统一 API 会引入 HTTP 开销，对 Hook 启动时间不可接受。</p>
+<p><strong>代价</strong>：草稿发布逻辑在 mcp_lib.py 和 editor-db.ts 中各实现一次。</p>
+</div>
+</div>
+
+<div class="expandable" id="ex-trade2">
+<div class="expandable-header">取舍 2：子串匹配 vs 语义匹配 <span class="arrow">▶</span></div>
+<div class="expandable-body">
+<p><strong>选择</strong>：简单的大小写不敏感子串匹配。</p>
+<p><strong>原因</strong>：Hook 在每次工具调用后触发，需要极快执行速度。</p>
+<p><strong>代价</strong>：误报（关键词出现在无关上下文）和漏报（语义匹配但关键词未出现）。</p>
+</div>
+</div>
+
+<div class="expandable" id="ex-trade3">
+<div class="expandable-header">取舍 3：内存 SQLite vs Mock <span class="arrow">▶</span></div>
+<div class="expandable-body">
+<p><strong>选择</strong>：<code>:memory:</code> SQLite 而非 mock 数据库。</p>
+<p><strong>原因</strong>：SQL 查询复杂（JOIN、GROUP BY、时间过滤），mock 无法测试真实 SQL 行为。</p>
+</div>
+</div>
+
+<div class="expandable" id="ex-trade4">
+<div class="expandable-header">取舍 4：CodeMirror vs textarea <span class="arrow">▶</span></div>
+<div class="expandable-body">
+<p><strong>选择</strong>：CodeMirror 6（~200KB 依赖），提供语法高亮。</p>
+<p><strong>代价</strong>：增加 bundle size，但只在编辑器页面加载（code splitting）。</p>
+</div>
+</div>
+
+<div class="expandable" id="ex-trade5">
+<div class="expandable-header">取舍 5：execFileSync 调用 Python vs Node.js 重写 <span class="arrow">▶</span></div>
+<div class="expandable-body">
+<p><strong>选择</strong>：Web 端发布时调用 Python 构建脚本。</p>
+<p><strong>原因</strong>：assemble.py 已有完整实现和测试，重写意味着维护两套。</p>
+<p><strong>代价</strong>：部署环境必须 Python + Node.js 双栈。</p>
+</div>
+</div>
+
+<hr>
+
+<h2>Quiz</h2>
+<div class="quiz" id="quiz">
+<h3>知识测验</h3>
+
+<div class="quiz-item">
+<div class="quiz-q">Q1: assemble.py 中 load_rules() 使用了几次排序？为什么？</div>
+<div class="quiz-opts">
+<label><input type="radio" name="q1" value="a"> A. 一次，按 order 排序</label>
+<label><input type="radio" name="q1" value="b"> B. 两次：先按文件名排序保证稳定性，再按 order 排序</label>
+<label><input type="radio" name="q1" value="c"> C. 不排序，直接按文件名顺序</label>
+</div>
+<div class="quiz-feedback" data-answer="b" data-explain="先 sorted(RULES_DIR.glob()) 按文件名排序，再 rules.sort(key=lambda x: x[3]) 按 order 排序。双重排序确保相同 order 时按文件名决定顺序。"></div>
+</div>
+
+<div class="quiz-item">
+<div class="quiz-q">Q2: publish_all_drafts() 在什么时机创建快照？</div>
+<div class="quiz-opts">
+<label><input type="radio" name="q2" value="a"> A. 写入规则文件之后</label>
+<label><input type="radio" name="q2" value="b"> B. 运行 assemble.py 之后</label>
+<label><input type="radio" name="q2" value="c"> C. 任何文件写入之前（force snapshot）</label>
+</div>
+<div class="quiz-feedback" data-answer="c" data-explain="_force_snapshot() 在任何文件写入之前调用，确保当前 CLAUDE.md 有完整的备份可以回滚。"></div>
+</div>
+
+<div class="quiz-item">
+<div class="quiz-q">Q3: session-logger.py 的 find_latest_session() 为什么只扫描最近 1 小时的文件？</div>
+<div class="quiz-opts">
+<label><input type="radio" name="q3" value="a"> A. 安全原因，避免读取旧会话</label>
+<label><input type="radio" name="q3" value="b"> B. 性能优化，Hook 频繁触发时减少扫描范围</label>
+<label><input type="radio" name="q3" value="c"> C. Claude Code 只保留 1 小时的日志</label>
+</div>
+<div class="quiz-feedback" data-answer="b" data-explain="PostToolUse Hook 在每次工具调用后触发，执行频率很高。限制扫描范围到最近 1 小时是为了性能，活跃会话的文件必然在这个时间窗口内。"></div>
+</div>
+
+<div class="quiz-item">
+<div class="quiz-q">Q4: Web 端 db.ts 和 editor-db.ts 的数据库连接模式有什么区别？</div>
+<div class="quiz-opts">
+<label><input type="radio" name="q4" value="a"> A. 完全相同，都是只读</label>
+<label><input type="radio" name="q4" value="b"> B. db.ts 只读，editor-db.ts 有读写两种连接</label>
+<label><input type="radio" name="q4" value="c"> C. db.ts 读写，editor-db.ts 只读</label>
+</div>
+<div class="quiz-feedback" data-answer="b" data-explain="db.ts 的 getDb() 使用 readonly: true，用于仪表盘查询。editor-db.ts 有 getReadonlyDb() 和 getReadWriteDb() 两种连接，草稿和发布操作需要写权限。"></div>
+</div>
+
+<div class="quiz-item">
+<div class="quiz-q">Q5: 为什么项目选择双数据层（Python + TypeScript）而非统一 API？</div>
+<div class="quiz-opts">
+<label><input type="radio" name="q5" value="a"> A. 开发者更熟悉两种语言</label>
+<label><input type="radio" name="q5" value="b"> B. Python Hook 必须独立运行（不能依赖 Node.js），统一 API 会增加 HTTP 开销影响 Hook 启动</label>
+<label><input type="radio" name="q5" value="c"> C. 性能考虑，两种语言各有所长</label>
+</div>
+<div class="quiz-feedback" data-answer="b" data-explain="PostToolUse Hook 作为独立 Python 进程启动，无法连接 Node.js HTTP 服务。统一 API 会引入网络延迟，对 Hook 的启动时间不可接受。"></div>
+</div>
+
+<button class="btn btn-accent" id="btn-check-quiz">Check Answers</button>
+</div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+(function(){
+  var sections = document.querySelectorAll('.section');
+  var links = document.querySelectorAll('.sidebar a');
+  var topbarTitle = document.getElementById('topbar-title');
+  var btnPrev = document.getElementById('btn-prev');
+  var btnNext = document.getElementById('btn-next');
+  var btnTheme = document.getElementById('btn-theme');
+  var current = 0;
+  var total = sections.length;
+
+  function show(idx) {
+    if (idx < 0 || idx >= total) return;
+    current = idx;
+    sections.forEach(function(s, i) { s.classList.toggle('active', i === idx); });
+    links.forEach(function(l, i) { l.classList.toggle('active', i === idx); });
+    topbarTitle.textContent = links[idx].textContent;
+    btnPrev.disabled = idx === 0;
+    btnNext.disabled = idx === total - 1;
+    window.scrollTo(0, 0);
+  }
+
+  links.forEach(function(l) {
+    l.addEventListener('click', function(e) {
+      e.preventDefault();
+      show(parseInt(l.getAttribute('data-ch')));
+    });
+  });
+
+  btnPrev.addEventListener('click', function() { show(current - 1); });
+  btnNext.addEventListener('click', function() { show(current + 1); });
+
+  // Theme toggle
+  var dark = localStorage.getItem('theme') === 'dark';
+  if (dark) document.body.setAttribute('data-theme', 'dark');
+  btnTheme.textContent = dark ? 'Light' : 'Dark';
+
+  btnTheme.addEventListener('click', function() {
+    dark = !dark;
+    document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
+    localStorage.setItem('theme', dark ? 'dark' : 'light');
+    btnTheme.textContent = dark ? 'Light' : 'Dark';
+  });
+
+  // Expandable sections
+  document.querySelectorAll('.expandable-header').forEach(function(h) {
+    h.addEventListener('click', function() {
+      h.parentElement.classList.toggle('open');
+    });
+  });
+
+  // Quiz
+  document.getElementById('btn-check-quiz').addEventListener('click', function() {
+    document.querySelectorAll('.quiz-item').forEach(function(item) {
+      var feedback = item.querySelector('.quiz-feedback');
+      var answer = feedback.getAttribute('data-answer');
+      var selected = item.querySelector('input:checked');
+      if (!selected) {
+        feedback.className = 'quiz-feedback wrong';
+        feedback.textContent = 'Please select an answer.';
+        return;
+      }
+      if (selected.value === answer) {
+        feedback.className = 'quiz-feedback correct';
+      } else {
+        feedback.className = 'quiz-feedback wrong';
+      }
+      feedback.textContent = (selected.value === answer ? 'Correct! ' : 'Wrong. ') + feedback.getAttribute('data-explain');
+    });
+  });
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowLeft' && current > 0) show(current - 1);
+    if (e.key === 'ArrowRight' && current < total - 1) show(current + 1);
+  });
+})();
+</script>
+</body>
+</html>

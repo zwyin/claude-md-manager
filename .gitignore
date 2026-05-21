@@ -27,3 +27,6 @@ dashboard
 
 # Claude Code
 .claude/worktrees/
+
+# Walkthrough output (generated)
+project_study_*/

@@ -145,6 +145,7 @@ data/history/     → Build snapshots for rollback
 
 ## Design Docs
 
+- [Interactive Walkthrough (HTML)](docs/architecture-guide.html) — architecture deep-dive, code analysis, and design decisions
 - [English](docs/specs/2026-05-15-claude-md-manager-design.md)
 - [Chinese](docs/specs/2026-05-15-claude-md-manager-design.zh.md)
 
@@ -215,6 +216,7 @@ data/history/     → 构建快照（用于回滚）
 
 ## 设计文档
 
+- [交互式演练 (HTML)](docs/architecture-guide.html) — 架构详解、代码分析、设计决策
 - [英文版](docs/specs/2026-05-15-claude-md-manager-design.md)
 - [中文版](docs/specs/2026-05-15-claude-md-manager-design.zh.md)
 
