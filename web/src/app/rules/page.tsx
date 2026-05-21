@@ -10,7 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Search, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
-import { SECTION_COLORS, PRIMARY } from '@/lib/chart-colors';
+import { SECTION_COLORS, PRIMARY, STAT_COLORS } from '@/lib/chart-colors';
 import { TermTooltip } from '@/components/term-tooltip';
 import type { RuleWithStats, SectionWithStats } from '@/lib/types';
 
@@ -30,6 +30,28 @@ function MiniSparkline({ session, matches }: { session: number; matches: number 
       <polygon points={`0,16 12,${h1} 36,${h2} 48,16`} fill={PRIMARY} fillOpacity="0.15" />
       <circle cx="12" cy={h1} r="2" fill={PRIMARY} />
       <circle cx="36" cy={h2} r="2" fill={PRIMARY} />
+    </svg>
+  );
+}
+
+function MiniCoverageBar({ value }: { value: number }) {
+  const w = Math.round(value * 28);
+  return (
+    <svg width="32" height="16" viewBox="0 0 32 16" className="shrink-0" role="img" aria-label={`${(value * 100).toFixed(0)}% coverage`}>
+      <rect x="2" y="5" width="28" height="6" rx="3" fill={SECTION_COLORS[4]} fillOpacity="0.2" />
+      <rect x="2" y="5" width={Math.max(w, 2)} height="6" rx="3" fill={SECTION_COLORS[4]} fillOpacity="0.8" />
+    </svg>
+  );
+}
+
+function MiniDepthBar({ value, max }: { value: number; max: number }) {
+  const h = Math.round((value / Math.max(max, 1)) * 10);
+  return (
+    <svg width="32" height="16" viewBox="0 0 32 16" className="shrink-0" role="img" aria-label={`depth ${value.toFixed(1)}`}>
+      <rect x="2" y="2" width="4" height="12" rx="2" fill="#27272a" />
+      <rect x="2" y={14 - Math.max(h, 2)} width="4" height={Math.max(h, 2)} rx="2" fill={STAT_COLORS.avgDepth} fillOpacity="0.8" />
+      <line x1="12" y1="8" x2="28" y2="8" stroke="#27272a" strokeWidth="1" strokeDasharray="2 2" />
+      <circle cx="20" cy={14 - h} r="2.5" fill={STAT_COLORS.avgDepth} />
     </svg>
   );
 }
@@ -110,6 +132,7 @@ function RulesContent() {
   }, [searchQuery, sectionFilter, grouped, sectionOrder]);
 
   const filteredCount = Object.values(filteredGrouped).flat().length;
+  const maxDepth = Math.max(...(data?.rules || []).map((r) => r.avg_depth), 1);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -202,10 +225,10 @@ function RulesContent() {
                       <div className="flex items-center shrink-0 gap-1" style={{ width: '80px' }}>
                         <span className="text-center w-full">{t('table.matches')}</span>
                       </div>
-                      <div className="flex items-center shrink-0" style={{ width: '70px' }}>
+                      <div className="flex items-center shrink-0 gap-1" style={{ width: '90px' }}>
                         <span className="text-center w-full"><TermTooltip term={t('metric.coverage')} explanation={t('metric.coverage.desc')} /></span>
                       </div>
-                      <div className="flex items-center shrink-0" style={{ width: '50px' }}>
+                      <div className="flex items-center shrink-0 gap-1" style={{ width: '70px' }}>
                         <span className="text-center w-full"><TermTooltip term={t('metric.depth')} explanation={t('metric.depth.desc')} /></span>
                       </div>
                     </div>
@@ -220,10 +243,12 @@ function RulesContent() {
                           <MiniSparkline session={rule.session_count} matches={rule.match_count} />
                           <Badge variant={rule.match_count === 0 ? "destructive" : "default"} className="text-xs font-mono">{rule.match_count}</Badge>
                         </div>
-                        <div className="flex items-center justify-center shrink-0" style={{ width: '70px' }}>
+                        <div className="flex items-center justify-center shrink-0 gap-1" style={{ width: '90px' }}>
+                          <MiniCoverageBar value={rule.session_coverage} />
                           <Badge variant="secondary" className="text-xs font-mono" title={`${rule.session_count}/${data?.total_sessions ?? 0} ${t('table.sessions').toLowerCase()}`}>{(rule.session_coverage * 100).toFixed(0)}%</Badge>
                         </div>
-                        <div className="flex items-center justify-center shrink-0" style={{ width: '50px' }}>
+                        <div className="flex items-center justify-center shrink-0 gap-1" style={{ width: '70px' }}>
+                          <MiniDepthBar value={rule.avg_depth} max={maxDepth} />
                           <Badge variant="outline" className="text-xs font-mono" title={`${rule.match_count}/${rule.session_count} ${t('table.matches').toLowerCase()}/${t('table.sessions').toLowerCase()}`}>{rule.avg_depth.toFixed(1)}</Badge>
                         </div>
                       </Link>
