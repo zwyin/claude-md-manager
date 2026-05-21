@@ -7,6 +7,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { RuleFile } from "./types";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
+import { SECTION_COLORS } from "@/lib/chart-colors";
 
 interface RuleListPanelProps {
   rules: RuleFile[];
@@ -15,7 +16,7 @@ interface RuleListPanelProps {
   onReorder: (items: Array<{ rule_id: string; order: number }>) => void;
 }
 
-const SortableCard = memo(function SortableCard({ rule, isSelected, onSelect }: { rule: RuleFile; isSelected: boolean; onSelect: () => void }) {
+const SortableCard = memo(function SortableCard({ rule, isSelected, onSelect, color }: { rule: RuleFile; isSelected: boolean; onSelect: () => void; color: string }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: rule.rule_id });
   const { t } = useI18n();
 
@@ -27,17 +28,17 @@ const SortableCard = memo(function SortableCard({ rule, isSelected, onSelect }: 
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={{ ...style, borderLeft: `3px solid ${color}` }}
       {...attributes}
       {...listeners}
       aria-pressed={isSelected}
       aria-label={rule.title}
       onClick={onSelect}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } }}
-      className={`px-3 py-2 cursor-pointer border-b border-border last:border-b-0 transition-colors border-l-2 ${
+      className={`px-3 py-2 cursor-pointer border-b border-border last:border-b-0 transition-colors ${
         isSelected
-          ? "bg-primary/10 border-l-primary"
-          : "border-l-transparent hover:bg-accent/50"
+          ? "bg-primary/10"
+          : "hover:bg-accent/50"
       }`}
     >
       <div className="flex items-center gap-2">
@@ -70,6 +71,12 @@ export function RuleListPanel({ rules, selectedId, onSelect, onReorder }: RuleLi
     }
     return Array.from(seen.entries());
   }, [rules]);
+
+  const sectionColorIdx = useMemo(() => {
+    const map = new Map<string, number>();
+    sections.forEach(([file], i) => map.set(file, i));
+    return map;
+  }, [sections]);
 
   const filteredRules = sectionFilter === 'all'
     ? rules
@@ -121,6 +128,7 @@ export function RuleListPanel({ rules, selectedId, onSelect, onReorder }: RuleLi
               rule={rule}
               isSelected={selectedId === rule.rule_id}
               onSelect={() => onSelect(rule.rule_id)}
+              color={SECTION_COLORS[(sectionColorIdx.get(rule.source_file) ?? 0) % SECTION_COLORS.length]}
             />
           ))}
         </SortableContext>
