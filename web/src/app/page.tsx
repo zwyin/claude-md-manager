@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, AreaChart, Area } from 'recharts';
 import { StatCard } from '@/components/stat-card';
 import { PageLoader, PageError } from '@/components/page-states';
 import { TermTooltip } from '@/components/term-tooltip';
@@ -16,12 +16,13 @@ import { useFetch } from '@/hooks/use-fetch';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
-import type { RuleWithStats, SectionWithStats } from '@/lib/types';
+import type { RuleWithStats, SectionWithStats, CitationTimePoint } from '@/lib/types';
 
 interface DashboardData {
   rules: RuleWithStats[]; sections: SectionWithStats[];
   total_rules: number; total_sessions: number; active_rule_pct: number;
   total_citations: number; avg_coverage: number; avg_depth: number;
+  citation_trend: CitationTimePoint[];
 }
 
 export default function DashboardPage() {
@@ -102,6 +103,32 @@ export default function DashboardPage() {
           color={STAT_COLORS.avgDepth}
         />
       </div>
+
+      {data.citation_trend && data.citation_trend.length > 1 && (
+        <Card className="rounded-xl border-border bg-card">
+          <CardHeader>
+            <CardTitle className="text-base">{t('analytics.citationTrend')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data.citation_trend} margin={{ left: 0, right: 20 }}>
+                  <defs>
+                    <linearGradient id="dashTrendGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={PRIMARY} stopOpacity={0.3} />
+                      <stop offset="100%" stopColor={PRIMARY} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="period" tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
+                  <YAxis tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
+                  <RechartsTooltip {...tooltipStyle} />
+                  <Area type="monotone" dataKey="count" stroke={PRIMARY} fill="url(#dashTrendGrad)" strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="rounded-xl border-border bg-card">
         <CardHeader>
