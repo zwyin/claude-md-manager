@@ -1,18 +1,18 @@
-export const PRIMARY = '#6366f1';
+export const PRIMARY = '#818cf8';
 
 export const CHART_COLORS = [
-  '#6366f1', '#818cf8', '#a78bfa', '#c4b5fd', '#8b5cf6', '#7c3aed', '#4f46e5',
+  '#818cf8', '#a78bfa', '#60a5fa', '#22d3ee', '#34d399', '#fbbf24', '#f87171',
 ];
 
 export const SECTION_COLORS = [
-  '#6366f1', '#8b5cf6', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444',
+  '#818cf8', '#a78bfa', '#60a5fa', '#22d3ee', '#34d399', '#fbbf24', '#f87171',
 ];
 
 export const STAT_COLORS = {
-  rules: '#6366f1',
-  sessions: '#3b82f6',
-  activeRate: '#10b981',
-  citations: '#8b5cf6',
-  avgCoverage: '#06b6d4',
-  avgDepth: '#f59e0b',
+  rules: '#818cf8',
+  sessions: '#60a5fa',
+  activeRate: '#34d399',
+  citations: '#a78bfa',
+  avgCoverage: '#22d3ee',
+  avgDepth: '#fbbf24',
 } as const;

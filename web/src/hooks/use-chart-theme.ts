@@ -7,19 +7,19 @@ function getVar(name: string): string {
 
 export function useChartTheme() {
   const [theme, setTheme] = useState({
-    card: '#1e293b',
-    border: '#334155',
-    foreground: '#e2e8f0',
-    mutedForeground: '#cbd5e1',
+    card: '#18181b',
+    border: '#27272a',
+    foreground: '#fafafa',
+    mutedForeground: '#d4d4d8',
   });
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       setTheme({
-        card: getVar('--card') || '#1e293b',
-        border: getVar('--border') || '#334155',
-        foreground: getVar('--foreground') || '#e2e8f0',
-        mutedForeground: getVar('--muted-foreground') || '#cbd5e1',
+        card: getVar('--card') || '#18181b',
+        border: getVar('--border') || '#27272a',
+        foreground: getVar('--foreground') || '#fafafa',
+        mutedForeground: getVar('--muted-foreground') || '#d4d4d8',
       });
     });
     return () => cancelAnimationFrame(frame);
