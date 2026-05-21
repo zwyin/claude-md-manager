@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Database from 'better-sqlite3';
 import path from 'path';
-import { getRulesWithStats, getSectionsWithStats, getTotalSessionCount } from '@/lib/db';
+import { getRulesWithStats, getSectionsWithStats, getTotalSessionCount, getTotalCitationCount } from '@/lib/db';
 import { parseDays } from '@/lib/api-utils';
 import { handleApiError } from '@/lib/api-handler';
 
@@ -17,15 +17,25 @@ export async function GET(request: NextRequest) {
       const active_rules = rules.filter((r) => (r.citation_count || 0) > 0).length;
       const active_rule_pct = total_rules > 0 ? Math.round((active_rules / total_rules) * 100) : 0;
 
-      const total_citations = rules.reduce((s, r) => s + (r.match_count || 0), 0);
+      const total_citations = getTotalCitationCount(days, db);
+      const total_sessions = getTotalSessionCount(days, db);
+      const activeRules = rules.filter((r) => r.match_count > 0);
+      const avg_coverage = activeRules.length > 0
+        ? activeRules.reduce((s, r) => s + r.session_coverage, 0) / activeRules.length
+        : 0;
+      const avg_depth = activeRules.length > 0
+        ? activeRules.reduce((s, r) => s + r.avg_depth, 0) / activeRules.length
+        : 0;
 
       return NextResponse.json({
         rules,
         sections: getSectionsWithStats(days, db),
         total_rules,
-        total_sessions: getTotalSessionCount(days, db),
+        total_sessions,
         total_citations,
         active_rule_pct,
+        avg_coverage,
+        avg_depth,
       });
     } finally {
       db.close();

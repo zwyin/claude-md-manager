@@ -24,7 +24,7 @@ function MiniSparkline({ session, matches }: { session: number; matches: number 
   const h1 = 16 - (session / max) * 12;
   const h2 = 16 - (matches / max) * 12;
   return (
-    <svg width="48" height="16" viewBox="0 0 48 16" className="shrink-0">
+    <svg width="48" height="16" viewBox="0 0 48 16" className="shrink-0" role="img" aria-label={`${matches} matches in ${session} sessions`}>
       <line x1="12" y1={h1} x2="36" y2={h2} stroke={PRIMARY} strokeWidth="1.5" />
       <line x1="0" y1="16" x2="48" y2="16" stroke={PRIMARY} strokeWidth="0" />
       <polygon points={`0,16 12,${h1} 36,${h2} 48,16`} fill={PRIMARY} fillOpacity="0.15" />
@@ -152,6 +152,7 @@ function RulesContent() {
           )}
         </div>
         <select
+          aria-label={t('rules.allSections')}
           value={sectionFilter}
           onChange={(e) => setSectionFilter(e.target.value)}
           className="h-9 text-sm rounded-md border border-border bg-card text-foreground px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500"

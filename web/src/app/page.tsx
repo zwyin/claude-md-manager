@@ -18,6 +18,7 @@ import type { RuleWithStats, SectionWithStats } from '@/lib/types';
 interface DashboardData {
   rules: RuleWithStats[]; sections: SectionWithStats[];
   total_rules: number; total_sessions: number; active_rule_pct: number;
+  total_citations: number; avg_coverage: number; avg_depth: number;
 }
 
 export default function DashboardPage() {
@@ -33,15 +34,10 @@ export default function DashboardPage() {
 
   const topRules = [...(data.rules || [])].sort((a, b) => b.match_count - a.match_count).slice(0, 10);
   const coldRules = (data.rules || []).filter((r) => r.match_count === 0);
-  const activeRules = (data.rules || []).filter((r) => r.match_count > 0);
   const sections = data.sections || [];
-  const totalCitations = (data.rules || []).reduce((s, r) => s + r.match_count, 0);
-  const avgCoverage = activeRules.length > 0
-    ? activeRules.reduce((s, r) => s + r.session_coverage, 0) / activeRules.length
-    : 0;
-  const avgDepth = activeRules.length > 0
-    ? activeRules.reduce((s, r) => s + r.avg_depth, 0) / activeRules.length
-    : 0;
+  const totalCitations = data.total_citations ?? 0;
+  const avgCoverage = data.avg_coverage ?? 0;
+  const avgDepth = data.avg_depth ?? 0;
 
   const sectionChartData = sections.map((s) => ({
     name: s.title.length > 16 ? s.title.slice(0, 16) + '...' : s.title,
@@ -66,7 +62,7 @@ export default function DashboardPage() {
         <p className="text-sm text-muted-foreground mt-1">{t('dashboard.subtitle')}</p>
       </div>
 
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         <StatCard
           label={t('dashboard.totalRules')}
           value={data.total_rules}

@@ -16,9 +16,12 @@ interface StatCardProps {
 
 function StatCardInner({ label, value, sublabel, trend, color = PRIMARY, percentage }: StatCardProps) {
   const [displayValue, setDisplayValue] = useState(0);
-  const targetValue = typeof value === 'string' ? parseInt(value, 10) || 0 : value;
+  const targetValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
   const rafRef = useRef<number>(0);
   const gradientId = useId();
+  const decimals = typeof value === 'string' && value.includes('.')
+    ? Math.min(value.split('.')[1].length, 2)
+    : 0;
 
   useEffect(() => {
     if (Number.isNaN(targetValue)) return;
@@ -28,18 +31,20 @@ function StatCardInner({ label, value, sublabel, trend, color = PRIMARY, percent
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayValue(Math.round(targetValue * eased));
+      setDisplayValue(+(targetValue * eased).toFixed(decimals));
       if (progress < 1) {
         rafRef.current = requestAnimationFrame(animate);
       }
     };
     rafRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [targetValue]);
+  }, [targetValue, decimals]);
 
   const formattedValue = percentage
-    ? `${displayValue}%`
-    : displayValue.toLocaleString();
+    ? `${Math.round(displayValue)}%`
+    : decimals > 0
+      ? displayValue.toFixed(decimals)
+      : displayValue.toLocaleString();
 
   return (
     <Card className="rounded-xl border-border bg-card overflow-hidden">

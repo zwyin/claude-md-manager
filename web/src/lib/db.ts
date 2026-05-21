@@ -310,14 +310,14 @@ export function getAnalytics(days?: number, db?: Database.Database): Omit<Analyt
     const joinFilter = days
       ? `AND r.timestamp >= datetime('now', ? || ' days')`
       : '';
-    const statsParams = days ? [`-${days}`, `-${days}`] : [];
+    const statsParams = days ? [`-${days}`] : [];
     const joinParams = days ? [`-${days}`] : [];
 
     const stats = conn.prepare(`
       SELECT
         (SELECT COUNT(*) FROM rules_metadata) AS total_rules,
         (SELECT COUNT(*) FROM rule_references ${subqueryFilter}) AS total_citations
-    `).bind(...statsParams.slice(0, days ? 1 : 0)).get() as { total_rules: number; total_citations: number };
+    `).bind(...statsParams).get() as { total_rules: number; total_citations: number };
 
     const totalSessions = getTotalSessionCount(days, conn);
 
@@ -382,26 +382,33 @@ export function getAnalytics(days?: number, db?: Database.Database): Omit<Analyt
       .bind(...joinParams)
       .all() as CategoryDistribution[];
 
-    // Compute per-rule coverage/depth for all rules (not just top 10)
-    const allRulesStats = conn
+    // Compute avg coverage/depth across all active rules in a single aggregation
+    const aggStats = conn
       .prepare(
         `
-        SELECT COUNT(r.id) AS citation_count,
-               COUNT(DISTINCT r.session_id) AS session_count
-        FROM rules_metadata m
-        LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${joinFilter}
-        GROUP BY m.rule_id
-        HAVING citation_count > 0
+        SELECT
+          COUNT(*) AS active_rule_count,
+          SUM(CASE WHEN ? > 0 THEN CAST(sessions_per_rule AS REAL) / ? ELSE 0 END) AS sum_coverage,
+          SUM(CASE WHEN sessions_per_rule > 0 THEN CAST(citations_per_rule AS REAL) / sessions_per_rule ELSE 0 END) AS sum_depth
+        FROM (
+          SELECT
+            COUNT(r.id) AS citations_per_rule,
+            COUNT(DISTINCT r.session_id) AS sessions_per_rule
+          FROM rules_metadata m
+          LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${joinFilter}
+          GROUP BY m.rule_id
+          HAVING citations_per_rule > 0
+        )
         `
       )
-      .bind(...joinParams)
-      .all() as Array<{ citation_count: number; session_count: number }>;
+      .bind(totalSessions, totalSessions, ...joinParams)
+      .get() as { active_rule_count: number; sum_coverage: number; sum_depth: number };
 
-    const avgCoverage = allRulesStats.length > 0
-      ? allRulesStats.reduce((s, r) => s + (totalSessions > 0 ? r.session_count / totalSessions : 0), 0) / allRulesStats.length
+    const avgCoverage = (aggStats?.active_rule_count ?? 0) > 0
+      ? (aggStats?.sum_coverage ?? 0) / aggStats.active_rule_count
       : 0;
-    const avgDepth = allRulesStats.length > 0
-      ? allRulesStats.reduce((s, r) => s + (r.session_count > 0 ? r.citation_count / r.session_count : 0), 0) / allRulesStats.length
+    const avgDepth = (aggStats?.active_rule_count ?? 0) > 0
+      ? (aggStats?.sum_depth ?? 0) / aggStats.active_rule_count
       : 0;
 
     return {

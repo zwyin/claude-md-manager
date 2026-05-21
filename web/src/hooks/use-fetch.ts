@@ -18,9 +18,7 @@ export function useFetch<T>(url: string | null): FetchState<T> {
     if (!url) return;
 
     let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled) setState({ data: null, loading: true, error: null });
-    });
+    setState({ data: null, loading: true, error: null });
 
     fetchJson<T>(url)
       .then((data) => {

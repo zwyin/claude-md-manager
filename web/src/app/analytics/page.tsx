@@ -81,19 +81,19 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <StatCard label={t('dashboard.totalRules')} value={data.total_rules} color={STAT_COLORS.rules} />
         <StatCard label={<TermTooltip term={t('term.citation')} explanation={t('term.citation.desc')} />} value={data.total_citations} color={STAT_COLORS.activeRate} />
         <StatCard label={t('dashboard.totalSessions')} value={data.total_sessions} color={STAT_COLORS.sessions} />
         <StatCard
           label={<TermTooltip term={t('metric.coverage')} explanation={t('metric.coverage.desc')} />}
-          value={data.avg_coverage * 100}
+          value={(data.avg_coverage ?? 0) * 100}
           percentage
           color={STAT_COLORS.avgCoverage}
         />
         <StatCard
           label={<TermTooltip term={t('metric.depth')} explanation={t('metric.depth.desc')} />}
-          value={data.avg_depth.toFixed(1)}
+          value={(data.avg_depth ?? 0).toFixed(1)}
           color={STAT_COLORS.avgDepth}
         />
       </div>
