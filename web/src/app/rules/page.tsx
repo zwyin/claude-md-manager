@@ -79,6 +79,8 @@ function RulesContent() {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [sectionFilter, setSectionFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'default' | 'match_count' | 'session_coverage' | 'avg_depth' | 'citation_share'>('default');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const searchRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
   const { t } = useI18n();
@@ -144,6 +146,33 @@ function RulesContent() {
   const filteredCount = Object.values(filteredGrouped).flat().length;
   const maxDepth = Math.max(...(data?.rules || []).map((r) => r.avg_depth), 1);
 
+  const sortedGrouped = useMemo(() => {
+    if (sortBy === 'default') return filteredGrouped;
+    const result: Record<string, RuleWithStats[]> = {};
+    for (const [sectionId, rules] of Object.entries(filteredGrouped)) {
+      result[sectionId] = [...rules].sort((a, b) => {
+        const va = a[sortBy] ?? 0;
+        const vb = b[sortBy] ?? 0;
+        return sortDir === 'desc' ? (vb as number) - (va as number) : (va as number) - (vb as number);
+      });
+    }
+    return result;
+  }, [filteredGrouped, sortBy, sortDir]);
+
+  const toggleSort = (key: typeof sortBy) => {
+    if (sortBy === key) {
+      setSortDir((d) => d === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortBy(key);
+      setSortDir('desc');
+    }
+  };
+
+  const sortIcon = (key: typeof sortBy) => {
+    if (sortBy !== key) return ' ↕';
+    return sortDir === 'desc' ? ' ↓' : ' ↑';
+  };
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -205,7 +234,7 @@ function RulesContent() {
 
       <div className="space-y-3">
         {sectionOrder.map((sectionId, sIdx) => {
-          const rules = filteredGrouped[sectionId];
+          const rules = sortedGrouped[sectionId];
           if (!rules) return null;
           const isOpen = openSections[sectionId] !== false;
           const totalMatches = rules.reduce((s, r) => s + r.match_count, 0);
@@ -233,16 +262,16 @@ function RulesContent() {
                     <div className="flex items-center px-5 py-2 pl-14 bg-muted/30 text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
                       <span className="flex-1 min-w-0">{t('rules.ruleName')}</span>
                       <div className="flex items-center shrink-0 gap-1" style={{ width: '80px' }}>
-                        <span className="text-center w-full">{t('table.matches')}</span>
+                        <button onClick={() => toggleSort('match_count')} className="text-center w-full hover:text-foreground transition-colors cursor-pointer">{t('table.matches')}{sortIcon('match_count')}</button>
                       </div>
                       <div className="flex items-center shrink-0 gap-1" style={{ width: '90px' }}>
-                        <span className="text-center w-full"><TermTooltip term={t('metric.coverage')} explanation={t('metric.coverage.desc')} /></span>
+                        <button onClick={() => toggleSort('session_coverage')} className="text-center w-full hover:text-foreground transition-colors cursor-pointer"><TermTooltip term={t('metric.coverage')} explanation={t('metric.coverage.desc')} />{sortIcon('session_coverage')}</button>
                       </div>
                       <div className="flex items-center shrink-0 gap-1" style={{ width: '70px' }}>
-                        <span className="text-center w-full"><TermTooltip term={t('metric.depth')} explanation={t('metric.depth.desc')} /></span>
+                        <button onClick={() => toggleSort('avg_depth')} className="text-center w-full hover:text-foreground transition-colors cursor-pointer"><TermTooltip term={t('metric.depth')} explanation={t('metric.depth.desc')} />{sortIcon('avg_depth')}</button>
                       </div>
                       <div className="flex items-center shrink-0 gap-1" style={{ width: '80px' }}>
-                        <span className="text-center w-full"><TermTooltip term={t('metric.share')} explanation={t('metric.share.desc')} /></span>
+                        <button onClick={() => toggleSort('citation_share')} className="text-center w-full hover:text-foreground transition-colors cursor-pointer"><TermTooltip term={t('metric.share')} explanation={t('metric.share.desc')} />{sortIcon('citation_share')}</button>
                       </div>
                     </div>
                     {rules.map((rule) => (
