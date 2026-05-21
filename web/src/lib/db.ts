@@ -432,3 +432,29 @@ export function getAnalytics(days?: number, db?: Database.Database): Omit<Analyt
     if (own) conn.close();
   }
 }
+
+export interface RecentCitation {
+  rule_id: string;
+  title: string;
+  matched_keyword: string;
+  timestamp: string;
+  session_id: string;
+}
+
+export function getRecentCitations(limit: number, db?: Database.Database): RecentCitation[] {
+  const own = !db;
+  const conn = db || getDb();
+  try {
+    return conn
+      .prepare(
+        `SELECT r.rule_id, m.title, r.matched_keyword, r.timestamp, r.session_id
+         FROM rule_references r
+         JOIN rules_metadata m ON m.rule_id = r.rule_id
+         ORDER BY r.timestamp DESC
+         LIMIT ?`
+      )
+      .all(limit) as RecentCitation[];
+  } finally {
+    if (own) conn.close();
+  }
+}

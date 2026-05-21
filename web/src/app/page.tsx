@@ -16,19 +16,20 @@ import { useFetch } from '@/hooks/use-fetch';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
-import type { RuleWithStats, SectionWithStats, CitationTimePoint } from '@/lib/types';
+import type { RuleWithStats, SectionWithStats, CitationTimePoint, RecentCitation } from '@/lib/types';
 
 interface DashboardData {
   rules: RuleWithStats[]; sections: SectionWithStats[];
   total_rules: number; total_sessions: number; active_rule_pct: number;
   total_citations: number; avg_coverage: number; avg_depth: number;
   citation_trend: CitationTimePoint[];
+  recent_citations: RecentCitation[];
 }
 
 export default function DashboardPage() {
   const { data, loading, error } = useFetch<DashboardData>('/api/rules');
   const [coldOpen, setColdOpen] = useState(false);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const router = useRouter();
   const chartTheme = useChartTheme();
   usePageTitle('dashboard.title');
@@ -183,6 +184,30 @@ export default function DashboardPage() {
           </div>
         </CardContent>
       </Card>
+
+      {data.recent_citations && data.recent_citations.length > 0 && (
+        <Card className="rounded-xl border-border bg-card">
+          <CardHeader>
+            <CardTitle className="text-base">{t('dashboard.recentCitations')}</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-border">
+              {data.recent_citations.slice(0, 15).map((c, i) => (
+                <Link key={`${c.rule_id}-${c.timestamp}-${i}`} href={`/rules/${c.rule_id}`}
+                  className="flex items-center justify-between px-6 py-2.5 hover:bg-accent/30 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px] shrink-0">{c.matched_keyword}</Badge>
+                    <span className="text-sm truncate">{c.title}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap ml-3">
+                    {new Date(c.timestamp).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {coldRules.length > 0 && (
         <Collapsible open={coldOpen} onOpenChange={setColdOpen}>

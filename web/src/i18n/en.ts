@@ -19,6 +19,7 @@ const en: Dict = {
   'dashboard.sections': 'Sections Overview',
   'dashboard.sections.subtitle': 'Sections sorted by citation count',
   'dashboard.topRules': 'Top 10 Rules',
+  'dashboard.recentCitations': 'Recent Citations',
   'dashboard.coldRules.count': '{count} rules',
   'table.rules': 'Rules',
   'table.sessions': 'Sessions',

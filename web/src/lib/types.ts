@@ -112,6 +112,14 @@ export interface RuleDetail {
   body?: string;
 }
 
+export interface RecentCitation {
+  rule_id: string;
+  title: string;
+  matched_keyword: string;
+  timestamp: string;
+  session_id: string;
+}
+
 export interface SiblingRule {
   rule_id: string;
   title: string;

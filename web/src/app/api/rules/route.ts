@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Database from 'better-sqlite3';
 import path from 'path';
-import { getRulesWithStats, getSectionsWithStats, getTotalSessionCount, getTotalCitationCount, getCitations } from '@/lib/db';
+import { getRulesWithStats, getSectionsWithStats, getTotalSessionCount, getTotalCitationCount, getCitations, getRecentCitations } from '@/lib/db';
 import { parseDays } from '@/lib/api-utils';
 import { handleApiError } from '@/lib/api-handler';
 
@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
         : 0;
 
       const citation_trend = getCitations({ group_by: 'day' }, db);
+      const recent_citations = getRecentCitations(20, db);
 
       return NextResponse.json({
         rules,
@@ -39,6 +40,7 @@ export async function GET(request: NextRequest) {
         avg_coverage,
         avg_depth,
         citation_trend,
+        recent_citations,
       });
     } finally {
       db.close();
