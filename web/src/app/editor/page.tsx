@@ -10,12 +10,14 @@ import { PreviewPanel } from "./PreviewPanel";
 import { PublishDialog } from "./PublishDialog";
 import { useI18n } from "@/i18n";
 import { usePageTitle } from "@/hooks/use-page-title";
+import { PageLoader } from "@/components/page-states";
 import { toast } from "sonner";
 
 export default function EditorPage() {
   const [rules, setRules] = useState<RuleFile[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [frontmatter, setFrontmatter] = useState("");
+  const [loaded, setLoaded] = useState(false);
   const [body, setBody] = useState("");
   const [hasDraft, setHasDraft] = useState(false);
   const [showPublish, setShowPublish] = useState(false);
@@ -35,6 +37,7 @@ export default function EditorPage() {
       })
       .then((data) => {
         setRules(data.rules);
+        setLoaded(true);
         if (!initialLoadDone.current && data.rules.length > 0) {
           setSelectedId(data.rules[0].rule_id);
         }
@@ -90,6 +93,17 @@ export default function EditorPage() {
       toast.error(t('editor.draftSaveFailed'));
     }
   }, [selectedId, frontmatter, body, t]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        handleSaveDraft();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [handleSaveDraft]);
 
   const handleDiscardDraft = useCallback(async () => {
     if (!selectedId) return;
@@ -149,6 +163,8 @@ export default function EditorPage() {
   }, [t]);
 
   const draftCount = rules.filter((r) => r.has_draft).length;
+
+  if (!loaded) return <PageLoader message={t('status.loading')} />;
 
   return (
     <div>

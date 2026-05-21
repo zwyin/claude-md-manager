@@ -87,7 +87,7 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        <StatCard label={t('dashboard.totalRules')} value={data.total_rules} color={STAT_COLORS.rules} />
+        <StatCard label={t('dashboard.totalRules')} value={data.total_rules} color={STAT_COLORS.rules} href="/rules" />
         <StatCard label={<TermTooltip term={t('term.citation')} explanation={t('term.citation.desc')} />} value={data.total_citations} color={STAT_COLORS.activeRate} />
         <StatCard label={t('dashboard.totalSessions')} value={data.total_sessions} color={STAT_COLORS.sessions} />
         <StatCard

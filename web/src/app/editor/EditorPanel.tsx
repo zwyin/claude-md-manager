@@ -31,7 +31,7 @@ export function EditorPanel({
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex items-center gap-2 mb-2">
         <Button size="sm" onClick={onSaveDraft}>
-          {t('editor.saveDraft')}
+          {t('editor.saveDraft')} <span className="text-[10px] opacity-60 ml-1">⌘S</span>
         </Button>
         {hasDraft && (
           <Button size="sm" variant="outline" onClick={onDiscardDraft}>
