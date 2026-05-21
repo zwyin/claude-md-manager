@@ -214,9 +214,9 @@ function RulesContent() {
                   <span className="text-xs text-muted-foreground">{t('rules.totalMatches', { count: totalMatches })}</span>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="border-t border-border">
+                  <div className="border-t border-border overflow-x-auto">
                     {/* Column headers */}
-                    <div className="flex items-center px-5 py-2 pl-14 bg-muted/30 text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
+                    <div className="flex items-center px-5 py-2 pl-14 bg-muted/30 text-[11px] text-muted-foreground font-medium uppercase tracking-wider min-w-[640px]">
                       <span className="flex-1 min-w-0">{t('rules.ruleName')}</span>
                       <div className="flex items-center shrink-0 gap-1" style={{ width: '80px' }}>
                         <button onClick={() => toggleSort('match_count')} className="text-center w-full hover:text-foreground transition-colors cursor-pointer">{t('table.matches')}{sortIcon('match_count')}</button>
@@ -233,7 +233,7 @@ function RulesContent() {
                     </div>
                     {rules.map((rule) => (
                       <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
-                        className="flex items-center px-5 py-3 pl-14 border-b border-border last:border-0 hover:bg-accent/30 transition-colors">
+                        className="flex items-center px-5 py-3 pl-14 border-b border-border last:border-0 hover:bg-accent/30 transition-colors min-w-[640px]">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <span className="text-xs font-mono text-muted-foreground shrink-0">{rule.rule_id}</span>
                           <span className="text-sm truncate">{rule.title}</span>

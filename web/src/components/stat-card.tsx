@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useEffect, useRef, useState, useId, type ReactNode } from 'react';
+import Link from 'next/link';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import { PRIMARY } from '@/lib/chart-colors';
@@ -12,9 +13,10 @@ interface StatCardProps {
   trend?: Array<{ date: string; count: number }>;
   color?: string;
   percentage?: boolean;
+  href?: string;
 }
 
-function StatCardInner({ label, value, sublabel, trend, color = PRIMARY, percentage }: StatCardProps) {
+function StatCardInner({ label, value, sublabel, trend, color = PRIMARY, percentage, href }: StatCardProps) {
   const [displayValue, setDisplayValue] = useState(0);
   const targetValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
   const rafRef = useRef<number>(0);
@@ -46,11 +48,10 @@ function StatCardInner({ label, value, sublabel, trend, color = PRIMARY, percent
       ? displayValue.toFixed(decimals)
       : displayValue.toLocaleString();
 
-  return (
-    <Card className="rounded-xl border-border bg-card overflow-hidden">
-      <div className="flex">
-        <div className="w-1 shrink-0 rounded-l-xl" style={{ backgroundColor: color }} />
-        <CardContent className="p-5 pl-4 flex-1 min-w-0">
+  const inner = (
+    <div className="flex">
+      <div className="w-1 shrink-0 rounded-l-xl" style={{ backgroundColor: color }} />
+      <CardContent className="p-5 pl-4 flex-1 min-w-0">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
           {label}
         </p>
@@ -82,7 +83,12 @@ function StatCardInner({ label, value, sublabel, trend, color = PRIMARY, percent
           </div>
         )}
       </CardContent>
-      </div>
+    </div>
+  );
+
+  return (
+    <Card className={`rounded-xl border-border bg-card overflow-hidden ${href ? 'hover:bg-accent/30 transition-colors cursor-pointer' : ''}`}>
+      {href ? <Link href={href}>{inner}</Link> : inner}
     </Card>
   );
 }

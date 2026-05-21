@@ -75,11 +75,13 @@ export default function DashboardPage() {
           value={data.total_rules}
           sublabel={t('dashboard.inSections', { count: sections.length })}
           color={STAT_COLORS.rules}
+          href="/rules"
         />
         <StatCard
           label={t('dashboard.totalSessions')}
           value={data.total_sessions}
           color={STAT_COLORS.sessions}
+          href="/analytics"
         />
         <StatCard
           label={<TermTooltip term={t('term.activeRate')} explanation={t('term.activeRate.desc')} />}
@@ -91,6 +93,7 @@ export default function DashboardPage() {
           label={<TermTooltip term={t('term.citation')} explanation={t('term.citation.desc')} />}
           value={totalCitations}
           color={STAT_COLORS.citations}
+          href="/analytics"
         />
         <StatCard
           label={<TermTooltip term={t('metric.coverage')} explanation={t('metric.coverage.desc')} />}
