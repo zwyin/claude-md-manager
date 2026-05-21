@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ export default function AnalyticsPage() {
   const [trendMode, setTrendMode] = useState<'day' | 'week' | 'month'>('day');
   const [timeRange, setTimeRange] = useState<number | undefined>(undefined);
   const { t } = useI18n();
+  const router = useRouter();
   const chartTheme = useChartTheme();
   const tooltipStyle = useTooltipStyle();
 
@@ -111,9 +113,9 @@ export default function AnalyticsPage() {
                     const p = (props as { payload: { fullName: string; coverage: string; depth: string } }).payload;
                     return [`${value} ${t('table.matches')} · ${p.coverage} ${t('metric.coverage')} · ${p.depth} ${t('metric.depth')}`, p.fullName];
                   }} />
-                  <Bar dataKey="citations" radius={[0, 4, 4, 0]} maxBarSize={20}>
-                    {topRulesData.map((_, i) => (
-                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                  <Bar dataKey="citations" radius={[0, 4, 4, 0]} maxBarSize={20} style={{ cursor: 'pointer' }}>
+                    {topRulesData.map((entry, i) => (
+                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} onClick={() => router.push(`/rules/${entry.rule_id}`)} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -134,7 +136,9 @@ export default function AnalyticsPage() {
                     innerRadius={60} outerRadius={100}
                     paddingAngle={2}
                     dataKey="value"
+                    style={{ cursor: 'pointer' }}
                     label={({ name, percent }: { name?: string; percent?: number }) => <span className="text-xs text-foreground">{name ?? ''} {((percent ?? 0) * 100).toFixed(0)}%</span>}
+                    onClick={(_, index) => router.push(`/rules?section=${pieData[index].name}`)}
                   >
                     {pieData.map((_, i) => (
                       <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />

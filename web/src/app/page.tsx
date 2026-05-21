@@ -143,7 +143,11 @@ export default function DashboardPage() {
                     return [`${value} ${t('table.matches')} · ${p.coverage} ${t('metric.coverage')} · ${p.depth} ${t('metric.depth')}`, p.fullName];
                   }}
                 />
-                <Bar dataKey="citations" fill={PRIMARY} radius={[0, 4, 4, 0]} maxBarSize={20} />
+                <Bar dataKey="citations" fill={PRIMARY} radius={[0, 4, 4, 0]} maxBarSize={20} style={{ cursor: 'pointer' }}>
+                  {topRulesChartData.map((entry, i) => (
+                    <Cell key={i} fill={PRIMARY} onClick={() => router.push(`/rules/${entry.rule_id}`)} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
