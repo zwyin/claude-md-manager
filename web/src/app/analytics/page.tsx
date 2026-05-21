@@ -53,7 +53,7 @@ export default function AnalyticsPage() {
   }));
 
   const pieData = (data.category_distribution || []).map((c) => ({
-    name: c.section_id,
+    name: c.title || c.section_id,
     value: c.citation_count,
     ruleCount: c.rule_count,
   }));

@@ -84,6 +84,7 @@ export interface ColdRule {
 
 export interface CategoryDistribution {
   section_id: string;
+  title: string;
   rule_count: number;
   citation_count: number;
 }

@@ -378,10 +378,12 @@ export function getAnalytics(days?: number, db?: Database.Database): Omit<Analyt
       .prepare(
         `
         SELECT m.section_id,
+               COALESCE(s.title, m.section_id) AS title,
                COUNT(DISTINCT m.rule_id) AS rule_count,
                COUNT(r.id) AS citation_count
         FROM rules_metadata m
         LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${joinFilter}
+        LEFT JOIN sections_metadata s ON s.section_id = m.section_id
         GROUP BY m.section_id
         ORDER BY citation_count DESC
         `

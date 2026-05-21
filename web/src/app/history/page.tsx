@@ -5,6 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, GitCompare, RotateCcw, Check, X, FileText } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useFetch } from '@/hooks/use-fetch';
@@ -206,9 +208,15 @@ export default function HistoryPage() {
             {contentLoading ? (
               <div className="text-muted-foreground text-sm">{t('status.loading')}</div>
             ) : (
-              <pre className="text-xs bg-muted/30 rounded-lg p-4 overflow-auto max-h-96 whitespace-pre-wrap break-words">
-                {contentText}
-              </pre>
+              <div className="prose prose-sm prose-invert max-w-none
+                prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground
+                prose-code:text-foreground prose-a:text-indigo-400
+                prose-code:before:content-[''] prose-code:after:content-['']
+                max-h-96 overflow-auto">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {contentText}
+                </ReactMarkdown>
+              </div>
             )}
           </CardContent>
         </Card>
