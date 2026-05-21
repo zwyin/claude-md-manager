@@ -104,6 +104,7 @@ export interface AnalyticsData {
 export interface RuleDetail {
   rule_id: string;
   section_id: string;
+  section_title: string;
   title: string;
   keywords: string[];
   source_file: string;

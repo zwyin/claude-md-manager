@@ -142,6 +142,10 @@ export function getRuleDetail(
 
     if (!ruleRow) return null;
 
+    const sectionTitle = conn
+      .prepare('SELECT title FROM sections_metadata WHERE section_id = ?')
+      .get(ruleRow.section_id) as { title: string } | null;
+
     const timeFilter = days
       ? `AND r.timestamp >= datetime('now', ? || ' days')`
       : '';
@@ -197,6 +201,7 @@ export function getRuleDetail(
     return {
       rule: {
         ...ruleRow,
+        section_title: sectionTitle?.title ?? ruleRow.section_id,
         keywords: JSON.parse(ruleRow.keywords || '[]'),
         citation_count: citationCountRow.citation_count,
         last_cited: citationCountRow.last_cited,

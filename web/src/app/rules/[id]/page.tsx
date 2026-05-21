@@ -76,7 +76,7 @@ export default function RuleDetailPage() {
         <ChevronRight className="w-3 h-3" />
         <Link href="/rules" className="hover:text-foreground transition-colors">{t('rules.title')}</Link>
         <ChevronRight className="w-3 h-3" />
-        <Link href={`/rules?section=${rule.section_id}`} className="hover:text-foreground transition-colors">{rule.section_id}</Link>
+        <Link href={`/rules?section=${rule.section_id}`} className="hover:text-foreground transition-colors">{rule.section_title}</Link>
         <ChevronRight className="w-3 h-3" />
         <span className="text-foreground">{rule.title}</span>
       </nav>
@@ -89,7 +89,7 @@ export default function RuleDetailPage() {
               <CardTitle className="text-xl">{rule.title}</CardTitle>
               <p className="text-sm text-muted-foreground mt-2 space-x-2">
                 <span>{t('ruleDetail.section')}:
-                  <Link href={`/rules?section=${rule.section_id}`} className="font-medium text-indigo-400 hover:underline ml-1">{rule.section_id}</Link>
+                  <Link href={`/rules?section=${rule.section_id}`} className="font-medium text-indigo-400 hover:underline ml-1">{rule.section_title}</Link>
                 </span>
                 <span>·</span>
                 <span>{t('ruleDetail.source')}:
@@ -175,7 +175,7 @@ export default function RuleDetailPage() {
       {siblings.length > 0 && (
         <Card className="rounded-xl border-border bg-card">
           <CardHeader>
-            <CardTitle className="text-base">{t('ruleDetail.sameSection')} ({rule.section_id})</CardTitle>
+            <CardTitle className="text-base">{t('ruleDetail.sameSection')} ({rule.section_title})</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex gap-3 overflow-x-auto pb-2">
