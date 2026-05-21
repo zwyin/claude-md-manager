@@ -8,3 +8,11 @@ export function usePageTitle(titleKey: keyof Dict) {
     document.title = `${t(titleKey)} | CLAUDE.md Manager`;
   }, [titleKey, t]);
 }
+
+export function useDynamicPageTitle(title: string | null | undefined) {
+  useEffect(() => {
+    if (title) {
+      document.title = `${title} | CLAUDE.md Manager`;
+    }
+  }, [title]);
+}

@@ -11,60 +11,14 @@ import { Search, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { usePageTitle } from '@/hooks/use-page-title';
-import { SECTION_COLORS, PRIMARY, STAT_COLORS } from '@/lib/chart-colors';
+import { SECTION_COLORS, STAT_COLORS } from '@/lib/chart-colors';
 import { TermTooltip } from '@/components/term-tooltip';
+import { MiniSparkline, MiniCoverageBar, MiniDepthBar, InlineMetricBar } from '@/components/metric-visualizations';
 import type { RuleWithStats, SectionWithStats } from '@/lib/types';
 
 interface RulesData {
   rules: RuleWithStats[]; sections: SectionWithStats[]; total_rules: number;
   total_sessions: number; total_citations: number;
-}
-
-function MiniSparkline({ session, matches }: { session: number; matches: number }) {
-  const max = Math.max(session, matches, 1);
-  const h1 = 16 - (session / max) * 12;
-  const h2 = 16 - (matches / max) * 12;
-  return (
-    <svg width="48" height="16" viewBox="0 0 48 16" className="shrink-0" role="img" aria-label={`${matches} matches in ${session} sessions`}>
-      <line x1="12" y1={h1} x2="36" y2={h2} stroke={PRIMARY} strokeWidth="1.5" />
-      <line x1="0" y1="16" x2="48" y2="16" stroke={PRIMARY} strokeWidth="0" />
-      <polygon points={`0,16 12,${h1} 36,${h2} 48,16`} fill={PRIMARY} fillOpacity="0.15" />
-      <circle cx="12" cy={h1} r="2" fill={PRIMARY} />
-      <circle cx="36" cy={h2} r="2" fill={PRIMARY} />
-    </svg>
-  );
-}
-
-function MiniCoverageBar({ value }: { value: number }) {
-  const w = Math.round(value * 28);
-  return (
-    <svg width="32" height="16" viewBox="0 0 32 16" className="shrink-0" role="img" aria-label={`${(value * 100).toFixed(0)}% coverage`}>
-      <rect x="2" y="5" width="28" height="6" rx="3" fill={SECTION_COLORS[4]} fillOpacity="0.2" />
-      <rect x="2" y="5" width={Math.max(w, 2)} height="6" rx="3" fill={SECTION_COLORS[4]} fillOpacity="0.8" />
-    </svg>
-  );
-}
-
-function MiniDepthBar({ value, max }: { value: number; max: number }) {
-  const h = Math.round((value / Math.max(max, 1)) * 10);
-  return (
-    <svg width="32" height="16" viewBox="0 0 32 16" className="shrink-0" role="img" aria-label={`depth ${value.toFixed(1)}`}>
-      <rect x="2" y="2" width="4" height="12" rx="2" fill="#27272a" />
-      <rect x="2" y={14 - Math.max(h, 2)} width="4" height={Math.max(h, 2)} rx="2" fill={STAT_COLORS.avgDepth} fillOpacity="0.8" />
-      <line x1="12" y1="8" x2="28" y2="8" stroke="#27272a" strokeWidth="1" strokeDasharray="2 2" />
-      <circle cx="20" cy={14 - h} r="2.5" fill={STAT_COLORS.avgDepth} />
-    </svg>
-  );
-}
-
-function MetricBar({ value, color }: { value: number; color: string }) {
-  const w = Math.round(value * 28);
-  return (
-    <svg width="32" height="16" viewBox="0 0 32 16" className="shrink-0" role="img" aria-label={`${(value * 100).toFixed(1)}%`}>
-      <rect x="2" y="5" width="28" height="6" rx="3" fill="#27272a" />
-      <rect x="2" y="5" width={Math.max(w, 2)} height="6" rx="3" fill={color} fillOpacity="0.8" />
-    </svg>
-  );
 }
 
 export default function RulesPage() {
@@ -296,7 +250,7 @@ function RulesContent() {
                           <Badge variant="outline" className="text-xs font-mono" title={`${rule.match_count}/${rule.session_count} ${t('table.matches').toLowerCase()}/${t('table.sessions').toLowerCase()}`}>{rule.avg_depth.toFixed(1)}</Badge>
                         </div>
                         <div className="flex items-center justify-center shrink-0 gap-1" style={{ width: '80px' }}>
-                          <MetricBar value={rule.citation_share} color={STAT_COLORS.citations} />
+                          <InlineMetricBar value={rule.citation_share} color={STAT_COLORS.citations} />
                           <Badge variant="secondary" className="text-xs font-mono">{(rule.citation_share * 100).toFixed(1)}%</Badge>
                         </div>
                       </Link>

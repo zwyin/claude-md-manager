@@ -10,31 +10,9 @@ import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { STAT_COLORS } from '@/lib/chart-colors';
+import { DetailMetricBar, DepthGauge } from '@/components/metric-visualizations';
+import { useDynamicPageTitle } from '@/hooks/use-page-title';
 import type { RuleDetail, CitationRecord, SiblingRule } from '@/lib/types';
-
-function MetricBar({ value, color, max = 1 }: { value: number; color: string; max?: number }) {
-  const pct = Math.min(value / max, 1);
-  const w = Math.round(pct * 80);
-  return (
-    <svg width="88" height="8" viewBox="0 0 88 8" className="shrink-0 mt-2" role="img" aria-label={`${(pct * 100).toFixed(0)}%`}>
-      <rect x="0" y="0" width="80" height="8" rx="4" fill="#27272a" />
-      <rect x="0" y="0" width={Math.max(w, 3)} height="8" rx="4" fill={color} fillOpacity="0.85" />
-      <circle cx={Math.max(w, 3)} cy="4" r="3" fill={color} />
-    </svg>
-  );
-}
-
-function DepthGauge({ value, max }: { value: number; max: number }) {
-  const h = Math.round((value / Math.max(max, 1)) * 28);
-  return (
-    <svg width="28" height="36" viewBox="0 0 28 36" className="shrink-0 mt-2" role="img" aria-label={`depth ${value.toFixed(1)}`}>
-      <rect x="10" y="2" width="8" height="28" rx="4" fill="#27272a" />
-      <rect x="10" y={30 - Math.max(h, 3)} width="8" height={Math.max(h, 3)} rx="4" fill={STAT_COLORS.avgDepth} fillOpacity="0.8" />
-      <line x1="4" y1="30" x2="24" y2="30" stroke="#3f3f46" strokeWidth="1" />
-      <circle cx="14" cy={30 - Math.max(h, 2)} r="3" fill={STAT_COLORS.avgDepth} />
-    </svg>
-  );
-}
 
 export default function RuleDetailPage() {
   const params = useParams();
@@ -48,6 +26,8 @@ export default function RuleDetailPage() {
   const siblings = resp?.siblings ?? [];
   const totalSessions = resp?.total_sessions ?? 0;
   const totalCitations = resp?.total_citations ?? 0;
+
+  useDynamicPageTitle(rule?.title);
 
   if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
   if (error) return (
@@ -108,7 +88,7 @@ export default function RuleDetailPage() {
                 </p>
                 <p className="text-lg font-bold">{totalSessions > 0 ? ((uniqueSessions / totalSessions) * 100).toFixed(1) : '0'}%</p>
                 <p className="text-[10px] font-mono text-muted-foreground">{uniqueSessions}/{totalSessions} {t('table.sessions').toLowerCase()}</p>
-                <MetricBar value={totalSessions > 0 ? uniqueSessions / totalSessions : 0} color={STAT_COLORS.avgCoverage} />
+                <DetailMetricBar value={totalSessions > 0 ? uniqueSessions / totalSessions : 0} color={STAT_COLORS.avgCoverage} />
               </div>
               <div className="flex flex-col items-center">
                 <p className="text-xs text-muted-foreground mb-1">
@@ -124,7 +104,7 @@ export default function RuleDetailPage() {
                 </p>
                 <p className="text-lg font-bold">{totalCitations > 0 ? ((rule.citation_count / totalCitations) * 100).toFixed(1) : '0'}%</p>
                 <p className="text-[10px] font-mono text-muted-foreground">{rule.citation_count}/{totalCitations} {t('table.matches').toLowerCase()}</p>
-                <MetricBar value={totalCitations > 0 ? rule.citation_count / totalCitations : 0} color={STAT_COLORS.citations} />
+                <DetailMetricBar value={totalCitations > 0 ? rule.citation_count / totalCitations : 0} color={STAT_COLORS.citations} />
               </div>
             </div>
           </div>
