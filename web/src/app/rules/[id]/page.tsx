@@ -1,10 +1,12 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TermTooltip } from '@/components/term-tooltip';
 import ReactMarkdown from 'react-markdown';
@@ -21,6 +23,7 @@ export default function RuleDetailPage() {
   const params = useParams();
   const ruleId = params?.id as string;
   const { t, locale } = useI18n();
+  const [citeLimit, setCiteLimit] = useState(50);
 
   const url = ruleId ? `/api/rules/${encodeURIComponent(ruleId)}` : null;
   const { data: resp, loading, error } = useFetch<{ rule: RuleDetail; citations: CitationRecord[]; siblings: SiblingRule[]; total_sessions: number; total_citations: number }>(url);
@@ -189,7 +192,7 @@ export default function RuleDetailPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {citations.slice(0, 50).map((c) => (
+                  {citations.slice(0, citeLimit).map((c) => (
                     <TableRow key={c.id}>
                       <TableCell className="text-xs font-mono whitespace-nowrap">
                         {new Date(c.timestamp).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
@@ -202,9 +205,14 @@ export default function RuleDetailPage() {
                   ))}
                 </TableBody>
               </Table>
-              {citations.length > 50 && (
-                <div className="px-6 py-3 text-xs text-muted-foreground text-center border-t border-border">
-                  {t('ruleDetail.showing', { shown: 50, total: citations.length })}
+              {citations.length > citeLimit && (
+                <div className="px-6 py-3 text-center border-t border-border">
+                  <span className="text-xs text-muted-foreground mr-3">
+                    {t('ruleDetail.showing', { shown: citeLimit, total: citations.length })}
+                  </span>
+                  <Button size="sm" variant="outline" onClick={() => setCiteLimit((l) => l + 50)}>
+                    {t('ruleDetail.loadMore')}
+                  </Button>
                 </div>
               )}
             </>

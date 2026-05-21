@@ -52,6 +52,7 @@ const zh = {
   'ruleDetail.sameSection': '同章节规则',
   'ruleDetail.noCitations': '暂无引用数据',
   'ruleDetail.showing': '显示 {shown} / {total} 条',
+  'ruleDetail.loadMore': '加载更多',
   'ruleDetail.content': '规则内容',
 
   // Editor
