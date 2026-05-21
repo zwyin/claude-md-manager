@@ -164,12 +164,6 @@ function RulesContent() {
         </select>
       </div>
 
-      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1"><Badge variant="default" className="text-[10px] font-mono h-4 px-1.5">N</Badge> {t('table.matches')}</span>
-        <span className="flex items-center gap-1"><Badge variant="secondary" className="text-[10px] font-mono h-4 px-1.5">%</Badge> <TermTooltip term={t('metric.coverage')} explanation={t('metric.coverage.desc')} /></span>
-        <span className="flex items-center gap-1"><Badge variant="outline" className="text-[10px] font-mono h-4 px-1.5">D</Badge> <TermTooltip term={t('metric.depth')} explanation={t('metric.depth.desc')} /></span>
-      </div>
-
       {filteredCount === 0 && searchQuery && (
         <div className="text-center py-8 text-muted-foreground text-sm">
           {t('rules.noResults')}
@@ -202,17 +196,34 @@ function RulesContent() {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <div className="border-t border-border">
+                    {/* Column headers */}
+                    <div className="flex items-center px-5 py-2 pl-14 bg-muted/30 text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
+                      <span className="flex-1 min-w-0">{t('rules.ruleName')}</span>
+                      <div className="flex items-center shrink-0 gap-1" style={{ width: '80px' }}>
+                        <span className="text-center w-full">{t('table.matches')}</span>
+                      </div>
+                      <div className="flex items-center shrink-0" style={{ width: '70px' }}>
+                        <span className="text-center w-full"><TermTooltip term={t('metric.coverage')} explanation={t('metric.coverage.desc')} /></span>
+                      </div>
+                      <div className="flex items-center shrink-0" style={{ width: '50px' }}>
+                        <span className="text-center w-full"><TermTooltip term={t('metric.depth')} explanation={t('metric.depth.desc')} /></span>
+                      </div>
+                    </div>
                     {rules.map((rule) => (
                       <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
-                        className="flex items-center justify-between px-5 py-3 pl-14 border-b border-border last:border-0 hover:bg-accent/30 transition-colors">
-                        <div className="flex items-center gap-3 min-w-0">
+                        className="flex items-center px-5 py-3 pl-14 border-b border-border last:border-0 hover:bg-accent/30 transition-colors">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
                           <span className="text-xs font-mono text-muted-foreground shrink-0">{rule.rule_id}</span>
                           <span className="text-sm truncate">{rule.title}</span>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0 ml-4">
+                        <div className="flex items-center justify-center shrink-0 gap-1.5" style={{ width: '80px' }}>
                           <MiniSparkline session={rule.session_count} matches={rule.match_count} />
                           <Badge variant={rule.match_count === 0 ? "destructive" : "default"} className="text-xs font-mono">{rule.match_count}</Badge>
+                        </div>
+                        <div className="flex items-center justify-center shrink-0" style={{ width: '70px' }}>
                           <Badge variant="secondary" className="text-xs font-mono" title={`${rule.session_count}/${data?.total_sessions ?? 0} ${t('table.sessions').toLowerCase()}`}>{(rule.session_coverage * 100).toFixed(0)}%</Badge>
+                        </div>
+                        <div className="flex items-center justify-center shrink-0" style={{ width: '50px' }}>
                           <Badge variant="outline" className="text-xs font-mono" title={`${rule.match_count}/${rule.session_count} ${t('table.matches').toLowerCase()}/${t('table.sessions').toLowerCase()}`}>{rule.avg_depth.toFixed(1)}</Badge>
                         </div>
                       </Link>
