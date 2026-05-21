@@ -10,6 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Search, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { SECTION_COLORS, PRIMARY, STAT_COLORS } from '@/lib/chart-colors';
 import { TermTooltip } from '@/components/term-tooltip';
 import type { RuleWithStats, SectionWithStats } from '@/lib/types';
@@ -84,6 +85,7 @@ function RulesContent() {
   const searchRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
   const { t } = useI18n();
+  usePageTitle('rules.title');
 
   useEffect(() => {
     if (!data) return;

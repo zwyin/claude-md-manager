@@ -9,6 +9,7 @@ import { EditorPanel } from "./EditorPanel";
 import { PreviewPanel } from "./PreviewPanel";
 import { PublishDialog } from "./PublishDialog";
 import { useI18n } from "@/i18n";
+import { usePageTitle } from "@/hooks/use-page-title";
 import { toast } from "sonner";
 
 export default function EditorPage() {
@@ -20,6 +21,7 @@ export default function EditorPage() {
   const [showPublish, setShowPublish] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const { t } = useI18n();
+  usePageTitle('editor.title');
   const initialLoadDone = useRef(false);
   const prevSelectedId = useRef<string | null>(null);
 

@@ -13,6 +13,7 @@ import { useI18n } from '@/i18n';
 import { useChartTheme } from '@/hooks/use-chart-theme';
 import { useFetch } from '@/hooks/use-fetch';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 import type { RuleWithStats, SectionWithStats } from '@/lib/types';
 
@@ -28,6 +29,7 @@ export default function DashboardPage() {
   const { t } = useI18n();
   const router = useRouter();
   const chartTheme = useChartTheme();
+  usePageTitle('dashboard.title');
   const tooltipStyle = useTooltipStyle();
 
   if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;

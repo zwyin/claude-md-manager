@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, GitCompare, RotateCcw, Check, X, FileText } from 'lucide-react';
 import { useI18n } from '@/i18n';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { useFetch } from '@/hooks/use-fetch';
 import { toast } from 'sonner';
 import type { SnapshotInfo, DiffResult } from '@/lib/snapshots';
@@ -23,6 +24,7 @@ export default function HistoryPage() {
   const [contentText, setContentText] = useState<string>('');
   const [contentLoading, setContentLoading] = useState(false);
   const { t } = useI18n();
+  usePageTitle('history.title');
 
   useEffect(() => {
     return () => clearTimeout(timerRef.current);

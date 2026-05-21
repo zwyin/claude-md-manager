@@ -17,6 +17,7 @@ import { useI18n } from '@/i18n';
 import { useChartTheme } from '@/hooks/use-chart-theme';
 import { useFetch } from '@/hooks/use-fetch';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 import type { AnalyticsData } from '@/lib/types';
 
@@ -26,6 +27,7 @@ export default function AnalyticsPage() {
   const { t } = useI18n();
   const router = useRouter();
   const chartTheme = useChartTheme();
+  usePageTitle('analytics.title');
   const tooltipStyle = useTooltipStyle();
 
   const url = useMemo(() => {
