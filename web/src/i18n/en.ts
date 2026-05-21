@@ -42,6 +42,7 @@ const en: Dict = {
   'ruleDetail.noCitations': 'No citation data available',
   'ruleDetail.showing': 'Showing {shown} / {total}',
   'ruleDetail.loadMore': 'Load More',
+  'ruleDetail.citationTrend': 'Citation Trend',
   'ruleDetail.content': 'Rule Content',
   'editor.title': 'Rule Editor',
   'editor.subtitle': 'Drag to reorder, edit, preview, and publish rule changes.',

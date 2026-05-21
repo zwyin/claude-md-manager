@@ -53,6 +53,7 @@ const zh = {
   'ruleDetail.noCitations': '暂无引用数据',
   'ruleDetail.showing': '显示 {shown} / {total} 条',
   'ruleDetail.loadMore': '加载更多',
+  'ruleDetail.citationTrend': '引用趋势',
   'ruleDetail.content': '规则内容',
 
   // Editor

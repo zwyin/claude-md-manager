@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,9 +13,12 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
-import { STAT_COLORS } from '@/lib/chart-colors';
+import { useChartTheme } from '@/hooks/use-chart-theme';
+import { STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 import { DetailMetricBar, DepthGauge } from '@/components/metric-visualizations';
 import { PageLoader, PageError } from '@/components/page-states';
+import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { useDynamicPageTitle } from '@/hooks/use-page-title';
 import type { RuleDetail, CitationRecord, SiblingRule } from '@/lib/types';
 
@@ -24,16 +27,36 @@ export default function RuleDetailPage() {
   const ruleId = params?.id as string;
   const { t, locale } = useI18n();
   const [citeLimit, setCiteLimit] = useState(50);
+  const prevRuleId = useRef(ruleId);
+  if (prevRuleId.current !== ruleId) {
+    prevRuleId.current = ruleId;
+    setCiteLimit(50);
+  }
 
   const url = ruleId ? `/api/rules/${encodeURIComponent(ruleId)}` : null;
   const { data: resp, loading, error } = useFetch<{ rule: RuleDetail; citations: CitationRecord[]; siblings: SiblingRule[]; total_sessions: number; total_citations: number }>(url);
   const rule = resp?.rule ?? null;
-  const citations = resp?.citations ?? [];
   const siblings = resp?.siblings ?? [];
   const totalSessions = resp?.total_sessions ?? 0;
   const totalCitations = resp?.total_citations ?? 0;
 
   useDynamicPageTitle(rule?.title);
+  const chartTheme = useChartTheme();
+  const tooltipStyle = useTooltipStyle();
+
+  const citations = useMemo(() => resp?.citations ?? [], [resp?.citations]);
+  const trendData = useMemo(() => {
+    const src = resp?.citations ?? [];
+    if (src.length === 0) return [];
+    const counts: Record<string, number> = {};
+    for (const c of src) {
+      const day = c.timestamp.slice(0, 10);
+      counts[day] = (counts[day] || 0) + 1;
+    }
+    return Object.entries(counts)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([period, count]) => ({ period, count }));
+  }, [resp?.citations]);
 
   if (loading) return <PageLoader message={t('status.loading')} />;
   if (error) return (
@@ -168,6 +191,32 @@ export default function RuleDetailPage() {
                   </div>
                 </Link>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {trendData.length > 1 && (
+        <Card className="rounded-xl border-border bg-card">
+          <CardHeader>
+            <CardTitle className="text-base">{t('ruleDetail.citationTrend')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[180px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trendData} margin={{ left: 0, right: 10 }}>
+                  <defs>
+                    <linearGradient id="ruleTrendGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={PRIMARY} stopOpacity={0.3} />
+                      <stop offset="100%" stopColor={PRIMARY} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="period" tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
+                  <YAxis tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
+                  <RechartsTooltip {...tooltipStyle} />
+                  <Area type="monotone" dataKey="count" stroke={PRIMARY} fill="url(#ruleTrendGrad)" strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
