@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Database from 'better-sqlite3';
 import path from 'path';
-import { getRuleDetail } from '@/lib/db';
+import { getRuleDetail, getTotalSessionCount, getTotalCitationCount } from '@/lib/db';
 import { parseDays, sanitizeRuleId } from '@/lib/api-utils';
 import { handleApiError } from '@/lib/api-handler';
 
@@ -22,7 +22,14 @@ export async function GET(
         return NextResponse.json({ error: 'Rule not found' }, { status: 404 });
       }
 
-      return NextResponse.json(result);
+      const total_sessions = getTotalSessionCount(days, db);
+      const total_citations = getTotalCitationCount(days, db);
+
+      return NextResponse.json({
+        ...result,
+        total_sessions,
+        total_citations,
+      });
     } finally {
       db.close();
     }

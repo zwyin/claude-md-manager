@@ -48,6 +48,9 @@ export interface RuleWithStats {
   match_count: number;
   session_count: number;
   last_cited: string | null;
+  session_coverage: number;  // session_count / total_sessions (0-1)
+  avg_depth: number;         // match_count / session_count (0+)
+  citation_share: number;    // match_count / total_citations (0-1)
 }
 
 export interface CitationRecord {
@@ -69,6 +72,8 @@ export interface TopRule {
   rule_id: string;
   title: string;
   citation_count: number;
+  session_coverage: number;
+  avg_depth: number;
 }
 
 export interface ColdRule {
@@ -87,6 +92,8 @@ export interface AnalyticsData {
   total_rules: number;
   total_citations: number;
   total_sessions: number;
+  avg_coverage: number;
+  avg_depth: number;
   top_rules: TopRule[];
   cold_rules: ColdRule[];
   category_distribution: CategoryDistribution[];

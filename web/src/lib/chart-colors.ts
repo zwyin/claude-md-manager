@@ -13,4 +13,6 @@ export const STAT_COLORS = {
   sessions: '#3b82f6',
   activeRate: '#10b981',
   citations: '#8b5cf6',
+  avgCoverage: '#06b6d4',
+  avgDepth: '#f59e0b',
 } as const;

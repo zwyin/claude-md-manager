@@ -11,10 +11,12 @@ import { Search, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { SECTION_COLORS, PRIMARY } from '@/lib/chart-colors';
+import { TermTooltip } from '@/components/term-tooltip';
 import type { RuleWithStats, SectionWithStats } from '@/lib/types';
 
 interface RulesData {
   rules: RuleWithStats[]; sections: SectionWithStats[]; total_rules: number;
+  total_sessions: number; total_citations: number;
 }
 
 function MiniSparkline({ session, matches }: { session: number; matches: number }) {
@@ -161,6 +163,12 @@ function RulesContent() {
         </select>
       </div>
 
+      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1"><Badge variant="default" className="text-[10px] font-mono h-4 px-1.5">N</Badge> {t('table.matches')}</span>
+        <span className="flex items-center gap-1"><Badge variant="secondary" className="text-[10px] font-mono h-4 px-1.5">%</Badge> <TermTooltip term={t('metric.coverage')} explanation={t('metric.coverage.desc')} /></span>
+        <span className="flex items-center gap-1"><Badge variant="outline" className="text-[10px] font-mono h-4 px-1.5">D</Badge> <TermTooltip term={t('metric.depth')} explanation={t('metric.depth.desc')} /></span>
+      </div>
+
       {filteredCount === 0 && searchQuery && (
         <div className="text-center py-8 text-muted-foreground text-sm">
           {t('rules.noResults')}
@@ -200,10 +208,11 @@ function RulesContent() {
                           <span className="text-xs font-mono text-muted-foreground shrink-0">{rule.rule_id}</span>
                           <span className="text-sm truncate">{rule.title}</span>
                         </div>
-                        <div className="flex items-center gap-3 shrink-0 ml-4">
+                        <div className="flex items-center gap-2 shrink-0 ml-4">
                           <MiniSparkline session={rule.session_count} matches={rule.match_count} />
-                          <Badge variant="secondary" className="text-xs">{rule.session_count} {t('table.sessions')}</Badge>
-                          <Badge variant={rule.match_count === 0 ? "destructive" : "default"} className="text-xs">{rule.match_count}</Badge>
+                          <Badge variant={rule.match_count === 0 ? "destructive" : "default"} className="text-xs font-mono">{rule.match_count}</Badge>
+                          <Badge variant="secondary" className="text-xs font-mono" title={`${rule.session_count}/${data?.total_sessions ?? 0} ${t('table.sessions').toLowerCase()}`}>{(rule.session_coverage * 100).toFixed(0)}%</Badge>
+                          <Badge variant="outline" className="text-xs font-mono" title={`${rule.match_count}/${rule.session_count} ${t('table.matches').toLowerCase()}/${t('table.sessions').toLowerCase()}`}>{rule.avg_depth.toFixed(1)}</Badge>
                         </div>
                       </Link>
                     ))}

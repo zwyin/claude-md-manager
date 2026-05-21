@@ -17,10 +17,12 @@ export default function RuleDetailPage() {
   const { t, locale } = useI18n();
 
   const url = ruleId ? `/api/rules/${encodeURIComponent(ruleId)}` : null;
-  const { data: resp, loading, error } = useFetch<{ rule: RuleDetail; citations: CitationRecord[]; siblings: SiblingRule[] }>(url);
+  const { data: resp, loading, error } = useFetch<{ rule: RuleDetail; citations: CitationRecord[]; siblings: SiblingRule[]; total_sessions: number; total_citations: number }>(url);
   const rule = resp?.rule ?? null;
   const citations = resp?.citations ?? [];
   const siblings = resp?.siblings ?? [];
+  const totalSessions = resp?.total_sessions ?? 0;
+  const totalCitations = resp?.total_citations ?? 0;
 
   if (loading) return <div className="text-muted-foreground p-4">{t('status.loading')}</div>;
   if (error) return (
@@ -72,6 +74,33 @@ export default function RuleDetailPage() {
             </div>
           </div>
         </CardHeader>
+        <CardContent>
+          <div className="border-t border-border pt-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">
+                  <TermTooltip term={t('metric.coverage.full')} explanation={t('metric.coverage.desc')} />
+                </p>
+                <p className="text-lg font-bold">{totalSessions > 0 ? ((uniqueSessions / totalSessions) * 100).toFixed(1) : '0'}%</p>
+                <p className="text-[10px] font-mono text-muted-foreground">{uniqueSessions}/{totalSessions} {t('table.sessions').toLowerCase()}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">
+                  <TermTooltip term={t('metric.depth.full')} explanation={t('metric.depth.desc')} />
+                </p>
+                <p className="text-lg font-bold">{uniqueSessions > 0 ? (rule.citation_count / uniqueSessions).toFixed(1) : '0'}</p>
+                <p className="text-[10px] font-mono text-muted-foreground">{rule.citation_count}/{uniqueSessions} {t('table.matches').toLowerCase()}/{t('table.sessions').toLowerCase()}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">
+                  <TermTooltip term={t('metric.share.full')} explanation={t('metric.share.desc')} />
+                </p>
+                <p className="text-lg font-bold">{totalCitations > 0 ? ((rule.citation_count / totalCitations) * 100).toFixed(1) : '0'}%</p>
+                <p className="text-[10px] font-mono text-muted-foreground">{rule.citation_count}/{totalCitations} {t('table.matches').toLowerCase()}</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
         {rule.keywords && rule.keywords.length > 0 && (
           <CardContent>
             <div className="border-t border-border pt-4">

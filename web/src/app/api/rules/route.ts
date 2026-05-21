@@ -17,11 +17,14 @@ export async function GET(request: NextRequest) {
       const active_rules = rules.filter((r) => (r.citation_count || 0) > 0).length;
       const active_rule_pct = total_rules > 0 ? Math.round((active_rules / total_rules) * 100) : 0;
 
+      const total_citations = rules.reduce((s, r) => s + (r.match_count || 0), 0);
+
       return NextResponse.json({
         rules,
         sections: getSectionsWithStats(days, db),
         total_rules,
         total_sessions: getTotalSessionCount(days, db),
+        total_citations,
         active_rule_pct,
       });
     } finally {

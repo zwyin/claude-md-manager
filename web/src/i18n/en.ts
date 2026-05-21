@@ -108,6 +108,17 @@ const en: Dict = {
   'term.coldRule.desc': 'Rules never cited — candidates for optimization or removal',
   'term.keywords': 'Keywords',
   'term.keywords.desc': 'Trigger words configured for a rule, auto-cited when appearing in Claude sessions',
+
+  // Metrics
+  'metric.coverage': 'Coverage',
+  'metric.coverage.full': 'Session Coverage',
+  'metric.coverage.desc': 'Sessions with this rule / total sessions — measures rule reach',
+  'metric.depth': 'Depth',
+  'metric.depth.full': 'Avg Activation Depth',
+  'metric.depth.desc': 'Matches per active session — measures rule usage intensity',
+  'metric.share': 'Share',
+  'metric.share.full': 'Citation Share',
+  'metric.share.desc': 'This rule\'s matches / total matches — measures rule "voice" globally',
   'status.loading': 'Loading...',
   'status.error': 'Failed to load: {error}',
 

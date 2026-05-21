@@ -33,8 +33,15 @@ export default function DashboardPage() {
 
   const topRules = [...(data.rules || [])].sort((a, b) => b.match_count - a.match_count).slice(0, 10);
   const coldRules = (data.rules || []).filter((r) => r.match_count === 0);
+  const activeRules = (data.rules || []).filter((r) => r.match_count > 0);
   const sections = data.sections || [];
   const totalCitations = (data.rules || []).reduce((s, r) => s + r.match_count, 0);
+  const avgCoverage = activeRules.length > 0
+    ? activeRules.reduce((s, r) => s + r.session_coverage, 0) / activeRules.length
+    : 0;
+  const avgDepth = activeRules.length > 0
+    ? activeRules.reduce((s, r) => s + r.avg_depth, 0) / activeRules.length
+    : 0;
 
   const sectionChartData = sections.map((s) => ({
     name: s.title.length > 16 ? s.title.slice(0, 16) + '...' : s.title,
@@ -47,6 +54,8 @@ export default function DashboardPage() {
     name: r.title.length > 20 ? r.title.slice(0, 20) + '...' : r.title,
     fullName: r.title,
     citations: r.match_count,
+    coverage: `${(r.session_coverage * 100).toFixed(0)}%`,
+    depth: r.avg_depth.toFixed(1),
     rule_id: r.rule_id,
   }));
 
@@ -57,7 +66,7 @@ export default function DashboardPage() {
         <p className="text-sm text-muted-foreground mt-1">{t('dashboard.subtitle')}</p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
         <StatCard
           label={t('dashboard.totalRules')}
           value={data.total_rules}
@@ -79,6 +88,17 @@ export default function DashboardPage() {
           label={<TermTooltip term={t('term.citation')} explanation={t('term.citation.desc')} />}
           value={totalCitations}
           color={STAT_COLORS.citations}
+        />
+        <StatCard
+          label={<TermTooltip term={t('metric.coverage')} explanation={t('metric.coverage.desc')} />}
+          value={avgCoverage * 100}
+          percentage
+          color={STAT_COLORS.avgCoverage}
+        />
+        <StatCard
+          label={<TermTooltip term={t('metric.depth')} explanation={t('metric.depth.desc')} />}
+          value={avgDepth.toFixed(1)}
+          color={STAT_COLORS.avgDepth}
         />
       </div>
 
@@ -120,7 +140,10 @@ export default function DashboardPage() {
                 <YAxis type="category" dataKey="name" width={160} tick={{ fill: chartTheme.mutedForeground, fontSize: 12 }} />
                 <RechartsTooltip
                   {...tooltipStyle}
-                  formatter={(value, _name, props) => [value, (props as { payload: { fullName: string } }).payload.fullName]}
+                  formatter={(value, _name, props) => {
+                    const p = (props as { payload: { fullName: string; coverage: string; depth: string } }).payload;
+                    return [`${value} ${t('table.matches')} · ${p.coverage} ${t('metric.coverage')} · ${p.depth} ${t('metric.depth')}`, p.fullName];
+                  }}
                 />
                 <Bar dataKey="citations" fill={PRIMARY} radius={[0, 4, 4, 0]} maxBarSize={20} />
               </BarChart>

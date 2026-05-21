@@ -42,6 +42,8 @@ export default function AnalyticsPage() {
     name: r.title.length > 18 ? r.title.slice(0, 18) + '...' : r.title,
     fullName: r.title,
     citations: r.citation_count,
+    coverage: `${(r.session_coverage * 100).toFixed(0)}%`,
+    depth: r.avg_depth.toFixed(1),
     rule_id: r.rule_id,
   }));
 
@@ -79,10 +81,21 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
         <StatCard label={t('dashboard.totalRules')} value={data.total_rules} color={STAT_COLORS.rules} />
         <StatCard label={<TermTooltip term={t('term.citation')} explanation={t('term.citation.desc')} />} value={data.total_citations} color={STAT_COLORS.activeRate} />
         <StatCard label={t('dashboard.totalSessions')} value={data.total_sessions} color={STAT_COLORS.sessions} />
+        <StatCard
+          label={<TermTooltip term={t('metric.coverage')} explanation={t('metric.coverage.desc')} />}
+          value={data.avg_coverage * 100}
+          percentage
+          color={STAT_COLORS.avgCoverage}
+        />
+        <StatCard
+          label={<TermTooltip term={t('metric.depth')} explanation={t('metric.depth.desc')} />}
+          value={data.avg_depth.toFixed(1)}
+          color={STAT_COLORS.avgDepth}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -94,7 +107,10 @@ export default function AnalyticsPage() {
                 <BarChart data={topRulesData} layout="vertical" margin={{ left: 20, right: 20 }}>
                   <XAxis type="number" hide />
                   <YAxis type="category" dataKey="name" width={120} tick={{ fill: chartTheme.mutedForeground, fontSize: 12 }} />
-                  <RechartsTooltip {...tooltipStyle} formatter={(value, _name, props) => [value, (props as { payload: { fullName: string } }).payload.fullName]} />
+                  <RechartsTooltip {...tooltipStyle} formatter={(value, _name, props) => {
+                    const p = (props as { payload: { fullName: string; coverage: string; depth: string } }).payload;
+                    return [`${value} ${t('table.matches')} · ${p.coverage} ${t('metric.coverage')} · ${p.depth} ${t('metric.depth')}`, p.fullName];
+                  }} />
                   <Bar dataKey="citations" radius={[0, 4, 4, 0]} maxBarSize={20}>
                     {topRulesData.map((_, i) => (
                       <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />

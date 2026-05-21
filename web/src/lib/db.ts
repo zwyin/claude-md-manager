@@ -100,12 +100,22 @@ export function getRulesWithStats(days?: number, db?: Database.Database): RuleWi
       last_cited: string | null;
     }>;
 
-    return rows.map((row) => ({
-      ...row,
-      keywords: JSON.parse(row.keywords || '[]'),
-      session_count: row.session_count || 0,
-      match_count: row.citation_count || 0,
-    }));
+    const totalCitations = rows.reduce((s, r) => s + (r.citation_count || 0), 0);
+    const totalSessions = getTotalSessionCount(days, conn);
+
+    return rows.map((row) => {
+      const mc = row.citation_count || 0;
+      const sc = row.session_count || 0;
+      return {
+        ...row,
+        keywords: JSON.parse(row.keywords || '[]'),
+        session_count: sc,
+        match_count: mc,
+        session_coverage: totalSessions > 0 ? sc / totalSessions : 0,
+        avg_depth: sc > 0 ? mc / sc : 0,
+        citation_share: totalCitations > 0 ? mc / totalCitations : 0,
+      };
+    });
   } finally {
     if (own) conn.close();
   }
@@ -187,6 +197,25 @@ export function getRuleDetail(
       citations,
       siblings,
     };
+  } finally {
+    if (own) conn.close();
+  }
+}
+
+// ── Global totals ──
+
+export function getTotalCitationCount(days?: number, db?: Database.Database): number {
+  const own = !db;
+  const conn = db || getDb();
+  try {
+    if (days) {
+      return (
+        conn
+          .prepare(`SELECT COUNT(*) AS c FROM rule_references WHERE timestamp >= datetime('now', ? || ' days')`)
+          .get(`-${days}`) as { c: number }
+      ).c;
+    }
+    return (conn.prepare('SELECT COUNT(*) AS c FROM rule_references').get() as { c: number }).c;
   } finally {
     if (own) conn.close();
   }
@@ -287,14 +316,17 @@ export function getAnalytics(days?: number, db?: Database.Database): Omit<Analyt
     const stats = conn.prepare(`
       SELECT
         (SELECT COUNT(*) FROM rules_metadata) AS total_rules,
-        (SELECT COUNT(*) FROM rule_references ${subqueryFilter}) AS total_citations,
-        (SELECT COUNT(DISTINCT session_id) FROM rule_references ${subqueryFilter}) AS total_sessions
-    `).bind(...statsParams).get() as { total_rules: number; total_citations: number; total_sessions: number };
+        (SELECT COUNT(*) FROM rule_references ${subqueryFilter}) AS total_citations
+    `).bind(...statsParams.slice(0, days ? 1 : 0)).get() as { total_rules: number; total_citations: number };
+
+    const totalSessions = getTotalSessionCount(days, conn);
 
     const topRules = conn
       .prepare(
         `
-        SELECT m.rule_id, m.title, COUNT(r.id) AS citation_count
+        SELECT m.rule_id, m.title,
+               COUNT(r.id) AS citation_count,
+               COUNT(DISTINCT r.session_id) AS session_count
         FROM rule_references r
         JOIN rules_metadata m ON m.rule_id = r.rule_id
         WHERE 1=1 ${joinFilter}
@@ -304,7 +336,15 @@ export function getAnalytics(days?: number, db?: Database.Database): Omit<Analyt
         `
       )
       .bind(...joinParams)
-      .all() as TopRule[];
+      .all() as Array<TopRule & { session_count: number }>;
+
+    const topRulesWithMetrics: TopRule[] = topRules.map((r) => ({
+      rule_id: r.rule_id,
+      title: r.title,
+      citation_count: r.citation_count,
+      session_coverage: totalSessions > 0 ? r.session_count / totalSessions : 0,
+      avg_depth: r.session_count > 0 ? r.citation_count / r.session_count : 0,
+    }));
 
     const havingClause = days
       ? `HAVING MAX(r.timestamp) IS NULL OR MAX(r.timestamp) < datetime('now', ? || ' days')`
@@ -342,11 +382,35 @@ export function getAnalytics(days?: number, db?: Database.Database): Omit<Analyt
       .bind(...joinParams)
       .all() as CategoryDistribution[];
 
+    // Compute per-rule coverage/depth for all rules (not just top 10)
+    const allRulesStats = conn
+      .prepare(
+        `
+        SELECT COUNT(r.id) AS citation_count,
+               COUNT(DISTINCT r.session_id) AS session_count
+        FROM rules_metadata m
+        LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${joinFilter}
+        GROUP BY m.rule_id
+        HAVING citation_count > 0
+        `
+      )
+      .bind(...joinParams)
+      .all() as Array<{ citation_count: number; session_count: number }>;
+
+    const avgCoverage = allRulesStats.length > 0
+      ? allRulesStats.reduce((s, r) => s + (totalSessions > 0 ? r.session_count / totalSessions : 0), 0) / allRulesStats.length
+      : 0;
+    const avgDepth = allRulesStats.length > 0
+      ? allRulesStats.reduce((s, r) => s + (r.session_count > 0 ? r.citation_count / r.session_count : 0), 0) / allRulesStats.length
+      : 0;
+
     return {
       total_rules: stats.total_rules,
       total_citations: stats.total_citations,
-      total_sessions: stats.total_sessions,
-      top_rules: topRules,
+      total_sessions: totalSessions,
+      avg_coverage: avgCoverage,
+      avg_depth: avgDepth,
+      top_rules: topRulesWithMetrics,
       cold_rules: coldRules,
       category_distribution: categoryDistribution,
     };

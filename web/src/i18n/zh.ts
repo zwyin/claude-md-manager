@@ -128,6 +128,17 @@ const zh = {
   'term.keywords': '关键词',
   'term.keywords.desc': '规则配置的触发词，Claude 会话中出现时自动引用该规则',
 
+  // 指标
+  'metric.coverage': '覆盖率',
+  'metric.coverage.full': '会话覆盖率',
+  'metric.coverage.desc': '触发过该规则的会话数 / 总会话数，衡量规则的触达广度',
+  'metric.depth': '深度',
+  'metric.depth.full': '平均激活深度',
+  'metric.depth.desc': '有该规则的会话中，平均被触发几次，衡量规则的使用强度',
+  'metric.share': '占比',
+  'metric.share.full': '引用占比',
+  'metric.share.desc': '该规则的匹配数 / 所有规则总匹配数，衡量规则在全局的"声量"',
+
   // 状态
   'status.loading': '加载中...',
   'status.error': '加载失败：{error}',
