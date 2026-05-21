@@ -109,6 +109,7 @@ export interface RuleDetail {
   updated_at: string;
   citation_count: number;
   last_cited: string | null;
+  body?: string;
 }
 
 export interface SiblingRule {

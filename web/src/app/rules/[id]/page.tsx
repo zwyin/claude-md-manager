@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TermTooltip } from '@/components/term-tooltip';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { STAT_COLORS } from '@/lib/chart-colors';
@@ -124,6 +126,24 @@ export default function RuleDetailPage() {
           </CardContent>
         )}
       </Card>
+
+      {rule.body && (
+        <Card className="rounded-xl border-border bg-card">
+          <CardHeader>
+            <CardTitle className="text-base">{t('ruleDetail.content')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="prose prose-sm prose-invert max-w-none
+              prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground
+              prose-code:text-foreground prose-a:text-indigo-400
+              prose-code:before:content-[''] prose-code:after:content-['']">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {rule.body}
+              </ReactMarkdown>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {siblings.length > 0 && (
         <Card className="rounded-xl border-border bg-card">
