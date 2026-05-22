@@ -4,9 +4,8 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { SECTION_COLORS } from '@/lib/chart-colors';
+import { useI18n } from '@/i18n';
 import type { HeatmapCell } from '@/lib/types';
-
-// base-ui TooltipTrigger renders a <button>, so the Link inside it handles navigation
 
 interface CitationHeatmapProps {
   data: HeatmapCell[];
@@ -14,6 +13,7 @@ interface CitationHeatmapProps {
 }
 
 export function CitationHeatmap({ data, maxRules = 30 }: CitationHeatmapProps) {
+  const { t } = useI18n();
   const { rules, days, matrix, maxValue, sectionMap } = useMemo(() => {
     const ruleCounts: Record<string, number> = {};
     for (const c of data) {
@@ -99,7 +99,7 @@ export function CitationHeatmap({ data, maxRules = 30 }: CitationHeatmapProps) {
                     <TooltipContent side="top" className="text-xs">
                       <span className="font-medium">{title}</span>
                       <br />
-                      {day}: {count} citations
+                      {day}: {count} {t('table.matches').toLowerCase()}
                     </TooltipContent>
                   </Tooltip>
                 );
