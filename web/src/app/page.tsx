@@ -379,7 +379,9 @@ export default function DashboardPage() {
                   <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
                     className="flex items-center justify-between px-6 py-3 hover:bg-accent/50 transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
-                      <Badge variant="secondary" className="text-[10px] shrink-0">{rule.section_id}</Badge>
+                      <Badge variant="secondary" className="text-[10px] shrink-0 hover:bg-primary/20 cursor-pointer"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/rules?section=${rule.section_id}`); }}
+                      >{rule.section_id}</Badge>
                       <span className="text-sm truncate">{rule.title}</span>
                     </div>
                     <Badge variant="outline" className="text-xs text-muted-foreground">{rule.match_count} {t('table.matches')}</Badge>
