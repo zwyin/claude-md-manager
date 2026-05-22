@@ -111,9 +111,11 @@ export default function SessionDetailPage() {
               <p className="text-xs font-medium text-muted-foreground uppercase mb-2">{t('session.sectionsHit')}</p>
               <div className="flex flex-wrap gap-2">
                 {sections.map((s) => (
-                  <Badge key={s.section_id} variant="outline" style={{ borderColor: sectionColorMap[s.section_id], color: sectionColorMap[s.section_id] }}>
+                  <Link key={s.section_id} href={`/rules?section=${s.section_id}`}>
+                  <Badge variant="outline" className="hover:bg-accent/50 cursor-pointer transition-colors" style={{ borderColor: sectionColorMap[s.section_id], color: sectionColorMap[s.section_id] }}>
                     {s.section_title}
                   </Badge>
+                </Link>
                 ))}
               </div>
             </div>
@@ -139,9 +141,11 @@ export default function SessionDetailPage() {
                       <span className="text-[10px] text-muted-foreground font-mono shrink-0 ml-2">{relativeTime(c.timestamp, locale)}</span>
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <Badge variant="secondary" className="text-[10px]" style={{ backgroundColor: sectionColorMap[c.section_id] + '20', color: sectionColorMap[c.section_id] }}>
+                      <Link href={`/rules?section=${c.section_id}`}>
+                      <Badge variant="secondary" className="text-[10px] hover:opacity-80 cursor-pointer transition-opacity" style={{ backgroundColor: sectionColorMap[c.section_id] + '20', color: sectionColorMap[c.section_id] }}>
                         {c.section_id}
                       </Badge>
+                      </Link>
                       <Link href={`/rules?search=${encodeURIComponent(c.matched_keyword)}`}>
                         <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px] hover:bg-indigo-500/10 cursor-pointer transition-colors">{c.matched_keyword}</Badge>
                       </Link>
@@ -173,13 +177,15 @@ export default function SessionDetailPage() {
                           <Link href={`/rules/${c.rule_id}`} className="text-sm hover:text-indigo-400 transition-colors">
                             {c.title}
                           </Link>
+                          <Link href={`/rules?section=${c.section_id}`}>
                           <Badge
                             variant="secondary"
-                            className="text-[10px] ml-2"
+                            className="text-[10px] ml-2 hover:opacity-80 cursor-pointer transition-opacity"
                             style={{ backgroundColor: sectionColorMap[c.section_id] + '20', color: sectionColorMap[c.section_id] }}
                           >
                             {c.section_id}
                           </Badge>
+                          </Link>
                         </TableCell>
                         <TableCell>
                           <Link href={`/rules?search=${encodeURIComponent(c.matched_keyword)}`}>
