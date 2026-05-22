@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
@@ -100,6 +100,24 @@ export function RuleListPanel({ rules, selectedId, onSelect, onReorder }: RuleLi
     }));
     onReorder(updates);
   }
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement) return;
+      const idx = filteredRules.findIndex((r) => r.rule_id === selectedId);
+      if (e.key === 'ArrowDown' || e.key === 'j' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        const next = idx < filteredRules.length - 1 ? idx + 1 : 0;
+        onSelect(filteredRules[next].rule_id);
+      } else if (e.key === 'ArrowUp' || e.key === 'k' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        const prev = idx > 0 ? idx - 1 : filteredRules.length - 1;
+        onSelect(filteredRules[prev].rule_id);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [filteredRules, selectedId, onSelect]);
 
   return (
     <div className="p-2">
