@@ -271,6 +271,9 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
+              <div className="border-t border-border px-6 py-2 text-center">
+                <Link href="/analytics" className="text-xs text-muted-foreground hover:text-foreground transition-colors">{t('dashboard.viewAll')} →</Link>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -312,6 +315,9 @@ export default function DashboardPage() {
                     </div>
                   </Link>
                 ))}
+              </div>
+              <div className="border-t border-border px-6 py-2 text-center">
+                <Link href="/sessions" className="text-xs text-muted-foreground hover:text-foreground transition-colors">{t('dashboard.viewAll')} →</Link>
               </div>
             </CardContent>
           </Card>

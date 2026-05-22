@@ -27,6 +27,7 @@ const en: Dict = {
   'dashboard.lastActivity': 'Last activity: {time}',
   'dashboard.coldRules.count': '{count} rules',
   'dashboard.recentSessions': 'Recent Sessions',
+  'dashboard.viewAll': 'View all',
   'table.rules': 'Rules',
   'table.sessions': 'Sessions',
   'table.time': 'Time',
