@@ -168,7 +168,9 @@ export default function RuleDetailPage() {
               </p>
               <div className="flex flex-wrap gap-2">
                 {rule.keywords.map((kw) => (
-                  <Badge key={kw} variant="outline" className="border-indigo-500/30 text-indigo-300">{kw}</Badge>
+                  <Link key={kw} href={`/rules?search=${encodeURIComponent(kw)}`}>
+                    <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10 cursor-pointer transition-colors">{kw}</Badge>
+                  </Link>
                 ))}
               </div>
             </div>
