@@ -179,6 +179,12 @@ const zh = {
   'notFound.title': '页面未找到',
   'notFound.description': '您访问的页面不存在',
   'notFound.backDashboard': '返回仪表盘',
+
+  // Session
+  'session.title': '会话详情',
+  'session.sectionsHit': '命中章节',
+  'session.citations': '引用记录',
+  'session.confidence': '置信度',
 } as const;
 
 export default zh;

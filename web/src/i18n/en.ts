@@ -158,6 +158,12 @@ const en: Dict = {
   'notFound.title': 'Page not found',
   'notFound.description': 'The page you are looking for does not exist',
   'notFound.backDashboard': 'Back to Dashboard',
+
+  // Session
+  'session.title': 'Session Detail',
+  'session.sectionsHit': 'Sections Hit',
+  'session.citations': 'Citation Log',
+  'session.confidence': 'Confidence',
 };
 
 export default en;

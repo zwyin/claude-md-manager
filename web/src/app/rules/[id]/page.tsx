@@ -315,7 +315,9 @@ export default function RuleDetailPage() {
                         {c.model ? <Badge variant="secondary" className="text-[10px] font-mono">{c.model}</Badge> : <span className="text-muted-foreground">—</span>}
                       </TableCell>
                       <TableCell className="text-xs font-mono text-muted-foreground max-w-[200px] truncate" title={c.task_summary || undefined}>
-                        {c.session_id.replace('historical_', '')}
+                        <Link href={`/sessions/${encodeURIComponent(c.session_id)}`} className="hover:text-indigo-400 transition-colors">
+                          {c.session_id.replace('historical_', '')}
+                        </Link>
                       </TableCell>
                     </TableRow>
                   ))}
