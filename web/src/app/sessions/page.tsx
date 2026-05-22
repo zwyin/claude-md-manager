@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useFetch } from '@/hooks/use-fetch';
-import { PageLoader, PageError } from '@/components/page-states';
+import { PageLoader, PageError, SessionsSkeleton } from '@/components/page-states';
 
 interface SessionEntry {
   session_id: string;
@@ -89,7 +89,7 @@ export default function SessionsPage() {
     setOffset(0);
   }, [sortBy]);
 
-  if (loading && !data) return <PageLoader message={t('status.loading')} />;
+  if (loading && !data) return <SessionsSkeleton />;
   if (error) return <PageError message={t('status.error', { error })} />;
   if (!data) return null;
 
