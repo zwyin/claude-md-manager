@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { useDynamicPageTitle } from '@/hooks/use-page-title';
-import { PageLoader, PageError } from '@/components/page-states';
+import { PageLoader, PageError, SessionDetailSkeleton } from '@/components/page-states';
 import { relativeTime } from '@/lib/relative-time';
 import { SECTION_COLORS } from '@/lib/chart-colors';
 
@@ -42,7 +42,7 @@ export default function SessionDetailPage() {
   const url = sessionId ? `/api/sessions/${encodeURIComponent(sessionId)}` : null;
   const { data: resp, loading, error } = useFetch<SessionData>(url);
 
-  if (loading) return <PageLoader message={t('status.loading')} />;
+  if (loading) return <SessionDetailSkeleton />;
   if (error) return <PageError message={t('status.error', { error })} />;
   if (!resp) return null;
 

@@ -90,3 +90,43 @@ export function SessionsSkeleton() {
     </div>
   );
 }
+
+export function HistorySkeleton() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-4 w-64 mt-2" />
+      </div>
+      <div className="relative pl-8 space-y-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i}>
+            <Skeleton className="h-4 w-28 mb-3" />
+            <Skeleton className="h-16 rounded-xl ml-4" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function SessionDetailSkeleton() {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-5 w-48" />
+      <div className="rounded-xl border border-border p-6 space-y-4">
+        <div className="flex items-start justify-between">
+          <div>
+            <Skeleton className="h-5 w-32 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-5 w-12 rounded-full" />
+            <Skeleton className="h-5 w-16 rounded-full" />
+          </div>
+        </div>
+      </div>
+      <Skeleton className="h-[300px] rounded-xl" />
+    </div>
+  );
+}

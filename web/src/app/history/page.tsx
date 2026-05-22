@@ -12,7 +12,7 @@ import remarkGfm from 'remark-gfm';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useFetch } from '@/hooks/use-fetch';
-import { PageLoader, PageError } from '@/components/page-states';
+import { PageLoader, PageError, HistorySkeleton } from '@/components/page-states';
 import { toast } from 'sonner';
 import type { SnapshotInfo, DiffResult } from '@/lib/snapshots';
 
@@ -110,7 +110,7 @@ export default function HistoryPage() {
     }
   }, [t]);
 
-  if (loading) return <PageLoader message={t('status.loading')} />;
+  if (loading) return <HistorySkeleton />;
   if (error) return <PageError message={t('status.error', { error })} />;
 
   const formatTs = (ts: string) => ts.replace('T', ' ').replace(/(\d{2})-(\d{2})-(\d{2})$/, '$1:$2:$3');
