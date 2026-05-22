@@ -149,7 +149,6 @@ const zh = {
   'analytics.confidence.trigger': '触发方式',
   'analytics.confidence.clickExpand': '点击展开详情',
   'analytics.coldRules': '休眠规则',
-  'analytics.coldRules.days': '{days} 天未引用',
   'analytics.neverCited': '从未引用',
   'analytics.trend.day': '按天',
   'analytics.trend.week': '按周',

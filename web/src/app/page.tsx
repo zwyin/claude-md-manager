@@ -58,7 +58,7 @@ export default function DashboardPage() {
   if (!data) return null;
 
   const topRules = [...(data.rules || [])].sort((a, b) => b.match_count - a.match_count).slice(0, 10);
-  const coldRules = (data.rules || []).filter((r) => r.match_count === 0);
+  const coldRules = [...(data.rules || [])].sort((a, b) => a.match_count - b.match_count).slice(0, 10);
   const sections = data.sections || [];
   const totalCitations = data.total_citations ?? 0;
   const avgCoverage = data.avg_coverage ?? 0;
@@ -309,7 +309,7 @@ export default function DashboardPage() {
                       <Badge variant="secondary" className="text-[10px] shrink-0">{rule.section_id}</Badge>
                       <span className="text-sm truncate">{rule.title}</span>
                     </div>
-                    <Badge variant="destructive" className="text-xs">0 {t('table.matches')}</Badge>
+                    <Badge variant="outline" className="text-xs text-muted-foreground">{rule.match_count} {t('table.matches')}</Badge>
                   </Link>
                 ))}
               </div>

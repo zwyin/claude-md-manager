@@ -132,7 +132,6 @@ const en: Dict = {
   'analytics.confidence.trigger': 'Trigger',
   'analytics.confidence.clickExpand': 'Click to expand details',
   'analytics.coldRules': 'Cold Rules',
-  'analytics.coldRules.days': '{days} days since last citation',
   'analytics.neverCited': 'Never cited',
   'analytics.trend.day': 'Daily',
   'analytics.trend.week': 'Weekly',
