@@ -77,6 +77,8 @@ const en: Dict = {
   'editor.hidePreview': 'Hide Preview',
   'editor.rules': 'Rules',
   'editor.draft': 'Draft',
+  'editor.words': 'words',
+  'editor.lines': 'lines',
   'history.title': 'Version History',
   'history.subtitle': 'Rule metadata grouped by update date and source file',
   'history.noSnapshots': 'No history snapshots available',

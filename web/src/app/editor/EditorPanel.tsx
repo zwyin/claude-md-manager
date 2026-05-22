@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { markdown } from "@codemirror/lang-markdown";
@@ -28,6 +29,13 @@ export function EditorPanel({
   onDiscardDraft,
 }: EditorPanelProps) {
   const { t } = useI18n();
+
+  const stats = useMemo(() => {
+    const chars = markdownBody.length;
+    const lines = markdownBody ? markdownBody.split('\n').length : 0;
+    const words = markdownBody.trim() ? markdownBody.trim().split(/\s+/).length : 0;
+    return { chars, lines, words };
+  }, [markdownBody]);
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
@@ -65,8 +73,9 @@ export function EditorPanel({
           </div>
         </div>
         <div className="flex-1 flex flex-col border border-border rounded-lg overflow-hidden min-h-0">
-          <div className="shrink-0 px-2 py-1 text-[10px] font-semibold text-muted-foreground bg-muted/50 border-b border-border">
-            {t('editor.markdownBody')}
+          <div className="shrink-0 px-2 py-1 text-[10px] font-semibold text-muted-foreground bg-muted/50 border-b border-border flex items-center justify-between">
+            <span>{t('editor.markdownBody')}</span>
+            <span className="font-normal opacity-60">{stats.words} {t('editor.words')} · {stats.lines} {t('editor.lines')}</span>
           </div>
           <div className="flex-1 min-h-0">
             <CodeMirror

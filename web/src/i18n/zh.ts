@@ -90,6 +90,8 @@ const zh = {
   'editor.hidePreview': '隐藏预览',
   'editor.rules': '规则列表',
   'editor.draft': '有草稿',
+  'editor.words': '字',
+  'editor.lines': '行',
 
   // History
   'history.title': '版本历史',
