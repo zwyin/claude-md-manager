@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { RuleFile } from "./types";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import type { RuleFile, PublishEvent } from "./types";
 import { EditorLayout } from "./EditorLayout";
 import { RuleListPanel } from "./RuleListPanel";
 import { EditorPanel } from "./EditorPanel";
@@ -22,7 +25,9 @@ export default function EditorPage() {
   const [hasDraft, setHasDraft] = useState(false);
   const [showPublish, setShowPublish] = useState(false);
   const [publishing, setPublishing] = useState(false);
-  const { t } = useI18n();
+  const [publishHistory, setPublishHistory] = useState<PublishEvent[]>([]);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const { t, locale } = useI18n();
   usePageTitle('editor.title');
   const initialLoadDone = useRef(false);
   const prevSelectedId = useRef<string | null>(null);
@@ -42,6 +47,7 @@ export default function EditorPage() {
       .then((data) => {
         setRules(data.rules);
         setLoaded(true);
+        fetchPublishHistory();
         if (!initialLoadDone.current && data.rules.length > 0) {
           setSelectedId(data.rules[0].rule_id);
         }
@@ -176,6 +182,13 @@ export default function EditorPage() {
     }
   }, [t]);
 
+  const fetchPublishHistory = useCallback(() => {
+    fetch("/api/editor/publish-history")
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data.history)) setPublishHistory(data.history); })
+      .catch(() => {});
+  }, []);
+
   const draftCount = rules.filter((r) => r.has_draft).length;
 
   if (!loaded) return <PageLoader message={t('status.loading')} />;
@@ -239,6 +252,41 @@ export default function EditorPage() {
           ),
         }}
       </EditorLayout>
+
+      {publishHistory.length > 0 && (
+        <Collapsible open={historyOpen} onOpenChange={setHistoryOpen} className="mt-4">
+          <Card className="rounded-xl border-border">
+            <CollapsibleTrigger className="w-full flex items-center justify-between px-6 py-3 hover:bg-accent/50 transition-colors text-left">
+              <div className="flex items-center gap-3">
+                <svg className={`w-4 h-4 text-muted-foreground transition-transform ${historyOpen ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+                <span className="text-sm font-semibold">{t('editor.publishHistory')}</span>
+              </div>
+              <Badge variant="outline" className="text-xs">{publishHistory.length}</Badge>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="border-t border-border divide-y divide-border">
+                {publishHistory.map((ev) => (
+                  <div key={ev.id} className="flex items-center justify-between px-6 py-2.5">
+                    <div className="flex items-center gap-3">
+                      <Badge variant={ev.status === 'success' ? 'default' : 'destructive'} className="text-[10px]">
+                        {ev.status}
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {new Date(ev.published_at).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{t('editor.published', { count: ev.rules_changed })}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
 
       {showPublish && (
         <PublishDialog

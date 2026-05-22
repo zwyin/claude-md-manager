@@ -75,6 +75,7 @@ const zh = {
   'editor.publish': '发布',
   'editor.cancel': '取消',
   'editor.published': '成功发布 {count} 条规则。',
+  'editor.publishHistory': '发布历史',
   'editor.publishFailed': '发布失败：{error}',
   'editor.draftSaved': '草稿已保存',
   'editor.draftSaveFailed': '草稿保存失败',

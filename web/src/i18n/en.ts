@@ -62,6 +62,7 @@ const en: Dict = {
   'editor.publish': 'Publish',
   'editor.cancel': 'Cancel',
   'editor.published': 'Published {count} rules successfully.',
+  'editor.publishHistory': 'Publish History',
   'editor.publishFailed': 'Publish failed: {error}',
   'editor.draftSaved': 'Draft saved',
   'editor.draftSaveFailed': 'Failed to save draft',
