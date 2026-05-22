@@ -83,6 +83,8 @@ const en: Dict = {
   'editor.showPreview': 'Show Preview',
   'editor.hidePreview': 'Hide Preview',
   'editor.rules': 'Rules',
+  'editor.showRules': 'Show Rules',
+  'editor.hideRules': 'Hide Rules',
   'editor.draft': 'Draft',
   'editor.words': 'words',
   'editor.lines': 'lines',

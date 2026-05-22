@@ -43,7 +43,7 @@ export function EditorLayout({ children }: EditorLayoutProps) {
             onClick={() => setListOpen((v) => !v)}
             className="text-xs h-7 px-2 sm:hidden"
           >
-            {listOpen ? t('editor.hidePreview') : t('editor.showPreview')}
+            {listOpen ? t('editor.hideRules') : t('editor.showRules')}
           </Button>
           <div className="flex-1" />
           <Button

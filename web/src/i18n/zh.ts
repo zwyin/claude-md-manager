@@ -96,6 +96,8 @@ const zh = {
   'editor.showPreview': '显示预览',
   'editor.hidePreview': '隐藏预览',
   'editor.rules': '规则列表',
+  'editor.showRules': '展开规则',
+  'editor.hideRules': '收起规则',
   'editor.draft': '有草稿',
   'editor.words': '字',
   'editor.lines': '行',
