@@ -251,7 +251,7 @@ export default function RuleDetailPage() {
                       <TableCell className="text-xs">
                         {c.model ? <Badge variant="secondary" className="text-[10px] font-mono">{c.model}</Badge> : <span className="text-muted-foreground">—</span>}
                       </TableCell>
-                      <TableCell className="text-xs font-mono text-muted-foreground max-w-[200px] truncate">
+                      <TableCell className="text-xs font-mono text-muted-foreground max-w-[200px] truncate" title={c.task_summary || undefined}>
                         {c.session_id.replace('historical_', '')}
                       </TableCell>
                     </TableRow>
