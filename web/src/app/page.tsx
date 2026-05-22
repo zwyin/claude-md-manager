@@ -48,14 +48,14 @@ export default function DashboardPage() {
   const avgDepth = data.avg_depth ?? 0;
 
   const sectionChartData = sections.map((s) => ({
-    name: s.title.length > 16 ? s.title.slice(0, 16) + '...' : s.title,
+    name: s.title.length > 12 ? s.title.slice(0, 12) + '…' : s.title,
     fullName: s.title,
     citations: s.total_citations,
     section_id: s.section_id,
   }));
 
   const topRulesChartData = topRules.map((r) => ({
-    name: r.title.length > 20 ? r.title.slice(0, 20) + '...' : r.title,
+    name: r.title.length > 20 ? r.title.slice(0, 20) + '…' : r.title,
     fullName: r.title,
     citations: r.match_count,
     coverage: `${(r.session_coverage * 100).toFixed(0)}%`,
@@ -151,9 +151,9 @@ export default function DashboardPage() {
         <CardContent>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={sectionChartData} layout="vertical" margin={{ left: 20, right: 20 }}>
+              <BarChart data={sectionChartData} layout="vertical" margin={{ left: 10, right: 20 }}>
                 <XAxis type="number" hide />
-                <YAxis type="category" dataKey="name" width={140} tick={{ fill: chartTheme.mutedForeground, fontSize: 12 }} />
+                <YAxis type="category" dataKey="name" width={160} tick={{ fill: '#d4d4d8', fontSize: 12 }} />
                 <RechartsTooltip
                   {...tooltipStyle}
                   formatter={(value, _name, props) => [value, (props as { payload: { fullName: string } }).payload.fullName]}
@@ -176,9 +176,9 @@ export default function DashboardPage() {
         <CardContent>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topRulesChartData} layout="vertical" margin={{ left: 20, right: 20 }}>
+              <BarChart data={topRulesChartData} layout="vertical" margin={{ left: 10, right: 20 }}>
                 <XAxis type="number" hide />
-                <YAxis type="category" dataKey="name" width={160} tick={{ fill: chartTheme.mutedForeground, fontSize: 12 }} />
+                <YAxis type="category" dataKey="name" width={180} tick={{ fill: '#d4d4d8', fontSize: 12 }} />
                 <RechartsTooltip
                   {...tooltipStyle}
                   formatter={(value, _name, props) => {

@@ -129,7 +129,7 @@ export default function AnalyticsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={topRulesData} layout="vertical" margin={{ left: 20, right: 20 }}>
                   <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="name" width={120} tick={{ fill: chartTheme.mutedForeground, fontSize: 12 }} />
+                  <YAxis type="category" dataKey="name" width={140} tick={{ fill: chartTheme.mutedForeground, fontSize: 12 }} />
                   <RechartsTooltip {...tooltipStyle} formatter={(value, _name, props) => {
                     const p = (props as { payload: { fullName: string; coverage: string; depth: string } }).payload;
                     return [`${value} ${t('table.matches')} · ${p.coverage} ${t('metric.coverage')} · ${p.depth} ${t('metric.depth')}`, p.fullName];

@@ -10,7 +10,7 @@ export function useChartTheme() {
     card: '#18181b',
     border: '#27272a',
     foreground: '#fafafa',
-    mutedForeground: '#d4d4d8',
+    mutedForeground: '#a1a1aa',
   });
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export function useChartTheme() {
         card: getVar('--card') || '#18181b',
         border: getVar('--border') || '#27272a',
         foreground: getVar('--foreground') || '#fafafa',
-        mutedForeground: getVar('--muted-foreground') || '#d4d4d8',
+        mutedForeground: getVar('--muted-foreground') || '#a1a1aa',
       });
     });
     return () => cancelAnimationFrame(frame);
