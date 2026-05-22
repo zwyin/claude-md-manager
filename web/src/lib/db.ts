@@ -380,25 +380,21 @@ export function getAnalytics(days?: number, db?: Database.Database): Omit<Analyt
       avg_depth: r.session_count > 0 ? r.citation_count / r.session_count : 0,
     }));
 
-    const havingClause = days
-      ? `HAVING MAX(r.timestamp) IS NULL OR MAX(r.timestamp) < datetime('now', ? || ' days')`
-      : 'HAVING MAX(r.timestamp) IS NULL';
-    const coldParams = days ? [`-${days}`] : [];
-
     const coldRules = conn
       .prepare(
         `
         SELECT m.rule_id, m.title, m.section_id,
-               CAST(julianday('now') - julianday(MAX(r.timestamp)) AS INTEGER) AS days_since_last_citation
+               COUNT(r.id) AS citation_count,
+               COUNT(DISTINCT r.session_id) AS session_count,
+               MAX(r.timestamp) AS last_cited
         FROM rules_metadata m
-        LEFT JOIN rule_references r ON r.rule_id = m.rule_id
+        LEFT JOIN rule_references r ON r.rule_id = m.rule_id ${joinFilter}
         GROUP BY m.rule_id
-        ${havingClause}
-        ORDER BY days_since_last_citation DESC
+        ORDER BY citation_count ASC, m.rule_id
         LIMIT 20
         `
       )
-      .bind(...coldParams)
+      .bind(...joinParams)
       .all() as ColdRule[];
 
     const categoryDistribution = conn

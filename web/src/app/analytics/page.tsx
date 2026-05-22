@@ -337,11 +337,11 @@ export default function AnalyticsPage() {
                     >{rule.section_id}</Badge>
                     <span className="text-sm truncate">{rule.title}</span>
                   </div>
-                  <Badge variant="destructive" className="text-xs shrink-0">
-                    {rule.days_since_last_citation !== null
-                      ? t('analytics.coldRules.days', { days: rule.days_since_last_citation })
+                  <span className="text-xs text-muted-foreground shrink-0 font-mono">
+                    {rule.citation_count > 0
+                      ? `${rule.citation_count} ${t('table.matches')}`
                       : t('analytics.neverCited')}
-                  </Badge>
+                  </span>
                 </Link>
               ))}
             </div>

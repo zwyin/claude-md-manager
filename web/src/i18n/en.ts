@@ -141,8 +141,8 @@ const en: Dict = {
   'term.citation.desc': 'A match record generated when a rule is triggered in a Claude session',
   'term.activeRate': 'Active Rate',
   'term.activeRate.desc': 'Percentage of rules cited at least once out of total rules',
-  'term.coldRule': 'Cold Rule',
-  'term.coldRule.desc': 'Rules never cited — candidates for optimization or removal',
+  'term.coldRule': 'Least Active Rules',
+  'term.coldRule.desc': 'Rules with the fewest citations — may need keyword optimization or merging',
   'term.keywords': 'Keywords',
   'term.keywords.desc': 'Trigger words configured for a rule, auto-cited when appearing in Claude sessions',
 

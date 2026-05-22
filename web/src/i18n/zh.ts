@@ -160,8 +160,8 @@ const zh = {
   'term.citation.desc': 'Claude 会话中触发该规则时产生的一条匹配记录',
   'term.activeRate': '规则活跃率',
   'term.activeRate.desc': '至少被引用过一次的规则占总规则数的百分比',
-  'term.coldRule': '休眠规则',
-  'term.coldRule.desc': '从未被引用过的规则，可能需要优化或移除',
+  'term.coldRule': '低活跃规则',
+  'term.coldRule.desc': '引用次数最少的规则，可能需要优化关键词或合并',
   'term.keywords': '关键词',
   'term.keywords.desc': '规则配置的触发词，Claude 会话中出现时自动引用该规则',
 
