@@ -21,6 +21,8 @@ const en: Dict = {
   'dashboard.topRules': 'Top 10 Rules',
   'dashboard.recentCitations': 'Recent Citations',
   'dashboard.recentBuilds': 'Recent Builds',
+  'dashboard.buildStatus.success': 'Success',
+  'dashboard.buildStatus.failed': 'Failed',
   'dashboard.lastActivity': 'Last activity: {time}',
   'dashboard.coldRules.count': '{count} rules',
   'table.rules': 'Rules',

@@ -26,6 +26,8 @@ const zh = {
   'dashboard.topRules': '热门规则 Top 10',
   'dashboard.recentCitations': '最近引用',
   'dashboard.recentBuilds': '最近构建',
+  'dashboard.buildStatus.success': '成功',
+  'dashboard.buildStatus.failed': '失败',
   'dashboard.lastActivity': '最近活动：{time}',
   'dashboard.coldRules.count': '{count} 条规则',
 

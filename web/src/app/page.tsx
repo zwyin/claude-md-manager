@@ -270,7 +270,7 @@ export default function DashboardPage() {
                   className="flex items-center justify-between px-6 py-2.5 hover:bg-accent/30 transition-colors">
                   <div className="flex items-center gap-3">
                     <Badge variant={build.status === 'success' ? 'default' : 'destructive'} className="text-[10px]">
-                      {build.status}
+                      {build.status === 'success' ? t('dashboard.buildStatus.success') : t('dashboard.buildStatus.failed')}
                     </Badge>
                     <span className="text-sm text-muted-foreground">
                       {build.rules_changed} {t('table.rules').toLowerCase()}
