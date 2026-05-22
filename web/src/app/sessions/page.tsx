@@ -29,6 +29,20 @@ interface SessionsData {
 
 const PAGE_SIZE = 50;
 
+function formatDuration(start: string | null, end: string | null): string | null {
+  if (!start || !end) return null;
+  const ms = new Date(end).getTime() - new Date(start).getTime();
+  if (ms < 0) return null;
+  const sec = Math.floor(ms / 1000);
+  if (sec < 60) return `${sec}s`;
+  const min = Math.floor(sec / 60);
+  const remSec = sec % 60;
+  if (min < 60) return `${min}m${remSec > 0 ? `${remSec}s` : ''}`;
+  const hr = Math.floor(min / 60);
+  const remMin = min % 60;
+  return `${hr}h${remMin > 0 ? `${remMin}m` : ''}`;
+}
+
 export default function SessionsPage() {
   const [offset, setOffset] = useState(0);
   const { t, locale } = useI18n();
@@ -83,6 +97,11 @@ export default function SessionsPage() {
                           <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                             {s.model}
                           </Badge>
+                        )}
+                        {formatDuration(s.started_at, s.ended_at) && (
+                          <span className="text-[10px] text-muted-foreground">
+                            {formatDuration(s.started_at, s.ended_at)}
+                          </span>
                         )}
                       </div>
                     </div>
