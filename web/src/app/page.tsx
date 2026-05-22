@@ -245,76 +245,78 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {data.recent_citations && data.recent_citations.length > 0 && (
-        <Card className="rounded-xl border-border bg-card">
-          <CardHeader>
-            <CardTitle className="text-base">{t('dashboard.recentCitations')}</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-border">
-              {data.recent_citations.slice(0, 15).map((c, i) => (
-                <div key={`${c.rule_id}-${c.timestamp}-${i}`}
-                  className="flex items-center justify-between px-6 py-2.5 hover:bg-accent/30 transition-colors">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px] shrink-0">{c.matched_keyword}</Badge>
-                    <Link href={`/rules/${c.rule_id}`} className="text-sm truncate hover:text-indigo-400 transition-colors">{c.title}</Link>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {data.recent_citations && data.recent_citations.length > 0 && (
+          <Card className="rounded-xl border-border bg-card">
+            <CardHeader>
+              <CardTitle className="text-base">{t('dashboard.recentCitations')}</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-border">
+                {data.recent_citations.slice(0, 15).map((c, i) => (
+                  <div key={`${c.rule_id}-${c.timestamp}-${i}`}
+                    className="flex items-center justify-between px-6 py-2.5 hover:bg-accent/30 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px] shrink-0">{c.matched_keyword}</Badge>
+                      <Link href={`/rules/${c.rule_id}`} className="text-sm truncate hover:text-indigo-400 transition-colors">{c.title}</Link>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 ml-3">
+                      <Link href={`/sessions/${encodeURIComponent(c.session_id)}`} className="text-[10px] font-mono text-muted-foreground hover:text-foreground transition-colors" title={c.session_id}>
+                        {c.session_id.slice(0, 6)}
+                      </Link>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap" title={new Date(c.timestamp).toLocaleString(locale)}>
+                        {relativeTime(c.timestamp, locale)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0 ml-3">
-                    <Link href={`/sessions/${encodeURIComponent(c.session_id)}`} className="text-[10px] font-mono text-muted-foreground hover:text-foreground transition-colors" title={c.session_id}>
-                      {c.session_id.slice(0, 6)}
-                    </Link>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap" title={new Date(c.timestamp).toLocaleString(locale)}>
-                      {relativeTime(c.timestamp, locale)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-      {recentSessions.length > 0 && (
-        <Card className="rounded-xl border-border bg-card">
-          <CardHeader>
-            <CardTitle className="text-base">{t('dashboard.recentSessions')}</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-border">
-              {recentSessions.map((s) => (
-                <Link
-                  key={s.session_id}
-                  href={`/sessions/${encodeURIComponent(s.session_id)}`}
-                  className="flex items-center justify-between px-6 py-2.5 hover:bg-accent/30 transition-colors"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-xs font-mono text-muted-foreground shrink-0">
-                      {s.session_id.slice(0, 8)}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {s.started_at
-                        ? new Date(s.started_at).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
-                        : '—'}
-                    </span>
-                    {s.started_at && s.ended_at && (() => {
-                      const ms = new Date(s.ended_at).getTime() - new Date(s.started_at).getTime();
-                      if (ms <= 0) return null;
-                      const sec = Math.floor(ms / 1000);
-                      const dur = sec < 60 ? `${sec}s` : sec < 3600 ? `${Math.floor(sec / 60)}m` : `${Math.floor(sec / 3600)}h`;
-                      return <span className="text-[10px] text-muted-foreground font-mono">{dur}</span>;
-                    })()}
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {s.citation_count > 0 && (
-                      <Badge variant="secondary" className="text-[10px]">{s.citation_count}</Badge>
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        {recentSessions.length > 0 && (
+          <Card className="rounded-xl border-border bg-card">
+            <CardHeader>
+              <CardTitle className="text-base">{t('dashboard.recentSessions')}</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-border">
+                {recentSessions.map((s) => (
+                  <Link
+                    key={s.session_id}
+                    href={`/sessions/${encodeURIComponent(s.session_id)}`}
+                    className="flex items-center justify-between px-6 py-2.5 hover:bg-accent/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-xs font-mono text-muted-foreground shrink-0">
+                        {s.session_id.slice(0, 8)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {s.started_at
+                          ? new Date(s.started_at).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+                          : '—'}
+                      </span>
+                      {s.started_at && s.ended_at && (() => {
+                        const ms = new Date(s.ended_at).getTime() - new Date(s.started_at).getTime();
+                        if (ms <= 0) return null;
+                        const sec = Math.floor(ms / 1000);
+                        const dur = sec < 60 ? `${sec}s` : sec < 3600 ? `${Math.floor(sec / 60)}m` : `${Math.floor(sec / 3600)}h`;
+                        return <span className="text-[10px] text-muted-foreground font-mono">{dur}</span>;
+                      })()}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {s.citation_count > 0 && (
+                        <Badge variant="secondary" className="text-[10px]">{s.citation_count}</Badge>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       {data.recent_builds && data.recent_builds.length > 0 && (
         <Card className="rounded-xl border-border bg-card">
