@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -8,6 +8,7 @@ import { TopBar } from "@/components/top-bar";
 import { I18nProvider } from "@/i18n";
 import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { RoutedErrorBoundary } from "@/components/routed-error-boundary";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   description: "CLAUDE.md Rule Management Dashboard / 规则管理面板",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -35,9 +36,9 @@ export default function RootLayout({
                 <TopBar />
                 <main className="flex-1 overflow-y-auto p-6">
                   <div className="max-w-[1400px] mx-auto">
-                    <ErrorBoundary>
+                    <RoutedErrorBoundary>
                       {children}
-                    </ErrorBoundary>
+                    </RoutedErrorBoundary>
                   </div>
                 </main>
               </SidebarInset>
