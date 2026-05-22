@@ -85,7 +85,19 @@ export default function RuleDetailPage() {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-mono text-muted-foreground mb-1">{rule.rule_id}</p>
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-xs font-mono text-muted-foreground">{rule.rule_id}</p>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(rule.rule_id); }}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={t('ruleDetail.copyId')}
+                  title={t('ruleDetail.copyId')}
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
               <CardTitle className="text-xl">{rule.title}</CardTitle>
               <p className="text-sm text-muted-foreground mt-2 space-x-2">
                 <span>{t('ruleDetail.section')}:

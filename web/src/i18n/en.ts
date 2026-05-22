@@ -42,6 +42,7 @@ const en: Dict = {
   'ruleDetail.lastCited': 'Last cited',
   'ruleDetail.sameSection': 'Same Section',
   'ruleDetail.model': 'Model',
+  'ruleDetail.copyId': 'Copy rule ID',
   'ruleDetail.noCitations': 'No citation data available',
   'ruleDetail.showing': 'Showing {shown} / {total}',
   'ruleDetail.loadMore': 'Load More',

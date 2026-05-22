@@ -53,6 +53,7 @@ const zh = {
   'ruleDetail.lastCited': '最后引用',
   'ruleDetail.sameSection': '同章节规则',
   'ruleDetail.model': '模型',
+  'ruleDetail.copyId': '复制规则 ID',
   'ruleDetail.noCitations': '暂无引用数据',
   'ruleDetail.showing': '显示 {shown} / {total} 条',
   'ruleDetail.loadMore': '加载更多',
