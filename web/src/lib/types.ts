@@ -137,6 +137,7 @@ export interface RecentCitation {
   matched_keyword: string;
   timestamp: string;
   session_id: string;
+  model: string | null;
 }
 
 export interface SiblingRule {

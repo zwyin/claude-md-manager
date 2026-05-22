@@ -268,6 +268,7 @@ export default function DashboardPage() {
                       <Link href={`/sessions/${encodeURIComponent(c.session_id)}`} className="text-[10px] font-mono text-muted-foreground hover:text-foreground transition-colors" title={c.session_id}>
                         {c.session_id.slice(0, 6)}
                       </Link>
+                      {c.model && <Badge variant="secondary" className="text-[10px] font-mono px-1 py-0">{c.model}</Badge>}
                       <span className="text-xs text-muted-foreground whitespace-nowrap" title={new Date(c.timestamp).toLocaleString(locale)}>
                         {relativeTime(c.timestamp, locale)}
                       </span>
