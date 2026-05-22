@@ -34,8 +34,8 @@ export async function GET(request: NextRequest) {
         ? activeRules.reduce((s, r) => s + r.avg_depth, 0) / activeRules.length
         : 0;
 
-      const citation_trend = getCitations({ group_by: 'day' }, db);
-      const recent_citations = getRecentCitations(20, db);
+      const citation_trend = getCitations({ days, group_by: 'day' }, db);
+      const recent_citations = getRecentCitations(20, days, db);
 
       const recent_builds = db.prepare(
         "SELECT id, published_at, rules_changed, status FROM publish_history ORDER BY published_at DESC LIMIT 5"

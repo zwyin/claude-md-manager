@@ -470,19 +470,22 @@ export interface RecentCitation {
   session_id: string;
 }
 
-export function getRecentCitations(limit: number, db?: Database.Database): RecentCitation[] {
+export function getRecentCitations(limit: number, days?: number, db?: Database.Database): RecentCitation[] {
   const own = !db;
   const conn = db || getDb();
   try {
+    const timeFilter = days ? `AND r.timestamp >= datetime('now', ? || ' days')` : '';
+    const params = days ? [`-${days}`, limit] : [limit];
     return conn
       .prepare(
         `SELECT r.rule_id, m.title, r.matched_keyword, r.timestamp, r.session_id
          FROM rule_references r
          JOIN rules_metadata m ON m.rule_id = r.rule_id
+         WHERE 1=1 ${timeFilter}
          ORDER BY r.timestamp DESC
          LIMIT ?`
       )
-      .all(limit) as RecentCitation[];
+      .bind(...params).all() as RecentCitation[];
   } finally {
     if (own) conn.close();
   }
