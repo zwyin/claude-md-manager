@@ -17,7 +17,7 @@ import { useChartTheme } from '@/hooks/use-chart-theme';
 import { STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 import { relativeTime } from '@/lib/relative-time';
 import { DetailMetricBar, DepthGauge } from '@/components/metric-visualizations';
-import { PageLoader, PageError } from '@/components/page-states';
+import { PageLoader, PageError, RuleDetailSkeleton } from '@/components/page-states';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { useDynamicPageTitle } from '@/hooks/use-page-title';
@@ -63,7 +63,7 @@ export default function RuleDetailPage() {
       .map(([period, count]) => ({ period, count }));
   }, [resp?.citations, trendRange]);
 
-  if (loading && !resp) return <PageLoader message={t('status.loading')} />;
+  if (loading && !resp) return <RuleDetailSkeleton />;
   if (error) return (
     <div className="space-y-4">
       <Link href="/rules" className="text-sm text-indigo-400 hover:underline">&larr; {t('ruleDetail.backTo', { section: t('rules.title') })}</Link>
