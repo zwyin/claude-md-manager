@@ -20,6 +20,15 @@ import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 import { relativeTime } from '@/lib/relative-time';
 import type { RuleWithStats, SectionWithStats, CitationTimePoint, RecentCitation } from '@/lib/types';
 
+interface SessionEntry {
+  session_id: string;
+  started_at: string | null;
+  ended_at: string | null;
+  model: string | null;
+  citation_count: number;
+  rule_count: number;
+}
+
 interface BuildEvent {
   id: number;
   published_at: string;
@@ -52,6 +61,8 @@ export default function DashboardPage() {
   }, [timeRange]);
 
   const { data, loading, error } = useFetch<DashboardData>(url);
+  const { data: sessionsData } = useFetch<{ sessions: SessionEntry[] }>('/api/sessions?limit=8');
+  const recentSessions = sessionsData?.sessions ?? [];
 
   if (loading && !data) return <DashboardSkeleton />;
   if (error) return <PageError message={t('status.error', { error })} />;
@@ -257,6 +268,48 @@ export default function DashboardPage() {
                     </span>
                   </div>
                 </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {recentSessions.length > 0 && (
+        <Card className="rounded-xl border-border bg-card">
+          <CardHeader>
+            <CardTitle className="text-base">{t('dashboard.recentSessions')}</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-border">
+              {recentSessions.map((s) => (
+                <Link
+                  key={s.session_id}
+                  href={`/sessions/${encodeURIComponent(s.session_id)}`}
+                  className="flex items-center justify-between px-6 py-2.5 hover:bg-accent/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-xs font-mono text-muted-foreground shrink-0">
+                      {s.session_id.slice(0, 8)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {s.started_at
+                        ? new Date(s.started_at).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+                        : '—'}
+                    </span>
+                    {s.started_at && s.ended_at && (() => {
+                      const ms = new Date(s.ended_at).getTime() - new Date(s.started_at).getTime();
+                      if (ms <= 0) return null;
+                      const sec = Math.floor(ms / 1000);
+                      const dur = sec < 60 ? `${sec}s` : sec < 3600 ? `${Math.floor(sec / 60)}m` : `${Math.floor(sec / 3600)}h`;
+                      return <span className="text-[10px] text-muted-foreground font-mono">{dur}</span>;
+                    })()}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {s.citation_count > 0 && (
+                      <Badge variant="secondary" className="text-[10px]">{s.citation_count}</Badge>
+                    )}
+                  </div>
+                </Link>
               ))}
             </div>
           </CardContent>

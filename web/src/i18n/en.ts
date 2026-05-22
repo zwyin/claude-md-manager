@@ -26,6 +26,7 @@ const en: Dict = {
   'dashboard.buildStatus.failed': 'Failed',
   'dashboard.lastActivity': 'Last activity: {time}',
   'dashboard.coldRules.count': '{count} rules',
+  'dashboard.recentSessions': 'Recent Sessions',
   'table.rules': 'Rules',
   'table.sessions': 'Sessions',
   'table.time': 'Time',
