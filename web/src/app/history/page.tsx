@@ -180,6 +180,13 @@ export default function HistoryPage() {
                         <Badge variant="outline" className="text-xs font-mono text-muted-foreground">
                           {t('history.size', { size: s.size })}
                         </Badge>
+                        {s.diffStats && (
+                          <span className="text-xs font-mono">
+                            <span className="text-emerald-400">+{s.diffStats.added}</span>
+                            <span className="text-muted-foreground mx-0.5">/</span>
+                            <span className="text-rose-400">-{s.diffStats.removed}</span>
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <Button size="sm" variant="ghost" onClick={() => handleViewContent(s.filename)}>

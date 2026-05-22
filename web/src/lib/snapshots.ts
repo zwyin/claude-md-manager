@@ -22,6 +22,7 @@ export interface SnapshotInfo {
   filename: string;
   timestamp: string;
   size: number;
+  diffStats?: { added: number; removed: number };
 }
 
 export { type DiffLine };
@@ -35,16 +36,30 @@ export interface DiffResult {
 
 export function listSnapshotFiles(): SnapshotInfo[] {
   if (!fs.existsSync(HISTORY_DIR)) return [];
-  return fs
+  const files = fs
     .readdirSync(HISTORY_DIR)
     .filter((f) => f.endsWith('.md'))
     .sort()
-    .reverse()
-    .map((f) => ({
-      filename: f,
-      timestamp: f.replace('.md', ''),
-      size: fs.statSync(path.join(HISTORY_DIR, f)).size,
-    }));
+    .reverse();
+
+  const snapshots: SnapshotInfo[] = files.map((f) => ({
+    filename: f,
+    timestamp: f.replace('.md', ''),
+    size: fs.statSync(path.join(HISTORY_DIR, f)).size,
+  }));
+
+  // Compute diff stats against the next (older) snapshot
+  for (let i = 0; i < snapshots.length - 1; i++) {
+    const curr = fs.readFileSync(path.join(HISTORY_DIR, snapshots[i].filename), 'utf-8');
+    const prev = fs.readFileSync(path.join(HISTORY_DIR, snapshots[i + 1].filename), 'utf-8');
+    const lines = diffLines(prev.split('\n'), curr.split('\n'));
+    snapshots[i].diffStats = {
+      added: lines.filter((l) => l.type === 'added').length,
+      removed: lines.filter((l) => l.type === 'removed').length,
+    };
+  }
+
+  return snapshots;
 }
 
 export function getSnapshotContent(filename: string): string | null {

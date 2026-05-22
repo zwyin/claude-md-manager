@@ -113,6 +113,7 @@ const zh = {
   'history.selectSnapshot': '选择快照 {ts}',
   'history.close': '关闭',
   'history.snapshotCount': '{count} 个快照',
+  'history.diffSummary': '+{added} / -{removed} 行',
 
   // Analytics
   'analytics.title': '数据分析',
