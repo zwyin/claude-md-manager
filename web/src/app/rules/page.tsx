@@ -14,7 +14,7 @@ import { usePageTitle } from '@/hooks/use-page-title';
 import { SECTION_COLORS, STAT_COLORS } from '@/lib/chart-colors';
 import { TermTooltip } from '@/components/term-tooltip';
 import { MiniSparkline, MiniCoverageBar, MiniDepthBar, InlineMetricBar } from '@/components/metric-visualizations';
-import { PageLoader, PageError } from '@/components/page-states';
+import { PageLoader, PageError, RulesSkeleton } from '@/components/page-states';
 import type { RuleWithStats, SectionWithStats } from '@/lib/types';
 
 interface RulesData {
@@ -141,7 +141,7 @@ function RulesContent() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  if (loading && !data) return <PageLoader message={t('status.loading')} />;
+  if (loading && !data) return <RulesSkeleton />;
   if (error) return <PageError message={t('status.error', { error })} />;
   if (!data) return null;
 

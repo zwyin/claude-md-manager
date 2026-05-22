@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, AreaChart, Area } from 'recharts';
 import { StatCard } from '@/components/stat-card';
-import { PageLoader, PageError } from '@/components/page-states';
+import { PageLoader, PageError, DashboardSkeleton } from '@/components/page-states';
 import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
 import { useChartTheme } from '@/hooks/use-chart-theme';
@@ -36,7 +36,7 @@ export default function DashboardPage() {
   usePageTitle('dashboard.title');
   const tooltipStyle = useTooltipStyle();
 
-  if (loading && !data) return <PageLoader message={t('status.loading')} />;
+  if (loading && !data) return <DashboardSkeleton />;
   if (error) return <PageError message={t('status.error', { error })} />;
   if (!data) return null;
 
@@ -102,6 +102,7 @@ export default function DashboardPage() {
           value={totalCitations}
           color={STAT_COLORS.citations}
           href="/analytics"
+          trend={(data.citation_trend || []).map((p) => ({ date: p.period, count: p.count }))}
         />
         <StatCard
           label={<TermTooltip term={t('metric.coverage')} explanation={t('metric.coverage.desc')} />}
