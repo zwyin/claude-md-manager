@@ -14,7 +14,13 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
+import { useFetch } from "@/hooks/use-fetch";
+
+interface EditorRulesData {
+  rules: { rule_id: string; has_draft?: boolean }[];
+}
 
 const navItems = [
   { href: "/", labelKey: 'nav.dashboard' as const, Icon: Home },
@@ -27,6 +33,8 @@ const navItems = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { t } = useI18n();
+  const { data: editorData } = useFetch<EditorRulesData>('/api/editor/rules');
+  const draftCount = (editorData?.rules ?? []).filter((r) => r.has_draft).length;
 
   return (
     <Sidebar>
@@ -48,6 +56,9 @@ export function AppSidebar() {
                   >
                     <item.Icon className="w-4 h-4" />
                     <span>{t(item.labelKey)}</span>
+                    {item.href === '/editor' && draftCount > 0 && (
+                      <Badge variant="secondary" className="text-[10px] ml-auto px-1.5 py-0">{draftCount}</Badge>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
