@@ -398,6 +398,28 @@ class TestForceSnapshot:
         monkeypatch.setattr(mcp_lib, "HISTORY_DIR", tmp_path / "history")
         assert mcp_lib._force_snapshot() is None
 
+    def test_skips_identical_content(self, tmp_path, monkeypatch):
+        output = tmp_path / "CLAUDE.md"
+        output.write_text("# same content", encoding="utf-8")
+        history = tmp_path / "history"
+        history.mkdir()
+        (history / "2026-01-01T00-00-00.md").write_text("# same content", encoding="utf-8")
+        monkeypatch.setattr(mcp_lib, "OUTPUT_PATH", output)
+        monkeypatch.setattr(mcp_lib, "HISTORY_DIR", history)
+        assert mcp_lib._force_snapshot() is None
+
+    def test_creates_snapshot_when_content_differs(self, tmp_path, monkeypatch):
+        output = tmp_path / "CLAUDE.md"
+        output.write_text("# new content", encoding="utf-8")
+        history = tmp_path / "history"
+        history.mkdir()
+        (history / "2026-01-01T00-00-00.md").write_text("# old content", encoding="utf-8")
+        monkeypatch.setattr(mcp_lib, "OUTPUT_PATH", output)
+        monkeypatch.setattr(mcp_lib, "HISTORY_DIR", history)
+        name = mcp_lib._force_snapshot()
+        assert name is not None
+        assert (history / name).read_text(encoding="utf-8") == "# new content"
+
 
 class TestReadClaudeMd:
     def test_returns_content(self, tmp_path, monkeypatch):
