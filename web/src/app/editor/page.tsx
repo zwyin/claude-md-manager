@@ -53,6 +53,12 @@ function EditorContent() {
     return () => window.removeEventListener('beforeunload', handler);
   }, [dirty]);
 
+  useEffect(() => {
+    const orig = document.title;
+    if (dirty) document.title = `● ${orig}`;
+    return () => { if (document.title.startsWith('● ')) document.title = orig; };
+  }, [dirty]);
+
   const selectedRule = rules.find((r) => r.rule_id === selectedId) ?? null;
 
   useEffect(() => {
