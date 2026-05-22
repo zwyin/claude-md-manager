@@ -188,7 +188,7 @@ const en: Dict = {
   'pagination.next': 'Next',
 
   // Sessions filter
-  'session.searchPlaceholder': 'Search session ID...',
+  'session.searchPlaceholder': 'Search session ID or task...',
   'session.allTime': 'All',
   'session.sort.time': 'Time',
   'session.sort.citations': 'Citations',

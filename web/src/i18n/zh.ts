@@ -209,7 +209,7 @@ const zh = {
   'pagination.next': '下一页',
 
   // Sessions filter
-  'session.searchPlaceholder': '搜索会话 ID...',
+  'session.searchPlaceholder': '搜索会话 ID 或任务描述...',
   'session.allTime': '全部',
   'session.sort.time': '时间',
   'session.sort.citations': '匹配数',

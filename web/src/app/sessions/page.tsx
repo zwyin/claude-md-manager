@@ -68,7 +68,10 @@ export default function SessionsPage() {
     if (!data?.sessions) return [];
     if (!search.trim()) return data.sessions;
     const q = search.trim().toLowerCase();
-    return data.sessions.filter((s) => s.session_id.toLowerCase().includes(q));
+    return data.sessions.filter((s) =>
+      s.session_id.toLowerCase().includes(q) ||
+      (s.task_summary && s.task_summary.toLowerCase().includes(q))
+    );
   }, [data?.sessions, search]);
 
   const handleFilterChange = useCallback((newDays: number | null) => {
