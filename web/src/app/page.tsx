@@ -25,8 +25,10 @@ interface SessionEntry {
   started_at: string | null;
   ended_at: string | null;
   model: string | null;
+  task_summary: string | null;
   citation_count: number;
   rule_count: number;
+  duration_sec: number;
 }
 
 interface BuildEvent {
@@ -293,24 +295,27 @@ export default function DashboardPage() {
                     href={`/sessions/${encodeURIComponent(s.session_id)}`}
                     className="flex items-center justify-between px-6 py-2.5 hover:bg-accent/30 transition-colors"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="text-xs font-mono text-muted-foreground shrink-0">
-                        {s.session_id.slice(0, 8)}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {s.started_at
-                          ? new Date(s.started_at).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
-                          : '—'}
-                      </span>
-                      {s.started_at && s.ended_at && (() => {
-                        const ms = new Date(s.ended_at).getTime() - new Date(s.started_at).getTime();
-                        if (ms <= 0) return null;
-                        const sec = Math.floor(ms / 1000);
-                        const dur = sec < 60 ? `${sec}s` : sec < 3600 ? `${Math.floor(sec / 60)}m` : `${Math.floor(sec / 3600)}h`;
-                        return <span className="text-[10px] text-muted-foreground font-mono">{dur}</span>;
-                      })()}
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-mono text-muted-foreground shrink-0">
+                          {s.session_id.slice(0, 8)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {s.started_at
+                            ? new Date(s.started_at).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+                            : '—'}
+                        </span>
+                        {s.duration_sec > 0 && (() => {
+                          const sec = s.duration_sec;
+                          const dur = sec < 60 ? `${sec}s` : sec < 3600 ? `${Math.floor(sec / 60)}m` : `${Math.floor(sec / 3600)}h`;
+                          return <span className="text-[10px] text-muted-foreground font-mono">{dur}</span>;
+                        })()}
+                      </div>
+                      {s.task_summary && (
+                        <p className="text-xs text-muted-foreground/70 truncate mt-0.5">{s.task_summary}</p>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 ml-3">
                       {s.citation_count > 0 && (
                         <Badge variant="secondary" className="text-[10px]">{s.citation_count}</Badge>
                       )}
