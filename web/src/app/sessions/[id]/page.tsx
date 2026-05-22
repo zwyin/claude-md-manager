@@ -124,45 +124,72 @@ export default function SessionDetailPage() {
         </CardHeader>
         <CardContent className="p-0">
           {citations.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('table.time')}</TableHead>
-                  <TableHead>{t('rules.ruleName')}</TableHead>
-                  <TableHead>{t('table.keyword')}</TableHead>
-                  <TableHead>{t('session.confidence')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Mobile card layout */}
+              <div className="sm:hidden divide-y divide-border">
                 {citations.map((c, i) => (
-                  <TableRow key={`${c.rule_id}-${i}`}>
-                    <TableCell className="text-xs font-mono whitespace-nowrap">
-                      {relativeTime(c.timestamp, locale)}
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/rules/${c.rule_id}`} className="text-sm hover:text-indigo-400 transition-colors">
+                  <div key={`${c.rule_id}-${i}`} className="px-4 py-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Link href={`/rules/${c.rule_id}`} className="text-sm hover:text-indigo-400 transition-colors truncate">
                         {c.title}
                       </Link>
-                      <Badge
-                        variant="secondary"
-                        className="text-[10px] ml-2"
-                        style={{ backgroundColor: sectionColorMap[c.section_id] + '20', color: sectionColorMap[c.section_id] }}
-                      >
+                      <span className="text-[10px] text-muted-foreground font-mono shrink-0 ml-2">{relativeTime(c.timestamp, locale)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Badge variant="secondary" className="text-[10px]" style={{ backgroundColor: sectionColorMap[c.section_id] + '20', color: sectionColorMap[c.section_id] }}>
                         {c.section_id}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
                       <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px]">{c.matched_keyword}</Badge>
-                    </TableCell>
-                    <TableCell>
                       <Badge variant={c.confidence === 'high' ? 'default' : c.confidence === 'medium' ? 'secondary' : 'outline'} className="text-[10px]">
                         {c.confidence === 'high' ? t('analytics.confidence.high') : c.confidence === 'medium' ? t('analytics.confidence.medium') : t('analytics.confidence.low')}
                       </Badge>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+              {/* Desktop table layout */}
+              <div className="hidden sm:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('table.time')}</TableHead>
+                      <TableHead>{t('rules.ruleName')}</TableHead>
+                      <TableHead>{t('table.keyword')}</TableHead>
+                      <TableHead>{t('session.confidence')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {citations.map((c, i) => (
+                      <TableRow key={`${c.rule_id}-${i}`}>
+                        <TableCell className="text-xs font-mono whitespace-nowrap">
+                          {relativeTime(c.timestamp, locale)}
+                        </TableCell>
+                        <TableCell>
+                          <Link href={`/rules/${c.rule_id}`} className="text-sm hover:text-indigo-400 transition-colors">
+                            {c.title}
+                          </Link>
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] ml-2"
+                            style={{ backgroundColor: sectionColorMap[c.section_id] + '20', color: sectionColorMap[c.section_id] }}
+                          >
+                            {c.section_id}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px]">{c.matched_keyword}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={c.confidence === 'high' ? 'default' : c.confidence === 'medium' ? 'secondary' : 'outline'} className="text-[10px]">
+                            {c.confidence === 'high' ? t('analytics.confidence.high') : c.confidence === 'medium' ? t('analytics.confidence.medium') : t('analytics.confidence.low')}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           ) : (
             <div className="px-6 py-8 text-sm text-muted-foreground text-center">{t('ruleDetail.noCitations')}</div>
           )}
