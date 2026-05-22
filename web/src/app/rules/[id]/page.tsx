@@ -237,6 +237,7 @@ export default function RuleDetailPage() {
                   <TableRow>
                     <TableHead>{t('table.time')}</TableHead>
                     <TableHead>{t('table.keyword')}</TableHead>
+                    <TableHead>{t('ruleDetail.model')}</TableHead>
                     <TableHead>{t('table.sessionId')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -247,6 +248,9 @@ export default function RuleDetailPage() {
                         {new Date(c.timestamp).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                       </TableCell>
                       <TableCell><Badge variant="outline" className="border-indigo-500/30 text-indigo-300">{c.matched_keyword}</Badge></TableCell>
+                      <TableCell className="text-xs">
+                        {c.model ? <Badge variant="secondary" className="text-[10px] font-mono">{c.model}</Badge> : <span className="text-muted-foreground">—</span>}
+                      </TableCell>
                       <TableCell className="text-xs font-mono text-muted-foreground max-w-[200px] truncate">
                         {c.session_id.replace('historical_', '')}
                       </TableCell>

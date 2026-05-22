@@ -51,6 +51,7 @@ const zh = {
   'ruleDetail.source': '来源文件',
   'ruleDetail.lastCited': '最后引用',
   'ruleDetail.sameSection': '同章节规则',
+  'ruleDetail.model': '模型',
   'ruleDetail.noCitations': '暂无引用数据',
   'ruleDetail.showing': '显示 {shown} / {total} 条',
   'ruleDetail.loadMore': '加载更多',
@@ -82,6 +83,8 @@ const zh = {
   'editor.draftLoadFailed': '草稿加载失败',
   'editor.selectRule': '选择一条规则进行编辑',
   'editor.preview': '预览',
+  'editor.showPreview': '显示预览',
+  'editor.hidePreview': '隐藏预览',
   'editor.rules': '规则列表',
   'editor.draft': '有草稿',
 

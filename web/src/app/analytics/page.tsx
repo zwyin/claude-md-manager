@@ -103,7 +103,7 @@ export default function AnalyticsPage() {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="rounded-xl border-border bg-card">
           <CardHeader><CardTitle className="text-base">{t('analytics.topRules')}</CardTitle></CardHeader>
           <CardContent>
