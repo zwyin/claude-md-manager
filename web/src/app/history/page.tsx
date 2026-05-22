@@ -29,6 +29,16 @@ export default function HistoryPage() {
   const { t, locale } = useI18n();
   usePageTitle('history.title');
 
+  const grouped = useMemo(() => {
+    const groups: Record<string, SnapshotInfo[]> = {};
+    for (const s of snapshots) {
+      const date = s.timestamp.slice(0, 10);
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(s);
+    }
+    return groups;
+  }, [snapshots]);
+
   useEffect(() => {
     return () => clearTimeout(timerRef.current);
   }, []);
@@ -102,17 +112,6 @@ export default function HistoryPage() {
   if (error) return <PageError message={t('status.error', { error })} />;
 
   const formatTs = (ts: string) => ts.replace('T', ' ').replace(/(\d{2})-(\d{2})-(\d{2})$/, '$1:$2:$3');
-
-  // Group snapshots by date
-  const grouped = useMemo(() => {
-    const groups: Record<string, SnapshotInfo[]> = {};
-    for (const s of snapshots) {
-      const date = s.timestamp.slice(0, 10);
-      if (!groups[date]) groups[date] = [];
-      groups[date].push(s);
-    }
-    return groups;
-  }, [snapshots]);
 
   const formatDate = (date: string) => {
     const d = new Date(date + 'T00:00:00');
