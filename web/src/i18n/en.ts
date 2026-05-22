@@ -180,6 +180,10 @@ const en: Dict = {
   'session.noSessions': 'No sessions found',
   'session.ruleCount': '{count} rules',
   'session.refCount': '{count} refs',
+
+  // Pagination
+  'pagination.prev': 'Prev',
+  'pagination.next': 'Next',
 };
 
 export default en;

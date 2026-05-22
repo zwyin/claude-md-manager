@@ -135,7 +135,7 @@ export default function SessionsPage() {
             disabled={!hasPrev}
             onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
           >
-            ← Prev
+            ← {t('pagination.prev')}
           </Button>
           <span className="text-xs text-muted-foreground">
             {offset + 1}–{Math.min(offset + PAGE_SIZE, total)} / {total}
@@ -146,7 +146,7 @@ export default function SessionsPage() {
             disabled={!hasMore}
             onClick={() => setOffset(offset + PAGE_SIZE)}
           >
-            →
+            {t('pagination.next')} →
           </Button>
         </div>
       )}
