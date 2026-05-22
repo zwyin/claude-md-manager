@@ -13,6 +13,8 @@ import { EditorPanel } from "./EditorPanel";
 import { PreviewPanel } from "./PreviewPanel";
 import { PublishDialog } from "./PublishDialog";
 import { useI18n } from "@/i18n";
+import Link from "next/link";
+import { ChevronRight, Home } from "lucide-react";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { PageLoader } from "@/components/page-states";
 import { toast } from "sonner";
@@ -223,6 +225,12 @@ function EditorContent() {
 
   return (
     <div>
+      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-4">
+        <Link href="/" className="hover:text-foreground transition-colors"><Home className="w-3.5 h-3.5" /></Link>
+        <ChevronRight className="w-3 h-3" />
+        <span className="text-foreground">{t('editor.title')}</span>
+      </nav>
+
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-bold">{t('editor.title')}</h1>
