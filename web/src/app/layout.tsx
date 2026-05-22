@@ -15,7 +15,7 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: {
-    default: "CLAUDE.md Manager",
+    default: "CLAUDE.md Manager v0.2.0",
     template: "%s | CLAUDE.md Manager",
   },
   description: "CLAUDE.md Rule Management Dashboard / 规则管理面板",

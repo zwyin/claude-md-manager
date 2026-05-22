@@ -3,7 +3,7 @@ import type { Dict } from './zh';
 const en: Dict = {
   'app.title': 'CLAUDE.md',
   'app.subtitle': 'Rule Management Dashboard',
-  'app.version': 'v0.1.0',
+  'app.version': 'v0.2.0',
   'nav.dashboard': 'Dashboard',
   'nav.rules': 'Rules',
   'nav.editor': 'Editor',

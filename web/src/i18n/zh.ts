@@ -2,7 +2,7 @@ const zh = {
   // 全局
   'app.title': 'CLAUDE.md',
   'app.subtitle': '规则管理面板',
-  'app.version': 'v0.1.0',
+  'app.version': 'v0.2.0',
 
   // 导航
   'nav.dashboard': '仪表盘',
