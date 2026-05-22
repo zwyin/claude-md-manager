@@ -13,6 +13,7 @@ import type {
   ColdRule,
   CategoryDistribution,
   HeatmapCell,
+  ConfidenceDistribution,
 } from './types';
 
 const DB_PATH = path.join(process.cwd(), '..', 'data', 'usage.db');
@@ -333,7 +334,7 @@ export function getCitations(filters: {
 
 // ── Analytics ──
 
-export function getAnalytics(days?: number, db?: Database.Database): Omit<AnalyticsData, 'citation_trend' | 'heatmap'> {
+export function getAnalytics(days?: number, db?: Database.Database): Omit<AnalyticsData, 'citation_trend' | 'heatmap' | 'confidence_distribution'> {
   const own = !db;
   const conn = db || getDb();
   try {

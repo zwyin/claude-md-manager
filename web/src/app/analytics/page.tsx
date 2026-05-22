@@ -216,6 +216,59 @@ export default function AnalyticsPage() {
         </Card>
       )}
 
+      {data.confidence_distribution && data.confidence_distribution.length > 0 && (
+        <Card className="rounded-xl border-border bg-card">
+          <CardHeader>
+            <CardTitle className="text-base">{t('analytics.confidence')}</CardTitle>
+            <p className="text-xs text-muted-foreground">{t('analytics.confidence.subtitle')}</p>
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const total = data.confidence_distribution.reduce((s, c) => s + c.count, 0);
+              const confMap: Record<string, { count: number; color: string; label: string }> = {};
+              for (const c of data.confidence_distribution) {
+                confMap[c.confidence] = { count: c.count, color: '', label: c.confidence };
+              }
+              const levels = [
+                { key: 'high', color: 'bg-emerald-500', label: t('analytics.confidence.high') },
+                { key: 'medium', color: 'bg-amber-500', label: t('analytics.confidence.medium') },
+                { key: 'low', color: 'bg-rose-500', label: t('analytics.confidence.low') },
+              ];
+              return (
+                <div className="space-y-3">
+                  <div className="flex h-6 rounded-full overflow-hidden">
+                    {levels.map(({ key, color }) => {
+                      const count = confMap[key]?.count ?? 0;
+                      const pct = total > 0 ? (count / total) * 100 : 0;
+                      if (pct === 0) return null;
+                      return (
+                        <div key={key} className={`${color} flex items-center justify-center transition-all`} style={{ width: `${pct}%` }}>
+                          {pct > 8 && <span className="text-[10px] text-white font-medium">{pct.toFixed(0)}%</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                    {levels.map(({ key, color, label }) => {
+                      const count = confMap[key]?.count ?? 0;
+                      const pct = total > 0 ? (count / total) * 100 : 0;
+                      return (
+                        <div key={key} className="flex items-center gap-2">
+                          <div className={`w-2.5 h-2.5 rounded-full ${color}`} />
+                          <span className="text-xs text-muted-foreground">{label}</span>
+                          <span className="text-xs font-mono font-medium">{count}</span>
+                          <span className="text-[10px] text-muted-foreground">({pct.toFixed(1)}%)</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+      )}
+
       {data.heatmap && data.heatmap.length > 0 && (
         <Card className="rounded-xl border-border bg-card">
           <CardHeader>

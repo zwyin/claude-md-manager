@@ -90,6 +90,11 @@ export interface CategoryDistribution {
   citation_count: number;
 }
 
+export interface ConfidenceDistribution {
+  confidence: string;
+  count: number;
+}
+
 export interface AnalyticsData {
   total_rules: number;
   total_citations: number;
@@ -101,6 +106,7 @@ export interface AnalyticsData {
   category_distribution: CategoryDistribution[];
   citation_trend: CitationTimePoint[];
   heatmap: HeatmapCell[];
+  confidence_distribution: ConfidenceDistribution[];
 }
 
 export interface RuleDetail {

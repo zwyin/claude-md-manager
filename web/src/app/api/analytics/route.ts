@@ -4,6 +4,7 @@ import path from 'path';
 import { getAnalytics, getCitations, getHeatmapData } from '@/lib/db';
 import { parseDays, parseEnum } from '@/lib/api-utils';
 import { handleApiError } from '@/lib/api-handler';
+import type { ConfidenceDistribution } from '@/lib/types';
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +18,13 @@ export async function GET(request: NextRequest) {
       const citation_trend = getCitations({ days, group_by: trendGroup }, db);
       const heatmap = getHeatmapData(days, 50, db);
 
-      return NextResponse.json({ ...analytics, citation_trend, heatmap });
+      const timeFilter = days ? `WHERE timestamp >= datetime('now', ? || ' days')` : '';
+      const confParams = days ? [`-${days}`] : [];
+      const confidence_distribution = db.prepare(
+        `SELECT confidence, COUNT(*) as count FROM rule_references ${timeFilter} GROUP BY confidence ORDER BY count DESC`
+      ).bind(...confParams).all() as ConfidenceDistribution[];
+
+      return NextResponse.json({ ...analytics, citation_trend, heatmap, confidence_distribution });
     } finally {
       db.close();
     }
