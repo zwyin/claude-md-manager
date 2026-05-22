@@ -16,6 +16,7 @@ import { useFetch } from '@/hooks/use-fetch';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
+import { relativeTime } from '@/lib/relative-time';
 import type { RuleWithStats, SectionWithStats, CitationTimePoint, RecentCitation } from '@/lib/types';
 
 interface DashboardData {
@@ -209,8 +210,8 @@ export default function DashboardPage() {
                     <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px] shrink-0">{c.matched_keyword}</Badge>
                     <span className="text-sm truncate">{c.title}</span>
                   </div>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap ml-3">
-                    {new Date(c.timestamp).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                  <span className="text-xs text-muted-foreground whitespace-nowrap ml-3" title={new Date(c.timestamp).toLocaleString(locale)}>
+                    {relativeTime(c.timestamp, locale)}
                   </span>
                 </Link>
               ))}

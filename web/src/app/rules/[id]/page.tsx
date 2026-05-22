@@ -15,6 +15,7 @@ import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { useChartTheme } from '@/hooks/use-chart-theme';
 import { STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
+import { relativeTime } from '@/lib/relative-time';
 import { DetailMetricBar, DepthGauge } from '@/components/metric-visualizations';
 import { PageLoader, PageError } from '@/components/page-states';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
@@ -256,8 +257,8 @@ export default function RuleDetailPage() {
                 <TableBody>
                   {citations.slice(0, citeLimit).map((c) => (
                     <TableRow key={c.id}>
-                      <TableCell className="text-xs font-mono whitespace-nowrap">
-                        {new Date(c.timestamp).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      <TableCell className="text-xs font-mono whitespace-nowrap" title={new Date(c.timestamp).toLocaleString(locale)}>
+                        {relativeTime(c.timestamp, locale)}
                       </TableCell>
                       <TableCell><Badge variant="outline" className="border-indigo-500/30 text-indigo-300">{c.matched_keyword}</Badge></TableCell>
                       <TableCell className="text-xs">
