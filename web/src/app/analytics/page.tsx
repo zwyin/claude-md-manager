@@ -39,7 +39,7 @@ export default function AnalyticsPage() {
 
   const { data, loading, error } = useFetch<AnalyticsData>(url);
 
-  if (loading) return <PageLoader message={t('status.loading')} />;
+  if (loading && !data) return <PageLoader message={t('status.loading')} />;
   if (error) return <PageError message={t('status.error', { error })} />;
   if (!data) return null;
 

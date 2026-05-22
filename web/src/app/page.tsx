@@ -36,7 +36,7 @@ export default function DashboardPage() {
   usePageTitle('dashboard.title');
   const tooltipStyle = useTooltipStyle();
 
-  if (loading) return <PageLoader message={t('status.loading')} />;
+  if (loading && !data) return <PageLoader message={t('status.loading')} />;
   if (error) return <PageError message={t('status.error', { error })} />;
   if (!data) return null;
 

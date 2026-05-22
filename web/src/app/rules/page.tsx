@@ -141,7 +141,7 @@ function RulesContent() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  if (loading) return <PageLoader message={t('status.loading')} />;
+  if (loading && !data) return <PageLoader message={t('status.loading')} />;
   if (error) return <PageError message={t('status.error', { error })} />;
   if (!data) return null;
 

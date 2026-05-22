@@ -59,7 +59,7 @@ export default function RuleDetailPage() {
       .map(([period, count]) => ({ period, count }));
   }, [resp?.citations]);
 
-  if (loading) return <PageLoader message={t('status.loading')} />;
+  if (loading && !resp) return <PageLoader message={t('status.loading')} />;
   if (error) return (
     <div className="space-y-4">
       <Link href="/rules" className="text-sm text-indigo-400 hover:underline">&larr; {t('ruleDetail.backTo', { section: 'Rules' })}</Link>
