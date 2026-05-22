@@ -239,9 +239,9 @@ export default function DashboardPage() {
                 {coldRules.map((rule) => (
                   <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
                     className="flex items-center justify-between px-6 py-3 hover:bg-accent/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-mono text-muted-foreground">{rule.rule_id}</span>
-                      <span className="text-sm">{rule.title}</span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Badge variant="secondary" className="text-[10px] shrink-0">{rule.section_id}</Badge>
+                      <span className="text-sm truncate">{rule.title}</span>
                     </div>
                     <Badge variant="destructive" className="text-xs">0 {t('table.matches')}</Badge>
                   </Link>
