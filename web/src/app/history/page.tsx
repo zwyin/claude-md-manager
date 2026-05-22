@@ -275,6 +275,11 @@ export default function HistoryPage() {
               </div>
             </div>
             <div className="rounded-lg overflow-auto max-h-[500px] bg-muted/20 font-mono text-xs">
+              <div className="flex border-b border-border bg-muted/40 text-muted-foreground px-2 py-1">
+                <span className="text-rose-400">{diffResult.from.replace('.md', '')}</span>
+                <span className="mx-2">→</span>
+                <span className="text-emerald-400">{diffResult.to.replace('.md', '')}</span>
+              </div>
               {diffResult.lines.map((line, i) => (
                 <div
                   key={i}
@@ -292,7 +297,9 @@ export default function HistoryPage() {
                   <span className="w-10 shrink-0 text-right pr-2 text-muted-foreground/50 select-none">
                     {line.lineNum.new ?? ''}
                   </span>
-                  <span className="w-5 shrink-0 text-center select-none">
+                  <span className={`w-5 shrink-0 text-center select-none font-bold ${
+                    line.type === 'added' ? 'text-emerald-400' : line.type === 'removed' ? 'text-rose-400' : ''
+                  }`}>
                     {line.type === 'added' ? '+' : line.type === 'removed' ? '-' : ' '}
                   </span>
                   <span className="whitespace-pre-wrap break-all">{line.content}</span>

@@ -139,7 +139,7 @@ export default function SessionDetailPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant={c.confidence === 'high' ? 'default' : c.confidence === 'medium' ? 'secondary' : 'outline'} className="text-[10px]">
-                        {c.confidence}
+                        {c.confidence === 'high' ? t('analytics.confidence.high') : c.confidence === 'medium' ? t('analytics.confidence.medium') : t('analytics.confidence.low')}
                       </Badge>
                     </TableCell>
                   </TableRow>
