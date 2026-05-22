@@ -31,7 +31,7 @@ export function EditorLayout({ children }: EditorLayoutProps) {
   return (
     <div className="flex h-[calc(100vh-7rem)] gap-4 min-w-0">
       {listOpen && (
-        <div className="w-[240px] lg:w-[280px] shrink-0 overflow-y-auto rounded-lg border border-border bg-card hidden sm:block">
+        <div className="w-[240px] lg:w-[280px] shrink-0 overflow-y-auto rounded-lg border border-border bg-card sm:block">
           {children.ruleList}
         </div>
       )}
