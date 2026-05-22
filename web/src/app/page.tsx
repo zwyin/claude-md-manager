@@ -242,16 +242,21 @@ export default function DashboardPage() {
           <CardContent className="p-0">
             <div className="divide-y divide-border">
               {data.recent_citations.slice(0, 15).map((c, i) => (
-                <Link key={`${c.rule_id}-${c.timestamp}-${i}`} href={`/rules/${c.rule_id}`}
+                <div key={`${c.rule_id}-${c.timestamp}-${i}`}
                   className="flex items-center justify-between px-6 py-2.5 hover:bg-accent/30 transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
                     <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px] shrink-0">{c.matched_keyword}</Badge>
-                    <span className="text-sm truncate">{c.title}</span>
+                    <Link href={`/rules/${c.rule_id}`} className="text-sm truncate hover:text-indigo-400 transition-colors">{c.title}</Link>
                   </div>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap ml-3" title={new Date(c.timestamp).toLocaleString(locale)}>
-                    {relativeTime(c.timestamp, locale)}
-                  </span>
-                </Link>
+                  <div className="flex items-center gap-2 shrink-0 ml-3">
+                    <Link href={`/sessions/${encodeURIComponent(c.session_id)}`} className="text-[10px] font-mono text-muted-foreground hover:text-foreground transition-colors" title={c.session_id}>
+                      {c.session_id.slice(0, 6)}
+                    </Link>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap" title={new Date(c.timestamp).toLocaleString(locale)}>
+                      {relativeTime(c.timestamp, locale)}
+                    </span>
+                  </div>
+                </div>
               ))}
             </div>
           </CardContent>
