@@ -45,6 +45,7 @@ const zh = {
   'rules.noResults': '没有匹配的规则',
   'rules.ruleName': '规则名称',
   'rules.clearSearch': '清除搜索',
+  'rules.viewDetail': '查看完整详情',
 
   // Rules 详情
   'ruleDetail.editInEditor': '编辑',

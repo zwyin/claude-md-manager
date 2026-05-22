@@ -36,6 +36,7 @@ const en: Dict = {
   'rules.noResults': 'No matching rules',
   'rules.ruleName': 'Rule Name',
   'rules.clearSearch': 'Clear search',
+  'rules.viewDetail': 'View full detail',
   'ruleDetail.editInEditor': 'Edit',
   'ruleDetail.backTo': 'Back to {section}',
   'ruleDetail.section': 'Section',

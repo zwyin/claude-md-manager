@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -11,10 +10,10 @@ import { Search, X } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { usePageTitle } from '@/hooks/use-page-title';
-import { SECTION_COLORS, STAT_COLORS } from '@/lib/chart-colors';
+import { SECTION_COLORS } from '@/lib/chart-colors';
 import { TermTooltip } from '@/components/term-tooltip';
-import { MiniSparkline, MiniCoverageBar, MiniDepthBar, InlineMetricBar } from '@/components/metric-visualizations';
 import { PageLoader, PageError, RulesSkeleton } from '@/components/page-states';
+import { RuleRow } from '@/components/rule-row';
 import type { RuleWithStats, SectionWithStats } from '@/lib/types';
 
 interface RulesData {
@@ -232,29 +231,13 @@ function RulesContent() {
                       </div>
                     </div>
                     {rules.map((rule) => (
-                      <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
-                        className="flex items-center px-5 py-3 pl-14 border-b border-border last:border-0 hover:bg-accent/30 transition-colors min-w-[640px]">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <span className="text-xs font-mono text-muted-foreground shrink-0">{rule.rule_id}</span>
-                          <span className="text-sm truncate">{rule.title}</span>
-                        </div>
-                        <div className="flex items-center justify-center shrink-0 gap-1.5" style={{ width: '80px' }}>
-                          <MiniSparkline session={rule.session_count} matches={rule.match_count} />
-                          <Badge variant={rule.match_count === 0 ? "destructive" : "default"} className="text-xs font-mono">{rule.match_count}</Badge>
-                        </div>
-                        <div className="flex items-center justify-center shrink-0 gap-1" style={{ width: '90px' }}>
-                          <MiniCoverageBar value={rule.session_coverage} />
-                          <Badge variant="secondary" className="text-xs font-mono" title={`${rule.session_count}/${data?.total_sessions ?? 0} ${t('table.sessions').toLowerCase()}`}>{(rule.session_coverage * 100).toFixed(0)}%</Badge>
-                        </div>
-                        <div className="flex items-center justify-center shrink-0 gap-1" style={{ width: '70px' }}>
-                          <MiniDepthBar value={rule.avg_depth} max={maxDepth} />
-                          <Badge variant="outline" className="text-xs font-mono" title={`${rule.match_count}/${rule.session_count} ${t('table.matches').toLowerCase()}/${t('table.sessions').toLowerCase()}`}>{rule.avg_depth.toFixed(1)}</Badge>
-                        </div>
-                        <div className="flex items-center justify-center shrink-0 gap-1" style={{ width: '80px' }}>
-                          <InlineMetricBar value={rule.citation_share} color={STAT_COLORS.citations} />
-                          <Badge variant="secondary" className="text-xs font-mono">{(rule.citation_share * 100).toFixed(1)}%</Badge>
-                        </div>
-                      </Link>
+                      <RuleRow
+                        key={rule.rule_id}
+                        rule={rule}
+                        totalSessions={data?.total_sessions ?? 0}
+                        maxDepth={maxDepth}
+                        totalCitations={data?.total_citations ?? 0}
+                      />
                     ))}
                   </div>
                 </CollapsibleContent>
