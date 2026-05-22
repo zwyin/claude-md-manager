@@ -62,6 +62,7 @@ const zh = {
   'ruleDetail.model': '模型',
   'ruleDetail.copyId': '复制规则 ID',
   'ruleDetail.noCitations': '暂无引用数据',
+  'ruleDetail.noContent': '暂无正文内容',
   'ruleDetail.showing': '显示 {shown} / {total} 条',
   'ruleDetail.loadMore': '加载更多',
   'ruleDetail.citationTrend': '引用趋势',

@@ -51,6 +51,7 @@ const en: Dict = {
   'ruleDetail.model': 'Model',
   'ruleDetail.copyId': 'Copy rule ID',
   'ruleDetail.noCitations': 'No citation data available',
+  'ruleDetail.noContent': 'No content available',
   'ruleDetail.showing': 'Showing {shown} / {total}',
   'ruleDetail.loadMore': 'Load More',
   'ruleDetail.citationTrend': 'Citation Trend',

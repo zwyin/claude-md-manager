@@ -91,7 +91,7 @@ export function RuleRow({ rule, totalSessions, maxDepth, totalCitations }: RuleR
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
             </div>
           ) : (
-            <div className="text-xs text-muted-foreground italic">{t('ruleDetail.noCitations')}</div>
+            <div className="text-xs text-muted-foreground italic">{t('ruleDetail.noContent')}</div>
           )}
           <div className="mt-2 flex items-center gap-3">
             <Link href={`/rules/${rule.rule_id}`} className="text-xs text-indigo-400 hover:underline">

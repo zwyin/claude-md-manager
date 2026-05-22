@@ -73,8 +73,7 @@ export function CitationHeatmap({ data, maxRules = 30 }: CitationHeatmapProps) {
           ))}
         </div>
         {/* Rows: one per rule */}
-        {rules.map((ruleId, rIdx) => {
-          const meta = { title: ruleId, section_id: '' };
+        {rules.map((ruleId) => {
           const rule = data.find((c) => c.rule_id === ruleId);
           const title = rule?.title ?? ruleId;
           const sectionId = rule?.section_id ?? '';
