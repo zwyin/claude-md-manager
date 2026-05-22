@@ -131,3 +131,10 @@ export interface SiblingRule {
   session_coverage: number;
   avg_depth: number;
 }
+
+export interface CoOccurringRule {
+  rule_id: string;
+  title: string;
+  section_id: string;
+  co_sessions: number;
+}

@@ -41,6 +41,8 @@ const en: Dict = {
   'ruleDetail.source': 'Source',
   'ruleDetail.lastCited': 'Last cited',
   'ruleDetail.sameSection': 'Same Section',
+  'ruleDetail.coOccurring': 'Co-occurring Rules',
+  'ruleDetail.coOccurring.desc': 'Rules frequently cited in the same sessions',
   'ruleDetail.model': 'Model',
   'ruleDetail.copyId': 'Copy rule ID',
   'ruleDetail.noCitations': 'No citation data available',

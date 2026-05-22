@@ -4,6 +4,7 @@ import type {
   RuleWithStats,
   RuleDetail,
   SiblingRule,
+  CoOccurringRule,
   SectionWithStats,
   CitationRecord,
   CitationTimePoint,
@@ -125,7 +126,7 @@ export function getRuleDetail(
   ruleId: string,
   days?: number,
   db?: Database.Database
-): { rule: RuleDetail; citations: CitationRecord[]; siblings: SiblingRule[] } | null {
+): { rule: RuleDetail; citations: CitationRecord[]; siblings: SiblingRule[]; co_occurring: CoOccurringRule[] } | null {
   const own = !db;
   const conn = db || getDb();
   try {
@@ -198,6 +199,24 @@ export function getRuleDetail(
       avg_depth: s.session_count > 0 ? s.match_count / s.session_count : 0,
     }));
 
+    // Co-occurring rules: rules from OTHER sections cited in the same sessions
+    const coOccurring = conn
+      .prepare(
+        `
+        SELECT m.rule_id, m.title, m.section_id,
+               COUNT(DISTINCT r2.session_id) AS co_sessions
+        FROM rule_references r1
+        JOIN rule_references r2 ON r1.session_id = r2.session_id AND r2.rule_id != ?
+        JOIN rules_metadata m ON m.rule_id = r2.rule_id AND m.section_id != ?
+        WHERE r1.rule_id = ? ${timeFilter}
+        GROUP BY m.rule_id
+        ORDER BY co_sessions DESC
+        LIMIT 10
+        `
+      )
+      .bind(ruleId, ruleRow.section_id, ruleId, ...timeParams)
+      .all() as CoOccurringRule[];
+
     return {
       rule: {
         ...ruleRow,
@@ -208,6 +227,7 @@ export function getRuleDetail(
       },
       citations,
       siblings: siblingsWithStats,
+      co_occurring: coOccurring,
     };
   } finally {
     if (own) conn.close();

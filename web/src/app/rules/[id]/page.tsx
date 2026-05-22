@@ -21,7 +21,7 @@ import { PageLoader, PageError } from '@/components/page-states';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { useDynamicPageTitle } from '@/hooks/use-page-title';
-import type { RuleDetail, CitationRecord, SiblingRule } from '@/lib/types';
+import type { RuleDetail, CitationRecord, SiblingRule, CoOccurringRule } from '@/lib/types';
 
 export default function RuleDetailPage() {
   const params = useParams();
@@ -36,9 +36,10 @@ export default function RuleDetailPage() {
   }
 
   const url = ruleId ? `/api/rules/${encodeURIComponent(ruleId)}` : null;
-  const { data: resp, loading, error } = useFetch<{ rule: RuleDetail; citations: CitationRecord[]; siblings: SiblingRule[]; total_sessions: number; total_citations: number }>(url);
+  const { data: resp, loading, error } = useFetch<{ rule: RuleDetail; citations: CitationRecord[]; siblings: SiblingRule[]; co_occurring: CoOccurringRule[]; total_sessions: number; total_citations: number }>(url);
   const rule = resp?.rule ?? null;
   const siblings = resp?.siblings ?? [];
+  const coOccurring = resp?.co_occurring ?? [];
   const totalSessions = resp?.total_sessions ?? 0;
   const totalCitations = resp?.total_citations ?? 0;
 
@@ -205,6 +206,27 @@ export default function RuleDetailPage() {
                     <Badge variant="outline" className="text-[10px] font-mono" style={{ borderColor: STAT_COLORS.avgCoverage, color: STAT_COLORS.avgCoverage }}>{(sib.session_coverage * 100).toFixed(0)}%</Badge>
                     <Badge variant="outline" className="text-[10px] font-mono" style={{ borderColor: STAT_COLORS.avgDepth, color: STAT_COLORS.avgDepth }}>{sib.avg_depth.toFixed(1)}</Badge>
                   </div>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {coOccurring.length > 0 && (
+        <Card className="rounded-xl border-border bg-card">
+          <CardHeader>
+            <CardTitle className="text-base">{t('ruleDetail.coOccurring')}</CardTitle>
+            <p className="text-xs text-muted-foreground">{t('ruleDetail.coOccurring.desc')}</p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {coOccurring.map((co) => (
+                <Link key={co.rule_id} href={`/rules/${co.rule_id}`}
+                  className="shrink-0 w-48 p-3 rounded-lg border border-border bg-accent/50 hover:border-indigo-500/30 transition-colors">
+                  <p className="text-xs font-mono text-muted-foreground mb-1">{co.section_id}</p>
+                  <p className="text-sm font-medium truncate">{co.title}</p>
+                  <Badge variant="secondary" className="text-[10px] font-mono mt-2">{co.co_sessions} sessions</Badge>
                 </Link>
               ))}
             </div>
