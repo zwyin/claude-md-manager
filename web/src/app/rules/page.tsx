@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Search, X } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronRight, Home } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { usePageTitle } from '@/hooks/use-page-title';
@@ -168,6 +170,12 @@ function RulesContent() {
 
   return (
     <div className="space-y-6">
+      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Link href="/" className="hover:text-foreground transition-colors"><Home className="w-3.5 h-3.5" /></Link>
+        <ChevronRight className="w-3 h-3" />
+        <span className="text-foreground">{t('rules.title')}</span>
+      </nav>
+
       <div>
         <h1 className="text-2xl font-bold">{t('rules.title')}</h1>
         <p className="text-sm text-muted-foreground mt-1">

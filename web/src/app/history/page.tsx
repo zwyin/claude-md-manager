@@ -5,6 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, GitCompare, RotateCcw, Check, X, FileText } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronRight, Home } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useI18n } from '@/i18n';
@@ -120,6 +122,12 @@ export default function HistoryPage() {
 
   return (
     <div className="space-y-6">
+      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Link href="/" className="hover:text-foreground transition-colors"><Home className="w-3.5 h-3.5" /></Link>
+        <ChevronRight className="w-3 h-3" />
+        <span className="text-foreground">{t('history.title')}</span>
+      </nav>
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t('history.title')}</h1>

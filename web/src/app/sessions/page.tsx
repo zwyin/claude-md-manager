@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
+import { ChevronRight, Home } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -95,6 +96,12 @@ export default function SessionsPage() {
 
   return (
     <div className="space-y-6">
+      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Link href="/" className="hover:text-foreground transition-colors"><Home className="w-3.5 h-3.5" /></Link>
+        <ChevronRight className="w-3 h-3" />
+        <span className="text-foreground">{t('session.listTitle')}</span>
+      </nav>
+
       <div>
         <h1 className="text-2xl font-bold">{t('session.listTitle')}</h1>
         <p className="text-sm text-muted-foreground mt-1">{t('session.listSubtitle')}</p>

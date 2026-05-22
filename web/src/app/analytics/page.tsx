@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ChevronRight, Home } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -80,6 +81,12 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
+      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Link href="/" className="hover:text-foreground transition-colors"><Home className="w-3.5 h-3.5" /></Link>
+        <ChevronRight className="w-3 h-3" />
+        <span className="text-foreground">{t('analytics.title')}</span>
+      </nav>
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t('analytics.title')}</h1>
