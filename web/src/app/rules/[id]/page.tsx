@@ -28,6 +28,7 @@ export default function RuleDetailPage() {
   const ruleId = params?.id as string;
   const { t, locale } = useI18n();
   const [citeLimit, setCiteLimit] = useState(50);
+  const [trendRange, setTrendRange] = useState<number | undefined>(undefined);
   const prevRuleId = useRef(ruleId);
   if (prevRuleId.current !== ruleId) {
     prevRuleId.current = ruleId;
@@ -49,20 +50,22 @@ export default function RuleDetailPage() {
   const trendData = useMemo(() => {
     const src = resp?.citations ?? [];
     if (src.length === 0) return [];
+    const cutoff = trendRange ? new Date(Date.now() - trendRange * 86400000) : null;
     const counts: Record<string, number> = {};
     for (const c of src) {
+      if (cutoff && new Date(c.timestamp) < cutoff) continue;
       const day = c.timestamp.slice(0, 10);
       counts[day] = (counts[day] || 0) + 1;
     }
     return Object.entries(counts)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([period, count]) => ({ period, count }));
-  }, [resp?.citations]);
+  }, [resp?.citations, trendRange]);
 
   if (loading && !resp) return <PageLoader message={t('status.loading')} />;
   if (error) return (
     <div className="space-y-4">
-      <Link href="/rules" className="text-sm text-indigo-400 hover:underline">&larr; {t('ruleDetail.backTo', { section: 'Rules' })}</Link>
+      <Link href="/rules" className="text-sm text-indigo-400 hover:underline">&larr; {t('ruleDetail.backTo', { section: t('rules.title') })}</Link>
       <PageError message={t('status.error', { error })} />
     </div>
   );
@@ -212,7 +215,27 @@ export default function RuleDetailPage() {
       {trendData.length > 1 && (
         <Card className="rounded-xl border-border bg-card">
           <CardHeader>
-            <CardTitle className="text-base">{t('ruleDetail.citationTrend')}</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">{t('ruleDetail.citationTrend')}</CardTitle>
+              <div className="flex gap-1">
+                {([
+                  { value: undefined, key: 'all' },
+                  { value: 7, key: '7d' },
+                  { value: 30, key: '30d' },
+                  { value: 90, key: '90d' },
+                ] as const).map(({ value, key }) => (
+                  <Button
+                    key={key}
+                    size="sm"
+                    variant={trendRange === value ? 'default' : 'ghost'}
+                    onClick={() => setTrendRange(value)}
+                    className="text-xs h-7 px-2"
+                  >
+                    {t(`analytics.time.${key}`)}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="h-[180px]">
