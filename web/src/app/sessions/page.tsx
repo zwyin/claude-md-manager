@@ -16,6 +16,7 @@ interface SessionEntry {
   started_at: string | null;
   ended_at: string | null;
   model: string | null;
+  task_summary: string | null;
   citation_count: number;
   rule_count: number;
   duration_sec: number;
@@ -187,6 +188,9 @@ export default function SessionsPage() {
                           </span>
                         )}
                       </div>
+                      {s.task_summary && (
+                        <p className="text-xs text-muted-foreground/70 truncate mt-0.5 max-w-[400px]">{s.task_summary}</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">

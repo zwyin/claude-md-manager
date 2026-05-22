@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
           s.started_at,
           s.ended_at,
           s.model,
+          s.task_summary,
           COUNT(r.id) AS citation_count,
           COUNT(DISTINCT r.rule_id) AS rule_count,
           CASE WHEN s.started_at AND s.ended_at

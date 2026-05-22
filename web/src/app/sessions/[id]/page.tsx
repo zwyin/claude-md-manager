@@ -80,6 +80,9 @@ export default function SessionDetailPage() {
               {session.model && <Badge variant="outline" className="text-[10px] font-mono">{session.model}</Badge>}
             </div>
           </div>
+          {session.task_summary && (
+            <p className="text-sm text-muted-foreground mt-2">{session.task_summary}</p>
+          )}
           {session.started_at && (
             <p className="text-xs text-muted-foreground mt-2">
               {new Date(session.started_at).toLocaleString(locale)}
