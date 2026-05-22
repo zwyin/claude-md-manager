@@ -62,7 +62,9 @@ export default function SessionDetailPage() {
       <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link href="/" className="hover:text-foreground transition-colors"><Home className="w-3.5 h-3.5" /></Link>
         <ChevronRight className="w-3 h-3" />
-        <span className="text-foreground">{t('session.title')}</span>
+        <Link href="/sessions" className="hover:text-foreground transition-colors">{t('session.listTitle')}</Link>
+        <ChevronRight className="w-3 h-3" />
+        <span className="text-foreground">{displayId.slice(0, 8)}</span>
       </nav>
 
       <Card className="rounded-xl border-border bg-card">
@@ -81,7 +83,22 @@ export default function SessionDetailPage() {
           {session.started_at && (
             <p className="text-xs text-muted-foreground mt-2">
               {new Date(session.started_at).toLocaleString(locale)}
-              {session.ended_at && ` → ${new Date(session.ended_at).toLocaleString(locale)}`}
+              {session.ended_at && (
+                <>
+                  {` → ${new Date(session.ended_at).toLocaleString(locale)}`}
+                  {(() => {
+                    const ms = new Date(session.ended_at!).getTime() - new Date(session.started_at!).getTime();
+                    if (ms <= 0) return null;
+                    const sec = Math.floor(ms / 1000);
+                    const min = Math.floor(sec / 60);
+                    const remSec = sec % 60;
+                    const hr = Math.floor(min / 60);
+                    const remMin = min % 60;
+                    const dur = hr > 0 ? `${hr}h${remMin > 0 ? `${remMin}m` : ''}` : min > 0 ? `${min}m${remSec > 0 ? `${remSec}s` : ''}` : `${sec}s`;
+                    return <span className="ml-2 font-mono">({dur})</span>;
+                  })()}
+                </>
+              )}
             </p>
           )}
         </CardHeader>
