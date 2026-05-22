@@ -15,6 +15,7 @@ __pycache__/
 data/usage.db
 data/usage.db-shm
 data/usage.db-wal
+data/history/
 
 # Logs
 logs/
