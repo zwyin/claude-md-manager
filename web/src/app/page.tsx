@@ -126,7 +126,7 @@ export default function DashboardPage() {
           label={t('dashboard.totalSessions')}
           value={data.total_sessions}
           color={STAT_COLORS.sessions}
-          href="/analytics"
+          href="/sessions"
         />
         <StatCard
           label={<TermTooltip term={t('term.activeRate')} explanation={t('term.activeRate.desc')} />}
