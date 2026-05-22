@@ -237,18 +237,18 @@ function RulesContent() {
                 <CollapsibleContent>
                   <div className="border-t border-border overflow-x-auto">
                     {/* Column headers */}
-                    <div className="flex items-center px-5 py-2 pl-14 bg-muted/30 text-xs text-muted-foreground font-medium uppercase tracking-wider min-w-[640px]">
+                    <div className="flex items-center px-5 py-2 pl-14 bg-muted/30 text-xs text-muted-foreground font-medium uppercase tracking-wider">
                       <span className="flex-1 min-w-0">{t('rules.ruleName')}</span>
-                      <div className="flex items-center shrink-0 gap-1" style={{ width: '80px' }}>
+                      <div className="flex items-center shrink-0 gap-1 sm:w-[80px]">
                         <button onClick={() => toggleSort('match_count')} className="text-center w-full hover:text-foreground transition-colors cursor-pointer">{t('table.matches')}{sortIcon('match_count')}</button>
                       </div>
-                      <div className="flex items-center shrink-0 gap-1" style={{ width: '90px' }}>
+                      <div className="hidden sm:flex items-center shrink-0 gap-1" style={{ width: '90px' }}>
                         <button onClick={() => toggleSort('session_coverage')} className="text-center w-full hover:text-foreground transition-colors cursor-pointer"><TermTooltip term={t('metric.coverage')} explanation={t('metric.coverage.desc')} />{sortIcon('session_coverage')}</button>
                       </div>
-                      <div className="flex items-center shrink-0 gap-1" style={{ width: '70px' }}>
+                      <div className="hidden sm:flex items-center shrink-0 gap-1" style={{ width: '70px' }}>
                         <button onClick={() => toggleSort('avg_depth')} className="text-center w-full hover:text-foreground transition-colors cursor-pointer"><TermTooltip term={t('metric.depth')} explanation={t('metric.depth.desc')} />{sortIcon('avg_depth')}</button>
                       </div>
-                      <div className="flex items-center shrink-0 gap-1" style={{ width: '80px' }}>
+                      <div className="hidden sm:flex items-center shrink-0 gap-1" style={{ width: '80px' }}>
                         <button onClick={() => toggleSort('citation_share')} className="text-center w-full hover:text-foreground transition-colors cursor-pointer"><TermTooltip term={t('metric.share')} explanation={t('metric.share.desc')} />{sortIcon('citation_share')}</button>
                       </div>
                     </div>
