@@ -176,6 +176,7 @@ export default function HistoryPage() {
                           {isSelected && <Check className="w-3 h-3 text-white" />}
                         </button>
                         <Clock className="w-4 h-4 text-muted-foreground" />
+                        <Badge variant="secondary" className="text-xs font-mono">v{s.version}</Badge>
                         <span className="text-sm font-medium">{formatTs(s.timestamp)}</span>
                         <Badge variant="outline" className="text-xs font-mono text-muted-foreground">
                           {t('history.size', { size: s.size })}

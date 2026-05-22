@@ -22,6 +22,7 @@ export interface SnapshotInfo {
   filename: string;
   timestamp: string;
   size: number;
+  version: number;
   diffStats?: { added: number; removed: number };
 }
 
@@ -42,10 +43,22 @@ export function listSnapshotFiles(): SnapshotInfo[] {
     .sort()
     .reverse();
 
-  const snapshots: SnapshotInfo[] = files.map((f) => ({
+  // Deduplicate: skip snapshots with identical content to the previous one
+  const deduped: string[] = [];
+  let lastContent: string | null = null;
+  for (const f of files) {
+    const content = fs.readFileSync(path.join(HISTORY_DIR, f), 'utf-8');
+    if (content === lastContent) continue;
+    deduped.push(f);
+    lastContent = content;
+  }
+
+  const totalVersions = deduped.length;
+  const snapshots: SnapshotInfo[] = deduped.map((f, idx) => ({
     filename: f,
     timestamp: f.replace('.md', ''),
     size: fs.statSync(path.join(HISTORY_DIR, f)).size,
+    version: totalVersions - idx,
   }));
 
   // Compute diff stats against the next (older) snapshot

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +26,7 @@ import type { AnalyticsData } from '@/lib/types';
 export default function AnalyticsPage() {
   const [trendMode, setTrendMode] = useState<'day' | 'week' | 'month'>('day');
   const [timeRange, setTimeRange] = useState<number | undefined>(undefined);
+  const [expandedConf, setExpandedConf] = useState<string | null>(null);
   const { t } = useI18n();
   const router = useRouter();
   const chartTheme = useChartTheme();
@@ -230,9 +231,9 @@ export default function AnalyticsPage() {
                 confMap[c.confidence] = { count: c.count, color: '', label: c.confidence };
               }
               const levels = [
-                { key: 'high', color: 'bg-emerald-500', label: t('analytics.confidence.high') },
-                { key: 'medium', color: 'bg-amber-500', label: t('analytics.confidence.medium') },
-                { key: 'low', color: 'bg-rose-500', label: t('analytics.confidence.low') },
+                { key: 'high', color: 'bg-emerald-500', textColor: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/5', label: t('analytics.confidence.high'), desc: t('analytics.confidence.high.desc'), source: 'MCP Tool', trigger: 'record_citation' },
+                { key: 'medium', color: 'bg-amber-500', textColor: 'text-amber-400', border: 'border-amber-500/30', bg: 'bg-amber-500/5', label: t('analytics.confidence.medium'), desc: t('analytics.confidence.medium.desc'), source: 'Hook (Stop)', trigger: t('analytics.confidence.clickExpand') },
+                { key: 'low', color: 'bg-rose-500', textColor: 'text-rose-400', border: 'border-rose-500/30', bg: 'bg-rose-500/5', label: t('analytics.confidence.low'), desc: t('analytics.confidence.low.desc'), source: 'Hook (PostToolUse)', trigger: t('analytics.confidence.clickExpand') },
               ];
               return (
                 <div className="space-y-3">
@@ -248,16 +249,33 @@ export default function AnalyticsPage() {
                       );
                     })}
                   </div>
-                  <div className="flex flex-wrap gap-4">
-                    {levels.map(({ key, color, label }) => {
+                  <div className="space-y-2">
+                    {levels.map(({ key, color, textColor, border, bg, label, desc, source }) => {
                       const count = confMap[key]?.count ?? 0;
                       const pct = total > 0 ? (count / total) * 100 : 0;
+                      const isExpanded = expandedConf === key;
                       return (
-                        <div key={key} className="flex items-center gap-2">
-                          <div className={`w-2.5 h-2.5 rounded-full ${color}`} />
-                          <span className="text-xs text-muted-foreground">{label}</span>
-                          <span className="text-xs font-mono font-medium">{count}</span>
-                          <span className="text-[10px] text-muted-foreground">({pct.toFixed(1)}%)</span>
+                        <div key={key}>
+                          <button
+                            onClick={() => setExpandedConf(isExpanded ? null : key)}
+                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors text-left ${isExpanded ? `${border} ${bg}` : 'border-transparent hover:bg-accent/30'}`}
+                          >
+                            <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${color}`} />
+                            <span className="text-xs text-muted-foreground">{label}</span>
+                            <span className="text-xs font-mono font-medium">{count}</span>
+                            <span className="text-[10px] text-muted-foreground">({pct.toFixed(1)}%)</span>
+                            <svg className={`w-3 h-3 ml-auto text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                          </button>
+                          {isExpanded && (
+                            <div className={`mt-1 ml-5 pl-3 border-l-2 ${border} py-2 space-y-1`}>
+                              <p className="text-xs text-muted-foreground">{desc}</p>
+                              <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+                                <span>{t('analytics.confidence.source')}: <span className={`font-mono ${textColor}`}>{source}</span></span>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       );
                     })}

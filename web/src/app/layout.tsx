@@ -9,6 +9,7 @@ import { I18nProvider } from "@/i18n";
 import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { RoutedErrorBoundary } from "@/components/routed-error-boundary";
+import { FontScaleProvider } from "@/components/font-scale-provider";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -29,6 +30,7 @@ export default async function RootLayout({
     <html lang="zh-CN" className={`${geist.variable} antialiased`}>
       <body>
         <I18nProvider>
+          <FontScaleProvider>
           <TooltipProvider>
             <SidebarProvider>
               <AppSidebar />
@@ -44,6 +46,7 @@ export default async function RootLayout({
               </SidebarInset>
             </SidebarProvider>
           </TooltipProvider>
+          </FontScaleProvider>
           <Toaster />
         </I18nProvider>
       </body>

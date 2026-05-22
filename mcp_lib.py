@@ -172,14 +172,22 @@ def validate_all_drafts() -> list[dict]:
 
 def _force_snapshot() -> str | None:
     """Force-save a snapshot of the current ~/.claude/CLAUDE.md before any changes.
-    Returns snapshot filename or None if file doesn't exist.
+    Skips if content is identical to the latest snapshot.
+    Returns snapshot filename or None if skipped / file doesn't exist.
     """
     if not OUTPUT_PATH.exists():
         return None
+    content = OUTPUT_PATH.read_text(encoding="utf-8")
     HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Skip if identical to the latest snapshot
+    existing = sorted(HISTORY_DIR.glob("*.md"), reverse=True)
+    if existing and existing[0].read_text(encoding="utf-8") == content:
+        return None
+
     ts = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
     name = f"{ts}.md"
-    (HISTORY_DIR / name).write_text(OUTPUT_PATH.read_text(encoding="utf-8"), encoding="utf-8")
+    (HISTORY_DIR / name).write_text(content, encoding="utf-8")
     return name
 
 
