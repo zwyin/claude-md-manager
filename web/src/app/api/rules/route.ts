@@ -5,6 +5,13 @@ import { getRulesWithStats, getSectionsWithStats, getTotalSessionCount, getTotal
 import { parseDays } from '@/lib/api-utils';
 import { handleApiError } from '@/lib/api-handler';
 
+interface PublishEvent {
+  id: number;
+  published_at: string;
+  rules_changed: number;
+  status: string;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
@@ -30,6 +37,10 @@ export async function GET(request: NextRequest) {
       const citation_trend = getCitations({ group_by: 'day' }, db);
       const recent_citations = getRecentCitations(20, db);
 
+      const recent_builds = db.prepare(
+        "SELECT id, published_at, rules_changed, status FROM publish_history ORDER BY published_at DESC LIMIT 5"
+      ).all() as PublishEvent[];
+
       return NextResponse.json({
         rules,
         sections: getSectionsWithStats(days, db),
@@ -41,6 +52,7 @@ export async function GET(request: NextRequest) {
         avg_depth,
         citation_trend,
         recent_citations,
+        recent_builds,
       });
     } finally {
       db.close();

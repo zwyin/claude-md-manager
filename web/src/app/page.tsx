@@ -19,12 +19,20 @@ import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 import { relativeTime } from '@/lib/relative-time';
 import type { RuleWithStats, SectionWithStats, CitationTimePoint, RecentCitation } from '@/lib/types';
 
+interface BuildEvent {
+  id: number;
+  published_at: string;
+  rules_changed: number;
+  status: string;
+}
+
 interface DashboardData {
   rules: RuleWithStats[]; sections: SectionWithStats[];
   total_rules: number; total_sessions: number; active_rule_pct: number;
   total_citations: number; avg_coverage: number; avg_depth: number;
   citation_trend: CitationTimePoint[];
   recent_citations: RecentCitation[];
+  recent_builds: BuildEvent[];
 }
 
 export default function DashboardPage() {
@@ -213,6 +221,34 @@ export default function DashboardPage() {
                   </div>
                   <span className="text-xs text-muted-foreground whitespace-nowrap ml-3" title={new Date(c.timestamp).toLocaleString(locale)}>
                     {relativeTime(c.timestamp, locale)}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {data.recent_builds && data.recent_builds.length > 0 && (
+        <Card className="rounded-xl border-border bg-card">
+          <CardHeader>
+            <CardTitle className="text-base">{t('dashboard.recentBuilds')}</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-border">
+              {data.recent_builds.map((build) => (
+                <Link key={build.id} href="/history"
+                  className="flex items-center justify-between px-6 py-2.5 hover:bg-accent/30 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Badge variant={build.status === 'success' ? 'default' : 'destructive'} className="text-[10px]">
+                      {build.status}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      {build.rules_changed} {t('table.rules').toLowerCase()}
+                    </span>
+                  </div>
+                  <span className="text-xs text-muted-foreground" title={new Date(build.published_at).toLocaleString(locale)}>
+                    {relativeTime(build.published_at, locale)}
                   </span>
                 </Link>
               ))}

@@ -25,6 +25,7 @@ const zh = {
   'dashboard.sections.subtitle': '按引用次数排序的章节',
   'dashboard.topRules': '热门规则 Top 10',
   'dashboard.recentCitations': '最近引用',
+  'dashboard.recentBuilds': '最近构建',
   'dashboard.lastActivity': '最近活动：{time}',
   'dashboard.coldRules.count': '{count} 条规则',
 
