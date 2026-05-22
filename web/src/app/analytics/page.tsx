@@ -226,14 +226,14 @@ export default function AnalyticsPage() {
           <CardContent>
             {(() => {
               const total = data.confidence_distribution.reduce((s, c) => s + c.count, 0);
-              const confMap: Record<string, { count: number; color: string; label: string }> = {};
+              const confMap: Record<string, { count: number; color: string; label: string; top_rules: { rule_id: string; title: string; count: number }[] }> = {};
               for (const c of data.confidence_distribution) {
-                confMap[c.confidence] = { count: c.count, color: '', label: c.confidence };
+                confMap[c.confidence] = { count: c.count, color: '', label: c.confidence, top_rules: c.top_rules ?? [] };
               }
               const levels = [
-                { key: 'high', color: 'bg-emerald-500', textColor: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/5', label: t('analytics.confidence.high'), desc: t('analytics.confidence.high.desc'), source: 'MCP Tool', trigger: 'record_citation' },
-                { key: 'medium', color: 'bg-amber-500', textColor: 'text-amber-400', border: 'border-amber-500/30', bg: 'bg-amber-500/5', label: t('analytics.confidence.medium'), desc: t('analytics.confidence.medium.desc'), source: 'Hook (Stop)', trigger: t('analytics.confidence.clickExpand') },
-                { key: 'low', color: 'bg-rose-500', textColor: 'text-rose-400', border: 'border-rose-500/30', bg: 'bg-rose-500/5', label: t('analytics.confidence.low'), desc: t('analytics.confidence.low.desc'), source: 'Hook (PostToolUse)', trigger: t('analytics.confidence.clickExpand') },
+                { key: 'high', color: 'bg-emerald-500', textColor: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/5', label: t('analytics.confidence.high'), desc: t('analytics.confidence.high.desc'), source: 'MCP Tool' },
+                { key: 'medium', color: 'bg-amber-500', textColor: 'text-amber-400', border: 'border-amber-500/30', bg: 'bg-amber-500/5', label: t('analytics.confidence.medium'), desc: t('analytics.confidence.medium.desc'), source: 'Hook (Stop)' },
+                { key: 'low', color: 'bg-rose-500', textColor: 'text-rose-400', border: 'border-rose-500/30', bg: 'bg-rose-500/5', label: t('analytics.confidence.low'), desc: t('analytics.confidence.low.desc'), source: 'Hook (PostToolUse)' },
               ];
               return (
                 <div className="space-y-3">
@@ -269,11 +269,26 @@ export default function AnalyticsPage() {
                             </svg>
                           </button>
                           {isExpanded && (
-                            <div className={`mt-1 ml-5 pl-3 border-l-2 ${border} py-2 space-y-1`}>
+                            <div className={`mt-1 ml-5 pl-3 border-l-2 ${border} py-2 space-y-2`}>
                               <p className="text-xs text-muted-foreground">{desc}</p>
                               <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
                                 <span>{t('analytics.confidence.source')}: <span className={`font-mono ${textColor}`}>{source}</span></span>
                               </div>
+                              {(confMap[key]?.top_rules?.length ?? 0) > 0 && (
+                                <div className="space-y-1 mt-1">
+                                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('analytics.topRules')}</p>
+                                  {(confMap[key]?.top_rules ?? []).map((rule: { rule_id: string; title: string; count: number }) => (
+                                    <Link
+                                      key={rule.rule_id}
+                                      href={`/rules/${rule.rule_id}`}
+                                      className="flex items-center justify-between gap-2 text-xs px-2 py-1 rounded hover:bg-accent/30 transition-colors"
+                                    >
+                                      <span className="text-muted-foreground truncate">{rule.title}</span>
+                                      <Badge variant="secondary" className="text-[10px] font-mono shrink-0">{rule.count}</Badge>
+                                    </Link>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

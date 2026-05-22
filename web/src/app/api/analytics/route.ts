@@ -18,11 +18,24 @@ export async function GET(request: NextRequest) {
       const citation_trend = getCitations({ days, group_by: trendGroup }, db);
       const heatmap = getHeatmapData(days, 50, db);
 
-      const timeFilter = days ? `WHERE timestamp >= datetime('now', ? || ' days')` : '';
+      const timeFilter = days ? `WHERE r.timestamp >= datetime('now', ? || ' days')` : '';
       const confParams = days ? [`-${days}`] : [];
-      const confidence_distribution = db.prepare(
-        `SELECT confidence, COUNT(*) as count FROM rule_references ${timeFilter} GROUP BY confidence ORDER BY count DESC`
-      ).bind(...confParams).all() as ConfidenceDistribution[];
+      const rawConf = db.prepare(
+        `SELECT confidence, COUNT(*) as count FROM rule_references r ${timeFilter} GROUP BY confidence ORDER BY count DESC`
+      ).bind(...confParams).all() as { confidence: string; count: number }[];
+
+      const confidence_distribution: ConfidenceDistribution[] = rawConf.map((row) => {
+        const top_rules = db.prepare(
+          `SELECT r.rule_id, m.title, COUNT(*) as count
+           FROM rule_references r
+           JOIN rules_metadata m ON r.rule_id = m.rule_id
+           WHERE r.confidence = ? ${days ? "AND r.timestamp >= datetime('now', ? || ' days')" : ''}
+           GROUP BY r.rule_id
+           ORDER BY count DESC
+           LIMIT 5`
+        ).bind(row.confidence, ...(days ? [`-${days}`] : [])).all() as { rule_id: string; title: string; count: number }[];
+        return { ...row, top_rules };
+      });
 
       return NextResponse.json({ ...analytics, citation_trend, heatmap, confidence_distribution });
     } finally {

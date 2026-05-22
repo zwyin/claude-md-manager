@@ -93,6 +93,13 @@ export interface CategoryDistribution {
 export interface ConfidenceDistribution {
   confidence: string;
   count: number;
+  top_rules: ConfidenceRuleEntry[];
+}
+
+export interface ConfidenceRuleEntry {
+  rule_id: string;
+  title: string;
+  count: number;
 }
 
 export interface AnalyticsData {
