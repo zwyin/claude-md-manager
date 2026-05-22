@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useFetch } from '@/hooks/use-fetch';
 import { PageLoader, PageError } from '@/components/page-states';
-import { relativeTime } from '@/lib/relative-time';
 
 interface SessionEntry {
   session_id: string;
@@ -28,11 +28,12 @@ interface SessionsData {
 }
 
 const PAGE_SIZE = 50;
+const TIME_RANGES = [7, 30, 90] as const;
 
 function formatDuration(start: string | null, end: string | null): string | null {
   if (!start || !end) return null;
   const ms = new Date(end).getTime() - new Date(start).getTime();
-  if (ms < 0) return null;
+  if (ms <= 0) return null;
   const sec = Math.floor(ms / 1000);
   if (sec < 60) return `${sec}s`;
   const min = Math.floor(sec / 60);
@@ -45,17 +46,40 @@ function formatDuration(start: string | null, end: string | null): string | null
 
 export default function SessionsPage() {
   const [offset, setOffset] = useState(0);
+  const [days, setDays] = useState<number | null>(null);
+  const [search, setSearch] = useState('');
   const { t, locale } = useI18n();
   usePageTitle('session.listTitle');
 
-  const url = useMemo(() => `/api/sessions?limit=${PAGE_SIZE}&offset=${offset}`, [offset]);
+  const url = useMemo(() => {
+    const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
+    if (days) params.set('days', String(days));
+    return `/api/sessions?${params}`;
+  }, [offset, days]);
+
   const { data, loading, error } = useFetch<SessionsData>(url);
+
+  const filteredSessions = useMemo(() => {
+    if (!data?.sessions) return [];
+    if (!search.trim()) return data.sessions;
+    const q = search.trim().toLowerCase();
+    return data.sessions.filter((s) => s.session_id.toLowerCase().includes(q));
+  }, [data?.sessions, search]);
+
+  const handleFilterChange = useCallback((newDays: number | null) => {
+    setDays(newDays);
+    setOffset(0);
+  }, []);
+
+  const handleSearch = useCallback((value: string) => {
+    setSearch(value);
+  }, []);
 
   if (loading && !data) return <PageLoader message={t('status.loading')} />;
   if (error) return <PageError message={t('status.error', { error })} />;
   if (!data) return null;
 
-  const { sessions, total } = data;
+  const total = data.total;
   const hasMore = offset + PAGE_SIZE < total;
   const hasPrev = offset > 0;
 
@@ -64,14 +88,44 @@ export default function SessionsPage() {
       <div>
         <h1 className="text-2xl font-bold">{t('session.listTitle')}</h1>
         <p className="text-sm text-muted-foreground mt-1">{t('session.listSubtitle')}</p>
-        <Badge variant="outline" className="text-xs mt-2">{t('dashboard.totalSessions')}: {total}</Badge>
       </div>
 
-      {sessions.length > 0 ? (
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <Input
+          placeholder={t('session.searchPlaceholder')}
+          value={search}
+          onChange={(e) => handleSearch(e.target.value)}
+          className="w-full sm:w-64 h-8 text-sm"
+        />
+        <div className="flex items-center gap-1.5">
+          <Button
+            size="sm"
+            variant={days === null ? 'default' : 'outline'}
+            className="h-7 text-xs px-2.5"
+            onClick={() => handleFilterChange(null)}
+          >
+            {t('session.allTime')}
+          </Button>
+          {TIME_RANGES.map((d) => (
+            <Button
+              key={d}
+              size="sm"
+              variant={days === d ? 'default' : 'outline'}
+              className="h-7 text-xs px-2.5"
+              onClick={() => handleFilterChange(d)}
+            >
+              {d}d
+            </Button>
+          ))}
+        </div>
+        <Badge variant="outline" className="text-xs">{t('dashboard.totalSessions')}: {total}</Badge>
+      </div>
+
+      {filteredSessions.length > 0 ? (
         <Card className="rounded-xl border-border">
           <CardContent className="p-0">
             <div className="divide-y divide-border">
-              {sessions.map((s) => (
+              {filteredSessions.map((s) => (
                 <Link
                   key={s.session_id}
                   href={`/sessions/${encodeURIComponent(s.session_id)}`}
@@ -82,7 +136,7 @@ export default function SessionsPage() {
                       {s.session_id.slice(0, 8)}
                     </span>
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm text-muted-foreground">
                           {s.started_at
                             ? new Date(s.started_at).toLocaleString(locale, {

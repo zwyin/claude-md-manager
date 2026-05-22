@@ -184,6 +184,10 @@ const en: Dict = {
   // Pagination
   'pagination.prev': 'Prev',
   'pagination.next': 'Next',
+
+  // Sessions filter
+  'session.searchPlaceholder': 'Search session ID...',
+  'session.allTime': 'All',
 };
 
 export default en;

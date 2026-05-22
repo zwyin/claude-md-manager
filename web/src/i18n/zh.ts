@@ -205,6 +205,10 @@ const zh = {
   // Pagination
   'pagination.prev': '上一页',
   'pagination.next': '下一页',
+
+  // Sessions filter
+  'session.searchPlaceholder': '搜索会话 ID...',
+  'session.allTime': '全部',
 } as const;
 
 export default zh;
