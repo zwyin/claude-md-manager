@@ -1,7 +1,7 @@
 'use client';
 
-import { Suspense, useEffect, useState, useMemo, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -33,13 +33,21 @@ function RulesContent() {
   const { data, loading, error } = useFetch<RulesData>('/api/rules');
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState('');
-  const [sectionFilter, setSectionFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'default' | 'match_count' | 'session_coverage' | 'avg_depth' | 'citation_share'>('default');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const searchRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { t } = useI18n();
   usePageTitle('rules.title');
+
+  const validSortKeys = ['default', 'match_count', 'session_coverage', 'avg_depth', 'citation_share'] as const;
+  type SortKey = typeof validSortKeys[number];
+
+  const [sectionFilter, setSectionFilter] = useState<string>(() => searchParams.get('section') ?? 'all');
+  const [sortBy, setSortBy] = useState<SortKey>(() => {
+    const s = searchParams.get('sort');
+    return validSortKeys.includes(s as SortKey) ? (s as SortKey) : 'default';
+  });
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>(() => searchParams.get('dir') === 'asc' ? 'asc' : 'desc');
 
   useEffect(() => {
     if (!data) return;
@@ -50,7 +58,6 @@ function RulesContent() {
     });
     queueMicrotask(() => {
       setOpenSections(open);
-      if (focusSection) setSectionFilter(focusSection);
     });
   }, [data, searchParams]);
 
@@ -115,14 +122,29 @@ function RulesContent() {
     return result;
   }, [filteredGrouped, sortBy, sortDir]);
 
-  const toggleSort = (key: typeof sortBy) => {
+  const syncUrl = useCallback((section: string, sort: string, dir: string) => {
+    const params = new URLSearchParams();
+    if (section !== 'all') params.set('section', section);
+    if (sort !== 'default') params.set('sort', sort);
+    if (dir !== 'desc') params.set('dir', dir);
+    const qs = params.toString();
+    router.replace(qs ? `?${qs}` : '/rules', { scroll: false });
+  }, [router]);
+
+  const toggleSort = useCallback((key: SortKey) => {
+    let newSort = key;
+    let newDir: 'asc' | 'desc';
     if (sortBy === key) {
-      setSortDir((d) => d === 'desc' ? 'asc' : 'desc');
+      newDir = sortDir === 'desc' ? 'asc' : 'desc';
+      newSort = sortBy;
+      setSortDir(newDir);
     } else {
+      newDir = 'desc';
       setSortBy(key);
       setSortDir('desc');
     }
-  };
+    syncUrl(sectionFilter, newSort, newDir);
+  }, [sortBy, sortDir, sectionFilter, syncUrl]);
 
   const sortIcon = (key: typeof sortBy) => {
     if (sortBy !== key) return ' ↕';
@@ -172,7 +194,7 @@ function RulesContent() {
         <select
           aria-label={t('rules.allSections')}
           value={sectionFilter}
-          onChange={(e) => setSectionFilter(e.target.value)}
+          onChange={(e) => { setSectionFilter(e.target.value); syncUrl(e.target.value, sortBy, sortDir); }}
           className="h-9 text-sm rounded-md border border-border bg-card text-foreground px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         >
           <option value="all">{t('rules.allSections')}</option>
