@@ -253,7 +253,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-border">
-                {data.recent_citations.slice(0, 15).map((c, i) => (
+                {data.recent_citations.slice(0, 8).map((c, i) => (
                   <div key={`${c.rule_id}-${c.timestamp}-${i}`}
                     className="flex items-center justify-between px-6 py-2.5 hover:bg-accent/30 transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
