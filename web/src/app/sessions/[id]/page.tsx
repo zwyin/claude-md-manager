@@ -37,7 +37,7 @@ export default function SessionDetailPage() {
   const params = useParams();
   const sessionId = params?.id as string;
   const { t, locale } = useI18n();
-  useDynamicPageTitle(undefined);
+  useDynamicPageTitle(sessionId ? `Session ${sessionId.slice(0, 8)}` : undefined);
 
   const url = sessionId ? `/api/sessions/${encodeURIComponent(sessionId)}` : null;
   const { data: resp, loading, error } = useFetch<SessionData>(url);
