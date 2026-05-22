@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, AreaChart, Area } from 'recharts';
 import { StatCard } from '@/components/stat-card';
 import { PageLoader, PageError, DashboardSkeleton } from '@/components/page-states';
@@ -36,13 +37,21 @@ interface DashboardData {
 }
 
 export default function DashboardPage() {
-  const { data, loading, error } = useFetch<DashboardData>('/api/rules');
+  const [timeRange, setTimeRange] = useState<number | undefined>(undefined);
   const [coldOpen, setColdOpen] = useState(false);
   const { t, locale } = useI18n();
   const router = useRouter();
   const chartTheme = useChartTheme();
   usePageTitle('dashboard.title');
   const tooltipStyle = useTooltipStyle();
+
+  const url = useMemo(() => {
+    const params = new URLSearchParams();
+    if (timeRange) params.set('days', String(timeRange));
+    return `/api/rules${params.toString() ? '?' + params.toString() : ''}`;
+  }, [timeRange]);
+
+  const { data, loading, error } = useFetch<DashboardData>(url);
 
   if (loading && !data) return <DashboardSkeleton />;
   if (error) return <PageError message={t('status.error', { error })} />;
@@ -78,11 +87,31 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold">{t('dashboard.title')}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t('dashboard.subtitle')}</p>
         </div>
-        {data.recent_citations && data.recent_citations.length > 0 && (
-          <span className="text-xs text-muted-foreground whitespace-nowrap mt-1">
-            {t('dashboard.lastActivity', { time: new Date(data.recent_citations[0].timestamp).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) })}
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            {([
+              { value: undefined, key: 'all' },
+              { value: 7, key: '7d' },
+              { value: 30, key: '30d' },
+              { value: 90, key: '90d' },
+            ] as const).map(({ value, key }) => (
+              <Button
+                key={key}
+                size="sm"
+                variant={timeRange === value ? 'default' : 'ghost'}
+                onClick={() => setTimeRange(value)}
+                className="text-xs h-7 px-2"
+              >
+                {t(`analytics.time.${key}`)}
+              </Button>
+            ))}
+          </div>
+          {data.recent_citations && data.recent_citations.length > 0 && (
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
+              {t('dashboard.lastActivity', { time: new Date(data.recent_citations[0].timestamp).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) })}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
