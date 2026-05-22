@@ -14,6 +14,7 @@ interface EditorLayoutProps {
 
 export function EditorLayout({ children }: EditorLayoutProps) {
   const [previewOpen, setPreviewOpen] = useState(true);
+  const [listOpen, setListOpen] = useState(true);
   const { t } = useI18n();
 
   useEffect(() => {
@@ -29,11 +30,22 @@ export function EditorLayout({ children }: EditorLayoutProps) {
 
   return (
     <div className="flex h-[calc(100vh-7rem)] gap-4 min-w-0">
-      <div className="w-[240px] lg:w-[280px] shrink-0 overflow-y-auto rounded-lg border border-border bg-card">
-        {children.ruleList}
-      </div>
+      {listOpen && (
+        <div className="w-[240px] lg:w-[280px] shrink-0 overflow-y-auto rounded-lg border border-border bg-card hidden sm:block">
+          {children.ruleList}
+        </div>
+      )}
       <div className="flex-1 flex flex-col gap-4 min-w-0">
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-between">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setListOpen((v) => !v)}
+            className="text-xs h-7 px-2 sm:hidden"
+          >
+            {listOpen ? t('editor.hidePreview') : t('editor.showPreview')}
+          </Button>
+          <div className="flex-1" />
           <Button
             size="sm"
             variant="ghost"

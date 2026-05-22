@@ -132,7 +132,7 @@ export default function RuleDetailPage() {
         </CardHeader>
         <CardContent>
           <div className="border-t border-border pt-4">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="flex flex-col items-center">
                 <p className="text-xs text-muted-foreground mb-1">
                   <TermTooltip term={t('metric.coverage.full')} explanation={t('metric.coverage.desc')} />
