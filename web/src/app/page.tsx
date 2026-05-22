@@ -257,7 +257,9 @@ export default function DashboardPage() {
                   <div key={`${c.rule_id}-${c.timestamp}-${i}`}
                     className="flex items-center justify-between px-6 py-2.5 hover:bg-accent/30 transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
-                      <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px] shrink-0">{c.matched_keyword}</Badge>
+                      <Link href={`/rules?search=${encodeURIComponent(c.matched_keyword)}`}>
+                      <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px] shrink-0 hover:bg-indigo-500/10 cursor-pointer transition-colors">{c.matched_keyword}</Badge>
+                    </Link>
                       <Link href={`/rules/${c.rule_id}`} className="text-sm truncate hover:text-indigo-400 transition-colors">{c.title}</Link>
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-3">
