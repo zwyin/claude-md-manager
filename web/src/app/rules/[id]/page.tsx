@@ -295,34 +295,54 @@ export default function RuleDetailPage() {
         <CardContent className="p-0">
           {citations.length > 0 ? (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('table.time')}</TableHead>
-                    <TableHead>{t('table.keyword')}</TableHead>
-                    <TableHead>{t('ruleDetail.model')}</TableHead>
-                    <TableHead>{t('table.sessionId')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {citations.slice(0, citeLimit).map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell className="text-xs font-mono whitespace-nowrap" title={new Date(c.timestamp).toLocaleString(locale)}>
-                        {relativeTime(c.timestamp, locale)}
-                      </TableCell>
-                      <TableCell><Badge variant="outline" className="border-indigo-500/30 text-indigo-300">{c.matched_keyword}</Badge></TableCell>
-                      <TableCell className="text-xs">
-                        {c.model ? <Badge variant="secondary" className="text-[10px] font-mono">{c.model}</Badge> : <span className="text-muted-foreground">—</span>}
-                      </TableCell>
-                      <TableCell className="text-xs font-mono text-muted-foreground max-w-[200px] truncate" title={c.task_summary || undefined}>
-                        <Link href={`/sessions/${encodeURIComponent(c.session_id)}`} className="hover:text-indigo-400 transition-colors">
-                          {c.session_id.replace('historical_', '')}
-                        </Link>
-                      </TableCell>
+              {/* Mobile card layout */}
+              <div className="sm:hidden divide-y divide-border">
+                {citations.slice(0, citeLimit).map((c) => (
+                  <div key={c.id} className="px-4 py-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px]">{c.matched_keyword}</Badge>
+                      <span className="text-[10px] text-muted-foreground font-mono shrink-0 ml-2">{relativeTime(c.timestamp, locale)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Link href={`/sessions/${encodeURIComponent(c.session_id)}`} className="text-[10px] font-mono text-muted-foreground hover:text-indigo-400 transition-colors truncate">
+                        {c.session_id.replace('historical_', '').slice(0, 12)}
+                      </Link>
+                      {c.model && <Badge variant="secondary" className="text-[10px] font-mono">{c.model}</Badge>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Desktop table layout */}
+              <div className="hidden sm:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('table.time')}</TableHead>
+                      <TableHead>{t('table.keyword')}</TableHead>
+                      <TableHead>{t('ruleDetail.model')}</TableHead>
+                      <TableHead>{t('table.sessionId')}</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {citations.slice(0, citeLimit).map((c) => (
+                      <TableRow key={c.id}>
+                        <TableCell className="text-xs font-mono whitespace-nowrap" title={new Date(c.timestamp).toLocaleString(locale)}>
+                          {relativeTime(c.timestamp, locale)}
+                        </TableCell>
+                        <TableCell><Badge variant="outline" className="border-indigo-500/30 text-indigo-300">{c.matched_keyword}</Badge></TableCell>
+                        <TableCell className="text-xs">
+                          {c.model ? <Badge variant="secondary" className="text-[10px] font-mono">{c.model}</Badge> : <span className="text-muted-foreground">—</span>}
+                        </TableCell>
+                        <TableCell className="text-xs font-mono text-muted-foreground max-w-[200px] truncate" title={c.task_summary || undefined}>
+                          <Link href={`/sessions/${encodeURIComponent(c.session_id)}`} className="hover:text-indigo-400 transition-colors">
+                            {c.session_id.replace('historical_', '')}
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
               {citations.length > citeLimit && (
                 <div className="px-6 py-3 text-center border-t border-border">
                   <span className="text-xs text-muted-foreground mr-3">
