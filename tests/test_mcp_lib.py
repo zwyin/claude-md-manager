@@ -284,6 +284,94 @@ class TestPublishErrors:
         assert "boom" in result["error"]
 
 
+class TestRecordCitation:
+    """Tests for the Phase 2 record_citation MCP tool."""
+
+    @pytest.fixture
+    def db_with_refs(self, tmp_path, monkeypatch):
+        db_path = tmp_path / "data" / "usage.db"
+        db_path.parent.mkdir(parents=True)
+        monkeypatch.setattr(mcp_lib, "DB_PATH", db_path)
+        import db as db_mod
+        monkeypatch.setattr(db_mod, "DB_PATH", db_path)
+        return db_path
+
+    def test_records_citation(self, db_with_refs):
+        result = mcp_lib.record_citation("core-principles", "手术刀原则")
+        assert result["recorded"] is True
+        assert result["rule_id"] == "core-principles"
+        assert result["keyword"] == "手术刀原则"
+        assert result["session_id"].startswith("mcp-")
+
+    def test_custom_session_id(self, db_with_refs):
+        result = mcp_lib.record_citation("core", "hello", session_id="sess-123")
+        assert result["session_id"] == "sess-123"
+
+    def test_citation_in_db(self, db_with_refs):
+        import sqlite3
+        db_path = db_with_refs
+        mcp_lib.record_citation("core", "hello", session_id="test-sess")
+        conn = sqlite3.connect(str(db_path))
+        conn.row_factory = sqlite3.Row
+        row = conn.execute("SELECT * FROM rule_references WHERE session_id = 'test-sess'").fetchone()
+        conn.close()
+        assert row is not None
+        assert row["rule_id"] == "core"
+        assert row["matched_keyword"] == "hello"
+        assert row["confidence"] == "high"
+        assert row["source"] == "mcp_tool"
+
+    def test_confidence_merge_upgrades(self, db_with_refs):
+        """MCP tool (high) should upgrade a hook_posttool (low) match."""
+        import sqlite3
+        db_path = db_with_refs
+
+        # First record a low-confidence match via hook
+        import db as db_mod
+        conn = db_mod.get_db()
+        db_mod.record_references(conn, "merge-sess", [{
+            "rule_id": "core",
+            "keyword": "hello",
+            "confidence": "low",
+        }], source="hook_posttool")
+        conn.close()
+
+        # Now record via MCP tool (high confidence)
+        mcp_lib.record_citation("core", "hello", session_id="merge-sess")
+
+        conn = sqlite3.connect(str(db_path))
+        conn.row_factory = sqlite3.Row
+        row = conn.execute("SELECT * FROM rule_references WHERE session_id = 'merge-sess'").fetchone()
+        conn.close()
+        assert row["confidence"] == "high"
+        assert row["source"] == "mcp_tool"
+
+    def test_confidence_no_downgrade(self, db_with_refs):
+        """A low-confidence match should not downgrade an existing high-confidence one."""
+        import sqlite3
+        db_path = db_with_refs
+
+        # First record high via MCP
+        mcp_lib.record_citation("core", "hello", session_id="downgrade-sess")
+
+        # Then try recording low via hook
+        import db as db_mod
+        conn = db_mod.get_db()
+        db_mod.record_references(conn, "downgrade-sess", [{
+            "rule_id": "core",
+            "keyword": "hello",
+            "confidence": "low",
+        }], source="hook_posttool")
+        conn.close()
+
+        conn = sqlite3.connect(str(db_path))
+        conn.row_factory = sqlite3.Row
+        row = conn.execute("SELECT * FROM rule_references WHERE session_id = 'downgrade-sess'").fetchone()
+        conn.close()
+        assert row["confidence"] == "high"
+        assert row["source"] == "mcp_tool"
+
+
 class TestParseFrontmatter:
     def test_no_frontmatter(self):
         meta, yaml_str, body = mcp_lib.parse_frontmatter("just plain text")

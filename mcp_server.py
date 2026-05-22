@@ -91,5 +91,19 @@ def list_snapshots() -> list[dict]:
     return mcp_lib.list_snapshot_files()
 
 
+@mcp.tool
+def record_citation(rule_id: str, matched_keyword: str, session_id: str | None = None) -> dict:
+    """Record a rule citation when you explicitly reference a rule in your work.
+    This is the highest-confidence citation source. Use when you consciously apply
+    a rule from CLAUDE.md (e.g., following the surgical-changes principle).
+
+    Args:
+        rule_id: The rule's id field from frontmatter
+        matched_keyword: The keyword or phrase that was referenced
+        session_id: Optional session identifier (auto-generated if omitted)
+    """
+    return mcp_lib.record_citation(rule_id, matched_keyword, session_id)
+
+
 if __name__ == "__main__":
     mcp.run()

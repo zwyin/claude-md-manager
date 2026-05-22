@@ -12,6 +12,7 @@ sl = importlib.import_module("session-logger")
 
 parse_all_rules = sl.parse_all_rules
 scan_session = sl.scan_session
+scan_last_message = sl.scan_last_message
 find_latest_session = sl.find_latest_session
 _build_pattern = sl._build_pattern
 _classify_confidence = sl._classify_confidence
@@ -587,3 +588,106 @@ rules:
         main()
         captured = capsys.readouterr()
         assert "0 matches across 0 rules" in captured.out
+
+
+class TestScanLastMessage:
+    """Tests for the Stop Hook scan_last_message function."""
+
+    def _build_pm(self, kw, rule_id="r1"):
+        return {kw.lower(): (_build_pattern(kw), [(rule_id, kw)])}
+
+    def test_finds_last_message_only(self):
+        pm = self._build_pm("hello")
+        f = Path("/tmp/test_stop_last.jsonl")
+        _make_jsonl(f, [
+            _assistant_msg("say hello first"),
+            _assistant_msg("no match here"),
+            _assistant_msg("say hello again"),
+        ])
+        matches = scan_last_message(f, pm)
+        assert len(matches) == 1
+        assert matches[0]["keyword"] == "hello"
+        assert matches[0]["confidence"] == "medium"
+
+    def test_no_assistant_messages(self):
+        pm = self._build_pm("hello")
+        f = Path("/tmp/test_stop_no_asst.jsonl")
+        _make_jsonl(f, [
+            json.dumps({"type": "user", "message": {"content": "hello"}}),
+        ])
+        matches = scan_last_message(f, pm)
+        assert len(matches) == 0
+
+    def test_empty_file(self):
+        pm = self._build_pm("hello")
+        f = Path("/tmp/test_stop_empty.jsonl")
+        f.write_text("", encoding="utf-8")
+        matches = scan_last_message(f, pm)
+        assert len(matches) == 0
+
+    def test_missing_file(self):
+        pm = self._build_pm("hello")
+        f = Path("/tmp/test_stop_missing_jsonl.jsonl")
+        matches = scan_last_message(f, pm)
+        assert len(matches) == 0
+
+    def test_confidence_always_medium(self):
+        pm = self._build_pm("rm -rf")
+        f = Path("/tmp/test_stop_conf.jsonl")
+        _make_jsonl(f, [_assistant_msg("run rm -rf /")])
+        matches = scan_last_message(f, pm)
+        assert len(matches) == 1
+        assert matches[0]["confidence"] == "medium"
+
+    def test_word_boundary_applied(self):
+        pm = self._build_pm("ship")
+        f = Path("/tmp/test_stop_wb.jsonl")
+        _make_jsonl(f, [_assistant_msg("a long relationship")])
+        matches = scan_last_message(f, pm)
+        assert len(matches) == 0
+
+
+class TestMainStopEvent:
+    """Tests for main() with --event stop."""
+
+    def test_stop_event(self, rules_dir, tmp_path, monkeypatch, capsys):
+        _write_rule(rules_dir, "test.md", """
+id: sec1
+rules:
+  - id: sec1.r1
+    title: Rule One
+    keywords:
+      - coverage
+""")
+        db_path = tmp_path / "test_stop.db"
+        monkeypatch.setattr(db_mod, "DB_PATH", db_path)
+
+        session = tmp_path / "stop_test.jsonl"
+        _make_jsonl(session, [_assistant_msg("check the coverage")])
+        monkeypatch.setattr(sys, "argv", ["session-logger.py", "--event", "stop", str(session)])
+
+        main()
+        captured = capsys.readouterr()
+        assert "[stop]" in captured.out
+        assert "1 matches" in captured.out
+
+    def test_stop_no_matches(self, rules_dir, tmp_path, monkeypatch, capsys):
+        _write_rule(rules_dir, "test.md", """
+id: sec1
+rules:
+  - id: sec1.r1
+    title: Rule One
+    keywords:
+      - rareword456
+""")
+        db_path = tmp_path / "test_stop_nomatch.db"
+        monkeypatch.setattr(db_mod, "DB_PATH", db_path)
+
+        session = tmp_path / "stop_nomatch.jsonl"
+        _make_jsonl(session, [_assistant_msg("nothing here")])
+        monkeypatch.setattr(sys, "argv", ["session-logger.py", "--event", "stop", str(session)])
+
+        main()
+        captured = capsys.readouterr()
+        assert "[stop]" in captured.out
+        assert "0 matches" in captured.out

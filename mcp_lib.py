@@ -21,7 +21,7 @@ OUTPUT_PATH = Path.home() / ".claude" / "CLAUDE.md"
 
 # Import from existing modules
 sys.path.insert(0, str(PROJECT_DIR / "hooks"))
-from db import get_db  # noqa: E402
+from db import get_db, upsert_session, record_references  # noqa: E402
 
 
 # ── Frontmatter parsing (mirrors assemble.py) ──
@@ -305,3 +305,36 @@ def list_snapshot_files() -> list[dict]:
             "size": f.stat().st_size,
         })
     return snapshots
+
+
+# ── Citation recording (Phase 2: MCP tool) ──
+
+def record_citation(rule_id: str, matched_keyword: str, session_id: str | None = None) -> dict:
+    """Record a rule citation from Claude's explicit reference.
+
+    This is the highest-confidence source (mcp_tool), used when Claude
+    proactively reports that it referenced a specific rule.
+
+    Returns {recorded, rule_id, keyword, session_id}.
+    """
+    import uuid
+    if not session_id:
+        session_id = f"mcp-{datetime.now().strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
+
+    db = get_db()
+    try:
+        upsert_session(db, session_id)
+        record_references(db, session_id, [{
+            "rule_id": rule_id,
+            "keyword": matched_keyword,
+            "confidence": "high",
+        }], source="mcp_tool")
+    finally:
+        db.close()
+
+    return {
+        "recorded": True,
+        "rule_id": rule_id,
+        "keyword": matched_keyword,
+        "session_id": session_id,
+    }

@@ -125,9 +125,15 @@ def record_references(conn: sqlite3.Connection, session_id: str, matches: list,
                        WHEN rule_references.confidence = 'high' THEN 'high'
                        WHEN rule_references.confidence = 'medium' AND ? IN ('medium', 'high') THEN ?
                        ELSE ?
+                   END,
+                   source = CASE
+                       WHEN ? IN ('high') THEN ?
+                       WHEN rule_references.confidence = 'high' THEN rule_references.source
+                       ELSE ?
                    END""",
             (m["rule_id"], session_id, m["keyword"], confidence, source,
-             confidence, confidence, confidence)
+             confidence, confidence, confidence,
+             confidence, source, source)
         )
     conn.commit()
 

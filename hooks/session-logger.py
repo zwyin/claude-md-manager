@@ -6,11 +6,12 @@ Scans session JSONL files for rule keyword matches and records citations.
 Called by Claude Code hooks system (PostToolUse or Stop).
 
 Usage:
-    python session-logger.py                  # Auto-detect latest session
+    python session-logger.py                  # Auto-detect latest session (PostToolUse)
     python session-logger.py <jsonl_path>     # Process specific session file
     python session-logger.py --sync-metadata  # Sync rule metadata only
+    python session-logger.py --event stop     # Stop Hook: scan only latest assistant message
 
-Hook registration (async recommended for zero impact on Claude):
+Hook registration:
     ~/.claude/settings.json:
     {
       "hooks": {
@@ -19,6 +20,14 @@ Hook registration (async recommended for zero impact on Claude):
           "hooks": [{
             "type": "command",
             "command": "python3 /path/to/session-logger.py",
+            "async": true
+          }]
+        }],
+        "Stop": [{
+          "matcher": "",
+          "hooks": [{
+            "type": "command",
+            "command": "python3 /path/to/session-logger.py --event stop",
             "async": true
           }]
         }]
@@ -244,6 +253,65 @@ def scan_session(jsonl_path: Path, pattern_map: dict, start_line: int = 0) -> tu
     return matches, last_line_scanned
 
 
+def scan_last_message(jsonl_path: Path, pattern_map: dict) -> list:
+    """Scan only the last assistant message in a JSONL session.
+
+    Used by Stop Hook for higher-confidence single-turn analysis.
+    Returns matches with 'medium' confidence (higher than PostToolUse's
+    bulk scan which defaults to 'low' for short keywords).
+    """
+    last_content = ""
+
+    try:
+        with open(jsonl_path, "r", encoding="utf-8") as f:
+            for line in f:
+                try:
+                    entry = json.loads(line.strip())
+                except json.JSONDecodeError:
+                    continue
+                if entry.get("type") != "assistant":
+                    continue
+                msg = entry.get("message", {})
+                content = msg.get("content", [])
+                if isinstance(content, list):
+                    text_parts = []
+                    for block in content:
+                        if isinstance(block, dict) and block.get("type") == "text":
+                            text_parts.append(block.get("text", ""))
+                    content = " ".join(text_parts)
+                if isinstance(content, str) and content.strip():
+                    last_content = content
+    except FileNotFoundError:
+        print(f"Warning: session file not found: {jsonl_path}", file=sys.stderr)
+        return []
+
+    if not last_content:
+        return []
+
+    matches = []
+    seen = set()
+    longest_match: dict = {}
+
+    for _, (pattern, rule_pairs) in pattern_map.items():
+        for m in pattern.finditer(last_content):
+            for rule_id, kw_original in rule_pairs:
+                pos_key = (rule_id, m.start(), m.end())
+                existing = longest_match.get(pos_key)
+                if existing and len(existing) >= len(kw_original):
+                    continue
+                longest_match[pos_key] = kw_original
+                match_key = (rule_id, kw_original)
+                if match_key not in seen:
+                    seen.add(match_key)
+                    matches.append({
+                        "rule_id": rule_id,
+                        "keyword": kw_original,
+                        "confidence": "medium",
+                    })
+
+    return matches
+
+
 def main():
     if "--sync-metadata" in sys.argv:
         conn = get_db()
@@ -254,10 +322,27 @@ def main():
         conn.close()
         return
 
-    # Determine session file
-    if len(sys.argv) > 1 and not sys.argv[1].startswith("--"):
-        session_path = Path(sys.argv[1])
-    else:
+    event_mode = "posttool"
+    if "--event" in sys.argv:
+        idx = sys.argv.index("--event")
+        if idx + 1 < len(sys.argv):
+            event_mode = sys.argv[idx + 1]
+
+    # Determine session file: find positional arg that looks like a file path
+    session_path = None
+    skip_next = False
+    for arg in sys.argv[1:]:
+        if skip_next:
+            skip_next = False
+            continue
+        if arg == "--event":
+            skip_next = True
+            continue
+        if arg.startswith("-"):
+            continue
+        session_path = Path(arg)
+        break
+    if session_path is None:
         session_path = find_latest_session()
 
     if not session_path or not session_path.exists():
@@ -272,28 +357,35 @@ def main():
         print("No keywords loaded from rules.", file=sys.stderr)
         return
 
-    # Connect to DB and get last scanned offset
+    # Connect to DB
     conn = get_db()
-    upsert_session(conn, session_id)
-    start_line = get_session_offset(conn, session_id)
+    try:
+        upsert_session(conn, session_id)
+        sync_rules_metadata(conn, rules_data)
+        sync_sections_metadata(conn, sections_data)
 
-    # Scan session incrementally
-    matches, last_line = scan_session(session_path, pattern_map, start_line)
+        if event_mode == "stop":
+            # Stop Hook: scan only the last assistant message
+            matches = scan_last_message(session_path, pattern_map)
+            if matches:
+                record_references(conn, session_id, matches, source="hook_stop")
+            unique_rules = len(set(m["rule_id"] for m in matches))
+            print(f"[stop] Session {session_id}: "
+                  f"{len(matches)} matches across {unique_rules} rules")
+        else:
+            # PostToolUse: incremental full scan
+            start_line = get_session_offset(conn, session_id)
+            matches, last_line = scan_session(session_path, pattern_map, start_line)
+            if matches:
+                record_references(conn, session_id, matches, source="hook_posttool")
+            update_session_offset(conn, session_id, last_line + 1)
+            conn.commit()
 
-    # Record results in a single transaction
-    sync_rules_metadata(conn, rules_data)
-    sync_sections_metadata(conn, sections_data)
-    if matches:
-        record_references(conn, session_id, matches, source="hook_posttool")
-    update_session_offset(conn, session_id, last_line + 1)
-    conn.commit()
-
-    # Summary
-    unique_rules = len(set(m["rule_id"] for m in matches))
-    print(f"Session {session_id} (lines {start_line}-{last_line}): "
-          f"{len(matches)} matches across {unique_rules} rules")
-
-    conn.close()
+            unique_rules = len(set(m["rule_id"] for m in matches))
+            print(f"Session {session_id} (lines {start_line}-{last_line}): "
+                  f"{len(matches)} matches across {unique_rules} rules")
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":
