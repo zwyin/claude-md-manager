@@ -131,7 +131,7 @@ export default function SessionsPage() {
       </div>
 
       <div className="flex items-center gap-1.5">
-        <span className="text-xs text-muted-foreground mr-1">{t('rules.ruleName').replace(t('rules.ruleName'), '')}</span>
+        <span className="text-xs text-muted-foreground mr-1">{t('analytics.timeRange')}:</span>
         {(['time', 'citations', 'rules', 'duration'] as const).map((key) => (
           <Button
             key={key}

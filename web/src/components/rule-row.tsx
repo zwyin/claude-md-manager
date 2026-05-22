@@ -43,7 +43,7 @@ export function RuleRow({ rule, totalSessions, maxDepth, totalCitations }: RuleR
   return (
     <>
       <div
-        className="flex items-center px-5 py-3 pl-14 border-b border-border last:border-0 hover:bg-accent/30 transition-colors min-w-[640px] group"
+        className="flex items-center px-5 py-3 pl-14 border-b border-border last:border-0 hover:bg-accent/30 transition-colors group"
       >
         <button
           onClick={toggleExpand}
@@ -61,19 +61,19 @@ export function RuleRow({ rule, totalSessions, maxDepth, totalCitations }: RuleR
           <span className="text-xs font-mono text-muted-foreground shrink-0">{rule.rule_id}</span>
           <span className="text-sm truncate hover:text-indigo-400 transition-colors">{rule.title}</span>
         </Link>
-        <div className="flex items-center justify-center shrink-0 gap-1.5" style={{ width: '80px' }}>
+        <div className="flex items-center justify-center shrink-0 gap-1.5 sm:w-[80px]">
           <MiniSparkline session={rule.session_count} matches={rule.match_count} />
           <Badge variant={rule.match_count === 0 ? "destructive" : "default"} className="text-xs font-mono">{rule.match_count}</Badge>
         </div>
-        <div className="flex items-center justify-center shrink-0 gap-1" style={{ width: '90px' }}>
+        <div className="hidden sm:flex items-center justify-center shrink-0 gap-1" style={{ width: '90px' }}>
           <MiniCoverageBar value={rule.session_coverage} />
           <Badge variant="secondary" className="text-xs font-mono" title={`${rule.session_count}/${totalSessions} ${t('table.sessions').toLowerCase()}`}>{(rule.session_coverage * 100).toFixed(0)}%</Badge>
         </div>
-        <div className="flex items-center justify-center shrink-0 gap-1" style={{ width: '70px' }}>
+        <div className="hidden sm:flex items-center justify-center shrink-0 gap-1" style={{ width: '70px' }}>
           <MiniDepthBar value={rule.avg_depth} max={maxDepth} />
           <Badge variant="outline" className="text-xs font-mono" title={`${rule.match_count}/${rule.session_count} ${t('table.matches').toLowerCase()}/${t('table.sessions').toLowerCase()}`}>{rule.avg_depth.toFixed(1)}</Badge>
         </div>
-        <div className="flex items-center justify-center shrink-0 gap-1" style={{ width: '80px' }}>
+        <div className="hidden sm:flex items-center justify-center shrink-0 gap-1" style={{ width: '80px' }}>
           <InlineMetricBar value={rule.citation_share} color={STAT_COLORS.citations} />
           <Badge variant="secondary" className="text-xs font-mono">{(rule.citation_share * 100).toFixed(1)}%</Badge>
         </div>
