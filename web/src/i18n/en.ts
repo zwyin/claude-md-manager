@@ -94,6 +94,7 @@ const en: Dict = {
   'history.size': '{size} bytes',
   'history.selectSnapshot': 'Select snapshot {ts}',
   'history.close': 'Close',
+  'history.snapshotCount': '{count} snapshots',
   'analytics.title': 'Analytics',
   'analytics.subtitle': 'Rule usage statistics and distribution',
   'analytics.timeRange': 'Time Range',

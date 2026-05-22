@@ -109,6 +109,9 @@ export default function HistoryPage() {
         <div>
           <h1 className="text-2xl font-bold">{t('history.title')}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t('history.subtitle')}</p>
+          {snapshots.length > 0 && (
+            <Badge variant="outline" className="text-xs mt-2">{t('history.snapshotCount', { count: snapshots.length })}</Badge>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {selected.length > 0 && (

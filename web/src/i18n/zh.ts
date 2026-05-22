@@ -109,6 +109,7 @@ const zh = {
   'history.size': '{size} 字节',
   'history.selectSnapshot': '选择快照 {ts}',
   'history.close': '关闭',
+  'history.snapshotCount': '{count} 个快照',
 
   // Analytics
   'analytics.title': '数据分析',
