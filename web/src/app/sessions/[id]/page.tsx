@@ -139,7 +139,9 @@ export default function SessionDetailPage() {
                       <Badge variant="secondary" className="text-[10px]" style={{ backgroundColor: sectionColorMap[c.section_id] + '20', color: sectionColorMap[c.section_id] }}>
                         {c.section_id}
                       </Badge>
-                      <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px]">{c.matched_keyword}</Badge>
+                      <Link href={`/rules?search=${encodeURIComponent(c.matched_keyword)}`}>
+                        <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px] hover:bg-indigo-500/10 cursor-pointer transition-colors">{c.matched_keyword}</Badge>
+                      </Link>
                       <Badge variant={c.confidence === 'high' ? 'default' : c.confidence === 'medium' ? 'secondary' : 'outline'} className="text-[10px]">
                         {c.confidence === 'high' ? t('analytics.confidence.high') : c.confidence === 'medium' ? t('analytics.confidence.medium') : t('analytics.confidence.low')}
                       </Badge>
@@ -177,7 +179,9 @@ export default function SessionDetailPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px]">{c.matched_keyword}</Badge>
+                          <Link href={`/rules?search=${encodeURIComponent(c.matched_keyword)}`}>
+                        <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px] hover:bg-indigo-500/10 cursor-pointer transition-colors">{c.matched_keyword}</Badge>
+                      </Link>
                         </TableCell>
                         <TableCell>
                           <Badge variant={c.confidence === 'high' ? 'default' : c.confidence === 'medium' ? 'secondary' : 'outline'} className="text-[10px]">
