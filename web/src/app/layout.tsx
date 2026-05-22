@@ -1,4 +1,4 @@
-import type { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
