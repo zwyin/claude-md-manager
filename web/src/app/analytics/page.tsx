@@ -213,7 +213,7 @@ export default function AnalyticsPage() {
                 <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
                   className="flex items-center justify-between px-6 py-3 hover:bg-accent/30 transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-sm font-mono text-muted-foreground shrink-0">{rule.rule_id}</span>
+                    <Badge variant="secondary" className="text-[10px] shrink-0">{rule.section_id}</Badge>
                     <span className="text-sm truncate">{rule.title}</span>
                   </div>
                   <Badge variant="destructive" className="text-xs shrink-0">

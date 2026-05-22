@@ -366,7 +366,7 @@ export function getAnalytics(days?: number, db?: Database.Database): Omit<Analyt
     const coldRules = conn
       .prepare(
         `
-        SELECT m.rule_id, m.title,
+        SELECT m.rule_id, m.title, m.section_id,
                CAST(julianday('now') - julianday(MAX(r.timestamp)) AS INTEGER) AS days_since_last_citation
         FROM rules_metadata m
         LEFT JOIN rule_references r ON r.rule_id = m.rule_id

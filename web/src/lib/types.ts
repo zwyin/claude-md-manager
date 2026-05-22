@@ -79,6 +79,7 @@ export interface TopRule {
 export interface ColdRule {
   rule_id: string;
   title: string;
+  section_id: string;
   days_since_last_citation: number | null;
 }
 
