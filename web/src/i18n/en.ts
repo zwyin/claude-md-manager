@@ -8,6 +8,7 @@ const en: Dict = {
   'nav.rules': 'Rules',
   'nav.editor': 'Editor',
   'nav.history': 'History',
+  'nav.sessions': 'Sessions',
   'nav.analytics': 'Analytics',
   'lang.zh': '中文',
   'lang.en': 'English',
@@ -174,6 +175,11 @@ const en: Dict = {
   'session.sectionsHit': 'Sections Hit',
   'session.citations': 'Citation Log',
   'session.confidence': 'Confidence',
+  'session.listTitle': 'Sessions',
+  'session.listSubtitle': 'Browse rule citation records from all Claude sessions',
+  'session.noSessions': 'No sessions found',
+  'session.ruleCount': '{count} rules',
+  'session.refCount': '{count} refs',
 };
 
 export default en;

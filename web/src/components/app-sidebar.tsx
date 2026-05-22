@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ListChecks, PenLine, Clock, BarChart3 } from "lucide-react";
+import { Home, ListChecks, PenLine, Clock, BarChart3, Users } from "lucide-react";
 import {
   Sidebar,
   SidebarHeader,
@@ -27,6 +27,7 @@ const navItems = [
   { href: "/rules", labelKey: 'nav.rules' as const, Icon: ListChecks },
   { href: "/editor", labelKey: 'nav.editor' as const, Icon: PenLine },
   { href: "/history", labelKey: 'nav.history' as const, Icon: Clock },
+  { href: "/sessions", labelKey: 'nav.sessions' as const, Icon: Users },
   { href: "/analytics", labelKey: 'nav.analytics' as const, Icon: BarChart3 },
 ];
 

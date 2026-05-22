@@ -9,6 +9,7 @@ const zh = {
   'nav.rules': '规则管理',
   'nav.editor': '编辑器',
   'nav.history': '版本历史',
+  'nav.sessions': '会话记录',
   'nav.analytics': '数据分析',
 
   // 语言
@@ -195,6 +196,11 @@ const zh = {
   'session.sectionsHit': '命中章节',
   'session.citations': '引用记录',
   'session.confidence': '置信度',
+  'session.listTitle': '会话记录',
+  'session.listSubtitle': '浏览所有 Claude 会话的规则引用记录',
+  'session.noSessions': '暂无会话记录',
+  'session.ruleCount': '{count} 条规则',
+  'session.refCount': '{count} 次引用',
 } as const;
 
 export default zh;
