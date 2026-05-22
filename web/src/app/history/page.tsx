@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,7 @@ export default function HistoryPage() {
   const [contentView, setContentView] = useState<string | null>(null);
   const [contentText, setContentText] = useState<string>('');
   const [contentLoading, setContentLoading] = useState(false);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   usePageTitle('history.title');
 
   useEffect(() => {
@@ -103,6 +103,22 @@ export default function HistoryPage() {
 
   const formatTs = (ts: string) => ts.replace('T', ' ').replace(/(\d{2})-(\d{2})-(\d{2})$/, '$1:$2:$3');
 
+  // Group snapshots by date
+  const grouped = useMemo(() => {
+    const groups: Record<string, SnapshotInfo[]> = {};
+    for (const s of snapshots) {
+      const date = s.timestamp.slice(0, 10);
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(s);
+    }
+    return groups;
+  }, [snapshots]);
+
+  const formatDate = (date: string) => {
+    const d = new Date(date + 'T00:00:00');
+    return d.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -135,15 +151,21 @@ export default function HistoryPage() {
       )}
 
       {snapshots.length > 0 ? (
-        <div className="relative pl-8">
-          <div className="absolute left-3 top-0 bottom-0 w-px bg-border" />
-          <div className="space-y-4">
-            {snapshots.map((s) => {
-              const isSelected = selected.includes(s.filename);
-              const isConfirming = rollbackTarget === s.filename;
-              return (
-                <div key={s.filename} className="relative">
-                  <div className={`absolute -left-5 top-4 w-3 h-3 rounded-full border-2 border-card transition-colors ${isSelected ? 'bg-indigo-400' : 'bg-indigo-500'}`} />
+        <div className="relative pl-8 space-y-6">
+          {Object.entries(grouped).map(([date, items]) => (
+            <div key={date}>
+              <div className="relative -left-8 mb-3">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-card pr-2">{formatDate(date)}</span>
+              </div>
+              <div className="relative">
+                <div className="absolute left-[-17px] top-0 bottom-0 w-px bg-border" />
+                <div className="space-y-3">
+                  {items.map((s) => {
+                    const isSelected = selected.includes(s.filename);
+                    const isConfirming = rollbackTarget === s.filename;
+                    return (
+                      <div key={s.filename} className="relative">
+                        <div className={`absolute -left-[21px] top-4 w-3 h-3 rounded-full border-2 border-card transition-colors ${isSelected ? 'bg-indigo-400' : 'bg-indigo-500'}`} />
                   <Card className={`rounded-xl border bg-card ml-4 transition-colors ${isSelected ? 'border-indigo-500/50' : 'border-border'}`}>
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -187,7 +209,10 @@ export default function HistoryPage() {
                 </div>
               );
             })}
+            </div>
           </div>
+          </div>
+          ))}
         </div>
       ) : (
         <div className="text-center py-16">
