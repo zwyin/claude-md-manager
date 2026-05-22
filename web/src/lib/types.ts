@@ -100,6 +100,7 @@ export interface AnalyticsData {
   cold_rules: ColdRule[];
   category_distribution: CategoryDistribution[];
   citation_trend: CitationTimePoint[];
+  heatmap: HeatmapCell[];
 }
 
 export interface RuleDetail {
@@ -137,4 +138,12 @@ export interface CoOccurringRule {
   title: string;
   section_id: string;
   co_sessions: number;
+}
+
+export interface HeatmapCell {
+  rule_id: string;
+  title: string;
+  section_id: string;
+  day: string;
+  count: number;
 }

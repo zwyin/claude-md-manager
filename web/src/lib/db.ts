@@ -12,6 +12,7 @@ import type {
   TopRule,
   ColdRule,
   CategoryDistribution,
+  HeatmapCell,
 } from './types';
 
 const DB_PATH = path.join(process.cwd(), '..', 'data', 'usage.db');
@@ -332,7 +333,7 @@ export function getCitations(filters: {
 
 // ── Analytics ──
 
-export function getAnalytics(days?: number, db?: Database.Database): Omit<AnalyticsData, 'citation_trend'> {
+export function getAnalytics(days?: number, db?: Database.Database): Omit<AnalyticsData, 'citation_trend' | 'heatmap'> {
   const own = !db;
   const conn = db || getDb();
   try {
@@ -481,6 +482,31 @@ export function getRecentCitations(limit: number, db?: Database.Database): Recen
          LIMIT ?`
       )
       .all(limit) as RecentCitation[];
+  } finally {
+    if (own) conn.close();
+  }
+}
+
+export function getHeatmapData(days: number | undefined, limit: number, db?: Database.Database): HeatmapCell[] {
+  const own = !db;
+  const conn = db || getDb();
+  try {
+    const timeFilter = days
+      ? `AND r.timestamp >= datetime('now', ? || ' days')`
+      : '';
+    const params = days ? [`-${days}`] : [];
+
+    return conn.prepare(`
+      SELECT m.rule_id, m.title, m.section_id,
+             DATE(r.timestamp) AS day,
+             COUNT(*) AS count
+      FROM rule_references r
+      JOIN rules_metadata m ON m.rule_id = r.rule_id
+      WHERE 1=1 ${timeFilter}
+      GROUP BY m.rule_id, day
+      ORDER BY count DESC
+      LIMIT ?
+    `).bind(...params, limit * 90).all() as HeatmapCell[];
   } finally {
     if (own) conn.close();
   }

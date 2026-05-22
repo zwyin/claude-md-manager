@@ -47,6 +47,7 @@ const zh = {
   'rules.clearSearch': '清除搜索',
 
   // Rules 详情
+  'ruleDetail.editInEditor': '编辑',
   'ruleDetail.backTo': '返回 {section}',
   'ruleDetail.section': '所属章节',
   'ruleDetail.source': '来源文件',
@@ -128,6 +129,8 @@ const zh = {
   'analytics.topRules': '热门规则 Top 10',
   'analytics.sectionDist': '章节分布',
   'analytics.citationTrend': '引用趋势',
+  'analytics.heatmap': '规则活跃热力图',
+  'analytics.heatmap.subtitle': '按日展示规则引用密度，颜色越深引用越多',
   'analytics.coldRules': '休眠规则',
   'analytics.coldRules.days': '{days} 天未引用',
   'analytics.neverCited': '从未引用',

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +18,15 @@ import { PageLoader } from "@/components/page-states";
 import { toast } from "sonner";
 
 export default function EditorPage() {
+  return (
+    <Suspense fallback={<PageLoader message="..." />}>
+      <EditorContent />
+    </Suspense>
+  );
+}
+
+function EditorContent() {
+  const searchParams = useSearchParams();
   const [rules, setRules] = useState<RuleFile[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [frontmatter, setFrontmatter] = useState("");
@@ -39,6 +49,7 @@ export default function EditorPage() {
   const selectedRule = rules.find((r) => r.rule_id === selectedId) ?? null;
 
   useEffect(() => {
+    const preselected = searchParams.get('rule');
     fetch("/api/editor/rules")
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -49,12 +60,16 @@ export default function EditorPage() {
         setLoaded(true);
         fetchPublishHistory();
         if (!initialLoadDone.current && data.rules.length > 0) {
-          setSelectedId(data.rules[0].rule_id);
+          if (preselected && data.rules.some((r: RuleFile) => r.rule_id === preselected)) {
+            setSelectedId(preselected);
+          } else {
+            setSelectedId(data.rules[0].rule_id);
+          }
         }
         initialLoadDone.current = true;
       })
       .catch(() => toast.error(t('editor.loadFailed')));
-  }, [t]);
+  }, [t, searchParams]);
 
   useEffect(() => {
     if (!selectedId || prevSelectedId.current === selectedId) return;

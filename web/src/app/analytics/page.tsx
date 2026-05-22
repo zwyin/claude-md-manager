@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { StatCard } from '@/components/stat-card';
 import { TermTooltip } from '@/components/term-tooltip';
+import { CitationHeatmap } from '@/components/citation-heatmap';
 import { useI18n } from '@/i18n';
 import { useChartTheme } from '@/hooks/use-chart-theme';
 import { useFetch } from '@/hooks/use-fetch';
@@ -211,6 +212,18 @@ export default function AnalyticsPage() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {data.heatmap && data.heatmap.length > 0 && (
+        <Card className="rounded-xl border-border bg-card">
+          <CardHeader>
+            <CardTitle className="text-base">{t('analytics.heatmap')}</CardTitle>
+            <p className="text-xs text-muted-foreground">{t('analytics.heatmap.subtitle')}</p>
+          </CardHeader>
+          <CardContent>
+            <CitationHeatmap data={data.heatmap} />
           </CardContent>
         </Card>
       )}

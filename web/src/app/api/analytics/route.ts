@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Database from 'better-sqlite3';
 import path from 'path';
-import { getAnalytics, getCitations } from '@/lib/db';
+import { getAnalytics, getCitations, getHeatmapData } from '@/lib/db';
 import { parseDays, parseEnum } from '@/lib/api-utils';
 import { handleApiError } from '@/lib/api-handler';
 
@@ -15,8 +15,9 @@ export async function GET(request: NextRequest) {
     try {
       const analytics = getAnalytics(days, db);
       const citation_trend = getCitations({ days, group_by: trendGroup }, db);
+      const heatmap = getHeatmapData(days, 50, db);
 
-      return NextResponse.json({ ...analytics, citation_trend });
+      return NextResponse.json({ ...analytics, citation_trend, heatmap });
     } finally {
       db.close();
     }

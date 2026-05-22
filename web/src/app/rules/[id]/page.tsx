@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Home } from 'lucide-react';
+import { ChevronRight, Home, Pencil } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -120,6 +120,11 @@ export default function RuleDetailPage() {
               )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
+              <Link href={`/editor?rule=${encodeURIComponent(rule.rule_id)}`}
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-card text-xs font-medium text-muted-foreground hover:text-foreground hover:border-indigo-500/30 transition-colors">
+                <Pencil className="w-3 h-3" />
+                {t('ruleDetail.editInEditor')}
+              </Link>
               <Badge variant="secondary">{uniqueSessions} {t('table.sessions')}</Badge>
               <Badge variant={rule.citation_count === 0 ? "destructive" : "default"}>{rule.citation_count} {t('table.matches')}</Badge>
             </div>
