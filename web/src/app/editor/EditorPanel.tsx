@@ -10,6 +10,7 @@ interface EditorPanelProps {
   frontmatterYaml: string;
   markdownBody: string;
   hasDraft: boolean;
+  dirty: boolean;
   onFrontmatterChange: (value: string) => void;
   onBodyChange: (value: string) => void;
   onSaveDraft: () => void;
@@ -20,6 +21,7 @@ export function EditorPanel({
   frontmatterYaml,
   markdownBody,
   hasDraft,
+  dirty,
   onFrontmatterChange,
   onBodyChange,
   onSaveDraft,
@@ -30,7 +32,7 @@ export function EditorPanel({
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex items-center gap-2 mb-2">
-        <Button size="sm" onClick={onSaveDraft}>
+        <Button size="sm" onClick={onSaveDraft} variant={dirty ? 'default' : 'outline'}>
           {t('editor.saveDraft')} <span className="text-[10px] opacity-60 ml-1">⌘S</span>
         </Button>
         {hasDraft && (
@@ -38,9 +40,9 @@ export function EditorPanel({
             {t('editor.discardDraft')}
           </Button>
         )}
-        {hasDraft && (
+        {dirty && (
           <span className="text-xs text-orange-400 flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-orange-400" />
+            <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
             {t('editor.unsavedChanges')}
           </span>
         )}

@@ -26,6 +26,10 @@ export default function EditorPage() {
   usePageTitle('editor.title');
   const initialLoadDone = useRef(false);
   const prevSelectedId = useRef<string | null>(null);
+  const baselineFm = useRef("");
+  const baselineBody = useRef("");
+
+  const dirty = frontmatter !== baselineFm.current || body !== baselineBody.current;
 
   const selectedRule = rules.find((r) => r.rule_id === selectedId) ?? null;
 
@@ -63,10 +67,14 @@ export default function EditorPage() {
         if (draft) {
           setFrontmatter(draft.frontmatter_yaml);
           setBody(draft.markdown_body);
+          baselineFm.current = draft.frontmatter_yaml;
+          baselineBody.current = draft.markdown_body;
           setHasDraft(true);
         } else {
           setFrontmatter(currentRule.frontmatter_yaml);
           setBody(currentRule.markdown_body);
+          baselineFm.current = currentRule.frontmatter_yaml;
+          baselineBody.current = currentRule.markdown_body;
           setHasDraft(false);
         }
       })
@@ -86,6 +94,8 @@ export default function EditorPage() {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setHasDraft(true);
+      baselineFm.current = frontmatter;
+      baselineBody.current = body;
       toast.success(t('editor.draftSaved'));
       const refreshed = await fetch("/api/editor/rules").then((r) => r.json());
       if (Array.isArray(refreshed.rules)) setRules(refreshed.rules);
@@ -112,8 +122,12 @@ export default function EditorPage() {
         method: "DELETE",
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setFrontmatter(selectedRule?.frontmatter_yaml ?? "");
-      setBody(selectedRule?.markdown_body ?? "");
+      const fm = selectedRule?.frontmatter_yaml ?? "";
+      const bd = selectedRule?.markdown_body ?? "";
+      setFrontmatter(fm);
+      setBody(bd);
+      baselineFm.current = fm;
+      baselineBody.current = bd;
       setHasDraft(false);
       toast.success(t('editor.draftDiscarded'));
       const refreshed = await fetch("/api/editor/rules").then((r) => r.json());
@@ -205,6 +219,7 @@ export default function EditorPage() {
               frontmatterYaml={frontmatter}
               markdownBody={body}
               hasDraft={hasDraft}
+              dirty={dirty}
               onFrontmatterChange={setFrontmatter}
               onBodyChange={setBody}
               onSaveDraft={handleSaveDraft}
