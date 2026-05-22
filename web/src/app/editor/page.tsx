@@ -46,6 +46,13 @@ function EditorContent() {
 
   const dirty = frontmatter !== baselineFm.current || body !== baselineBody.current;
 
+  useEffect(() => {
+    if (!dirty) return;
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [dirty]);
+
   const selectedRule = rules.find((r) => r.rule_id === selectedId) ?? null;
 
   useEffect(() => {
