@@ -210,6 +210,10 @@ const zh = {
   // Sessions filter
   'session.searchPlaceholder': '搜索会话 ID...',
   'session.allTime': '全部',
+  'session.sort.time': '时间',
+  'session.sort.citations': '匹配数',
+  'session.sort.rules': '规则数',
+  'session.sort.duration': '时长',
 } as const;
 
 export default zh;

@@ -18,6 +18,7 @@ interface SessionEntry {
   model: string | null;
   citation_count: number;
   rule_count: number;
+  duration_sec: number;
 }
 
 interface SessionsData {
@@ -29,12 +30,10 @@ interface SessionsData {
 
 const PAGE_SIZE = 50;
 const TIME_RANGES = [7, 30, 90] as const;
+type SortKey = 'time' | 'citations' | 'rules' | 'duration';
 
-function formatDuration(start: string | null, end: string | null): string | null {
-  if (!start || !end) return null;
-  const ms = new Date(end).getTime() - new Date(start).getTime();
-  if (ms <= 0) return null;
-  const sec = Math.floor(ms / 1000);
+function formatDurationSec(sec: number): string | null {
+  if (sec <= 0) return null;
   if (sec < 60) return `${sec}s`;
   const min = Math.floor(sec / 60);
   const remSec = sec % 60;
@@ -48,14 +47,18 @@ export default function SessionsPage() {
   const [offset, setOffset] = useState(0);
   const [days, setDays] = useState<number | null>(null);
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<SortKey>('time');
+  const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
   const { t, locale } = useI18n();
   usePageTitle('session.listTitle');
 
   const url = useMemo(() => {
     const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
     if (days) params.set('days', String(days));
+    params.set('sort', sortBy);
+    params.set('dir', sortDir);
     return `/api/sessions?${params}`;
-  }, [offset, days]);
+  }, [offset, days, sortBy, sortDir]);
 
   const { data, loading, error } = useFetch<SessionsData>(url);
 
@@ -71,9 +74,15 @@ export default function SessionsPage() {
     setOffset(0);
   }, []);
 
-  const handleSearch = useCallback((value: string) => {
-    setSearch(value);
-  }, []);
+  const handleSort = useCallback((key: SortKey) => {
+    if (key === sortBy) {
+      setSortDir((d) => d === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortBy(key);
+      setSortDir('desc');
+    }
+    setOffset(0);
+  }, [sortBy]);
 
   if (loading && !data) return <PageLoader message={t('status.loading')} />;
   if (error) return <PageError message={t('status.error', { error })} />;
@@ -94,7 +103,7 @@ export default function SessionsPage() {
         <Input
           placeholder={t('session.searchPlaceholder')}
           value={search}
-          onChange={(e) => handleSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           className="w-full sm:w-64 h-8 text-sm"
         />
         <div className="flex items-center gap-1.5">
@@ -119,6 +128,26 @@ export default function SessionsPage() {
           ))}
         </div>
         <Badge variant="outline" className="text-xs">{t('dashboard.totalSessions')}: {total}</Badge>
+      </div>
+
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs text-muted-foreground mr-1">{t('rules.ruleName').replace(t('rules.ruleName'), '')}</span>
+        {(['time', 'citations', 'rules', 'duration'] as const).map((key) => (
+          <Button
+            key={key}
+            size="sm"
+            variant={sortBy === key ? 'default' : 'ghost'}
+            className="text-xs h-7 px-2"
+            onClick={() => handleSort(key)}
+          >
+            {t(`session.sort.${key}`)}
+            {sortBy === key && (
+              <svg className={`w-3 h-3 ml-0.5 transition-transform ${sortDir === 'asc' ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            )}
+          </Button>
+        ))}
       </div>
 
       {filteredSessions.length > 0 ? (
@@ -152,9 +181,9 @@ export default function SessionsPage() {
                             {s.model}
                           </Badge>
                         )}
-                        {formatDuration(s.started_at, s.ended_at) && (
+                        {formatDurationSec(s.duration_sec) && (
                           <span className="text-[10px] text-muted-foreground">
-                            {formatDuration(s.started_at, s.ended_at)}
+                            {formatDurationSec(s.duration_sec)}
                           </span>
                         )}
                       </div>

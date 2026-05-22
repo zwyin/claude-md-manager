@@ -189,6 +189,10 @@ const en: Dict = {
   // Sessions filter
   'session.searchPlaceholder': 'Search session ID...',
   'session.allTime': 'All',
+  'session.sort.time': 'Time',
+  'session.sort.citations': 'Citations',
+  'session.sort.rules': 'Rules',
+  'session.sort.duration': 'Duration',
 };
 
 export default en;
