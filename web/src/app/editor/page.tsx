@@ -307,7 +307,7 @@ function EditorContent() {
                   <div key={ev.id} className="flex items-center justify-between px-6 py-2.5">
                     <div className="flex items-center gap-3">
                       <Badge variant={ev.status === 'success' ? 'default' : 'destructive'} className="text-[10px]">
-                        {ev.status}
+                        {ev.status === 'success' ? t('dashboard.buildStatus.success') : t('dashboard.buildStatus.failed')}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
                         {new Date(ev.published_at).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}

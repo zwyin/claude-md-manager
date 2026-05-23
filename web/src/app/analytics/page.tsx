@@ -238,9 +238,9 @@ export default function AnalyticsPage() {
                 confMap[c.confidence] = { count: c.count, color: '', label: c.confidence, top_rules: c.top_rules ?? [] };
               }
               const levels = [
-                { key: 'high', color: 'bg-emerald-500', textColor: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/5', label: t('analytics.confidence.high'), desc: t('analytics.confidence.high.desc'), source: 'MCP Tool' },
-                { key: 'medium', color: 'bg-amber-500', textColor: 'text-amber-400', border: 'border-amber-500/30', bg: 'bg-amber-500/5', label: t('analytics.confidence.medium'), desc: t('analytics.confidence.medium.desc'), source: 'Hook (Stop)' },
-                { key: 'low', color: 'bg-rose-500', textColor: 'text-rose-400', border: 'border-rose-500/30', bg: 'bg-rose-500/5', label: t('analytics.confidence.low'), desc: t('analytics.confidence.low.desc'), source: 'Hook (PostToolUse)' },
+                { key: 'high', color: 'bg-emerald-500', textColor: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/5', label: t('analytics.confidence.high'), desc: t('analytics.confidence.high.desc'), source: t('analytics.confidence.source.mcp') },
+                { key: 'medium', color: 'bg-amber-500', textColor: 'text-amber-400', border: 'border-amber-500/30', bg: 'bg-amber-500/5', label: t('analytics.confidence.medium'), desc: t('analytics.confidence.medium.desc'), source: t('analytics.confidence.source.stop') },
+                { key: 'low', color: 'bg-rose-500', textColor: 'text-rose-400', border: 'border-rose-500/30', bg: 'bg-rose-500/5', label: t('analytics.confidence.low'), desc: t('analytics.confidence.low.desc'), source: t('analytics.confidence.source.posttool') },
               ];
               return (
                 <div className="space-y-3">
