@@ -311,6 +311,9 @@ export default function DashboardPage() {
                           const dur = sec < 60 ? `${sec}s` : sec < 3600 ? `${Math.floor(sec / 60)}m` : `${Math.floor(sec / 3600)}h`;
                           return <span className="text-[10px] text-muted-foreground font-mono">{dur}</span>;
                         })()}
+                        {s.model && (
+                          <Badge variant="secondary" className="text-[10px] font-mono px-1 py-0">{s.model}</Badge>
+                        )}
                       </div>
                       {s.task_summary && (
                         <p className="text-xs text-muted-foreground/70 truncate mt-0.5">{s.task_summary}</p>

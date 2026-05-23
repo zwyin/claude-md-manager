@@ -134,7 +134,7 @@ export default function SessionsPage() {
               className="h-7 text-xs px-2.5"
               onClick={() => handleFilterChange(d)}
             >
-              {d}d
+              {t(`analytics.time.${d}d`)}
             </Button>
           ))}
         </div>
