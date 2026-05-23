@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS rule_references (
   rule_id TEXT NOT NULL,
   session_id TEXT NOT NULL,
   matched_keyword TEXT NOT NULL,
+  confidence TEXT DEFAULT 'medium',
   timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS sessions (

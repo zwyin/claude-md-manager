@@ -202,6 +202,7 @@ export function getRuleDetail(
     }));
 
     // Co-occurring rules: rules from OTHER sections cited in the same sessions
+    const coTimeFilter = days ? `AND r1.timestamp >= datetime('now', ? || ' days')` : '';
     const coOccurring = conn
       .prepare(
         `
@@ -211,7 +212,7 @@ export function getRuleDetail(
         FROM rule_references r1
         JOIN rule_references r2 ON r1.session_id = r2.session_id AND r2.rule_id != ?
         JOIN rules_metadata m ON m.rule_id = r2.rule_id AND m.section_id != ?
-        WHERE r1.rule_id = ? ${timeFilter}
+        WHERE r1.rule_id = ? ${coTimeFilter}
         GROUP BY m.rule_id
         ORDER BY co_sessions DESC
         LIMIT 10
