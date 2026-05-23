@@ -409,7 +409,7 @@ export default function DashboardPage() {
                         <Badge variant="outline" className="text-[10px]">{s.rule_count} {t('table.rules').toLowerCase()}</Badge>
                       )}
                       {s.citation_count > 0 && (
-                        <Badge variant="secondary" className="text-[10px]">{s.citation_count}</Badge>
+                        <Badge variant="secondary" className="text-[10px]" title={`${s.citation_count} ${t('table.matches')}`}>{s.citation_count}</Badge>
                       )}
                     </div>
                   </Link>
