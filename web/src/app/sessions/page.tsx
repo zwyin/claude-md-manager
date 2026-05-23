@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ChevronRight, Home, Users } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -64,21 +65,11 @@ export default function SessionsPage() {
   const [confidenceFilter, setConfidenceFilter] = useState('');
   const [sortBy, setSortBy] = useState<SortKey>('time');
   const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const { t, locale } = useI18n();
+  const router = useRouter();
   usePageTitle('session.listTitle');
   const searchRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        searchRef.current?.focus();
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, []);
 
   const url = useMemo(() => {
     const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
@@ -95,19 +86,46 @@ export default function SessionsPage() {
 
   const filteredSessions = data?.sessions ?? [];
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchRef.current?.focus();
+        return;
+      }
+      if (filteredSessions.length === 0) return;
+      if (e.key === 'ArrowDown' || (e.key === 'j' && !e.metaKey && !e.ctrlKey)) {
+        e.preventDefault();
+        setSelectedIdx((idx) => idx === null ? 0 : Math.min(idx + 1, filteredSessions.length - 1));
+      } else if (e.key === 'ArrowUp' || (e.key === 'k' && !e.metaKey && !e.ctrlKey)) {
+        e.preventDefault();
+        setSelectedIdx((idx) => idx === null ? filteredSessions.length - 1 : Math.max(idx - 1, 0));
+      } else if (e.key === 'Enter' && selectedIdx !== null) {
+        e.preventDefault();
+        router.push(`/sessions/${encodeURIComponent(filteredSessions[selectedIdx].session_id)}`);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [filteredSessions, selectedIdx, router]);
+
   const handleFilterChange = useCallback((newDays: number | null) => {
     setDays(newDays);
     setOffset(0);
+    setSelectedIdx(null);
   }, []);
 
   const handleModelChange = useCallback((m: string) => {
     setModelFilter(m);
     setOffset(0);
+    setSelectedIdx(null);
   }, []);
 
   const handleConfidenceChange = useCallback((c: string) => {
     setConfidenceFilter(c);
     setOffset(0);
+    setSelectedIdx(null);
   }, []);
 
   const handleSort = useCallback((key: SortKey) => {
@@ -231,7 +249,7 @@ export default function SessionsPage() {
                 <Link
                   key={s.session_id}
                   href={`/sessions/${encodeURIComponent(s.session_id)}`}
-                  className="flex items-center justify-between px-6 py-3 hover:bg-accent/30 transition-colors"
+                  className={`flex items-center justify-between px-6 py-3 hover:bg-accent/30 transition-colors ${selectedIdx === idx ? 'bg-accent/40 ring-1 ring-inset ring-indigo-500/20' : ''}`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span
