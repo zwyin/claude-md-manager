@@ -17,6 +17,7 @@ import type {
   PublishEvent,
   ModelDistribution,
   RecentSession,
+  RecentCitation,
   SessionCitation,
   SessionSection,
   Session,
@@ -479,15 +480,6 @@ export function getAnalytics(days?: number, db?: Database.Database): Omit<Analyt
   } finally {
     if (own) conn.close();
   }
-}
-
-export interface RecentCitation {
-  rule_id: string;
-  title: string;
-  matched_keyword: string;
-  timestamp: string;
-  session_id: string;
-  model: string | null;
 }
 
 export function getRecentCitations(limit: number, days?: number, db?: Database.Database): RecentCitation[] {
