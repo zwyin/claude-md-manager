@@ -490,7 +490,7 @@ export function getRecentCitations(limit: number, days?: number, db?: Database.D
     const params = days ? [`-${days}`, limit] : [limit];
     return conn
       .prepare(
-        `SELECT r.rule_id, m.title, r.matched_keyword, r.timestamp, r.session_id, s.model
+        `SELECT r.rule_id, m.title, r.matched_keyword, r.timestamp, r.session_id, s.model, r.confidence
          FROM rule_references r
          JOIN rules_metadata m ON m.rule_id = r.rule_id
          LEFT JOIN sessions s ON s.session_id = r.session_id

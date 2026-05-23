@@ -138,6 +138,7 @@ export interface RecentCitation {
   timestamp: string;
   session_id: string;
   model: string | null;
+  confidence: string;
 }
 
 export interface SiblingRule {

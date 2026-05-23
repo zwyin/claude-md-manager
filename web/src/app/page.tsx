@@ -324,6 +324,7 @@ export default function DashboardPage() {
                       <Link href={`/sessions/${encodeURIComponent(c.session_id)}`} className="text-[10px] font-mono text-muted-foreground hover:text-foreground transition-colors" title={c.session_id}>
                         {c.session_id.slice(0, 6)}
                       </Link>
+                      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.confidence === 'high' ? 'bg-emerald-400' : c.confidence === 'medium' ? 'bg-amber-400' : 'bg-rose-400'}`} title={c.confidence} />
                       {c.model && <Badge variant="secondary" className="text-[10px] font-mono px-1 py-0">{c.model}</Badge>}
                       <span className="text-xs text-muted-foreground whitespace-nowrap" title={new Date(c.timestamp).toLocaleString(locale)}>
                         {relativeTime(c.timestamp, locale)}
