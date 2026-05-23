@@ -217,6 +217,7 @@ const en: Dict = {
   'shortcut.save': 'Save draft (editor)',
   'shortcut.preview': 'Toggle preview (editor)',
   'shortcut.navigate': 'Navigate lists',
+  'shortcut.open': 'Open selected item',
   'shortcut.help': 'Show shortcut help',
   'shortcut.close': 'Close dialog',
   'shortcut.dismiss': 'Press Esc or click outside to close',

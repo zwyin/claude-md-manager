@@ -238,6 +238,7 @@ const zh = {
   'shortcut.save': '保存草稿（编辑器）',
   'shortcut.preview': '切换预览（编辑器）',
   'shortcut.navigate': '导航列表',
+  'shortcut.open': '打开选中项',
   'shortcut.help': '显示快捷键帮助',
   'shortcut.close': '关闭对话框',
   'shortcut.dismiss': '按 Esc 或点击外部关闭',

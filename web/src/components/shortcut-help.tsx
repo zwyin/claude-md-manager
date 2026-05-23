@@ -29,6 +29,7 @@ export function ShortcutHelp() {
     { keys: "⌘S", desc: t("shortcut.save") },
     { keys: "⇧⌘P", desc: t("shortcut.preview") },
     { keys: "↑ / ↓ / j / k", desc: t("shortcut.navigate") },
+    { keys: "Enter", desc: t("shortcut.open") },
     { keys: "?", desc: t("shortcut.help") },
     { keys: "Esc", desc: t("shortcut.close") },
   ];
