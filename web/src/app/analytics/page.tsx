@@ -262,6 +262,9 @@ export default function AnalyticsPage() {
                         >
                           <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${color}`} />
                           <span className="text-xs text-muted-foreground">{label}</span>
+                          <div className="flex-1 h-1.5 bg-muted/30 rounded-full overflow-hidden max-w-[80px]">
+                            <div className={`h-full ${color} rounded-full`} style={{ width: `${pct}%` }} />
+                          </div>
                           <span className="text-xs font-mono font-medium">{count}</span>
                           <span className="text-[10px] text-muted-foreground">({pct.toFixed(1)}%)</span>
                           <svg className={`w-3 h-3 ml-auto text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

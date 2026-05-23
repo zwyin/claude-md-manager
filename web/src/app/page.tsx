@@ -392,6 +392,9 @@ export default function DashboardPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-3">
+                      {s.rule_count > 0 && (
+                        <Badge variant="outline" className="text-[10px]">{s.rule_count} {t('table.rules').toLowerCase()}</Badge>
+                      )}
                       {s.citation_count > 0 && (
                         <Badge variant="secondary" className="text-[10px]">{s.citation_count}</Badge>
                       )}
