@@ -200,7 +200,12 @@ export default function DashboardPage() {
       {data.citation_trend && data.citation_trend.length > 1 && (
         <Card className="rounded-xl border-border bg-card">
           <CardHeader>
-            <CardTitle className="text-base">{t('analytics.citationTrend')}</CardTitle>
+            <CardTitle className="text-base">
+              {t('analytics.citationTrend')}
+              <span className="text-xs font-normal text-muted-foreground ml-2">
+                ({t('analytics.avgPerDay')}: {Math.round(data.citation_trend.reduce((s, p) => s + p.count, 0) / data.citation_trend.length).toLocaleString()})
+              </span>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[200px]">
@@ -226,7 +231,12 @@ export default function DashboardPage() {
       {data.session_trend && data.session_trend.length > 1 && (
         <Card className="rounded-xl border-border bg-card">
           <CardHeader>
-            <CardTitle className="text-base">{t('dashboard.sessionTrend')}</CardTitle>
+            <CardTitle className="text-base">
+              {t('dashboard.sessionTrend')}
+              <span className="text-xs font-normal text-muted-foreground ml-2">
+                ({t('analytics.avgPerDay')}: {Math.round(data.session_trend.reduce((s, p) => s + p.count, 0) / data.session_trend.length).toLocaleString()})
+              </span>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[160px]">
