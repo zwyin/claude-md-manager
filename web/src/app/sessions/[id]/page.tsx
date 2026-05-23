@@ -12,6 +12,7 @@ import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { useDynamicPageTitle } from '@/hooks/use-page-title';
 import { PageLoader, PageError, SessionDetailSkeleton } from '@/components/page-states';
+import { toast } from 'sonner';
 import { relativeTime, formatDuration } from '@/lib/relative-time';
 import { SECTION_COLORS } from '@/lib/chart-colors';
 
@@ -101,7 +102,7 @@ export default function SessionDetailPage() {
               <p
                 className="text-xs font-mono text-muted-foreground mt-1 cursor-pointer hover:text-foreground transition-colors"
                 title="Click to copy"
-                onClick={() => { navigator.clipboard.writeText(displayId); }}
+                onClick={() => { navigator.clipboard.writeText(displayId); toast.success(t('ruleDetail.copied')); }}
               >{displayId}</p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
