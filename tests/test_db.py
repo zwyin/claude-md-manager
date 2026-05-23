@@ -188,3 +188,85 @@ class TestSyncSectionsMetadataCleanup:
         ])
         count = conn.execute("SELECT COUNT(*) FROM sections_metadata").fetchone()[0]
         assert count == 2
+
+
+class TestMigrations:
+    """Test that _run_migrations adds columns to old-schema databases."""
+
+    def _make_old_db(self, tmp_path, monkeypatch):
+        """Create a DB with the pre-migration schema (no confidence/source/last_offset)."""
+        import db as db_mod
+        import sqlite3
+
+        db_file = tmp_path / "old.db"
+        conn = sqlite3.connect(str(db_file))
+        conn.executescript("""
+            CREATE TABLE rule_references (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                rule_id TEXT NOT NULL,
+                session_id TEXT NOT NULL,
+                matched_keyword TEXT NOT NULL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE sessions (
+                session_id TEXT PRIMARY KEY,
+                started_at DATETIME,
+                ended_at DATETIME,
+                model TEXT,
+                task_summary TEXT
+            );
+            CREATE TABLE rules_metadata (
+                rule_id TEXT PRIMARY KEY,
+                section_id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                keywords TEXT,
+                source_file TEXT NOT NULL,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE sections_metadata (
+                section_id TEXT PRIMARY KEY,
+                title TEXT NOT NULL,
+                source_file TEXT NOT NULL,
+                rule_count INTEGER DEFAULT 0,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE rule_drafts (
+                rule_id TEXT PRIMARY KEY,
+                frontmatter_yaml TEXT NOT NULL,
+                markdown_body TEXT NOT NULL,
+                order_override INTEGER,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE publish_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                published_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                rules_changed INTEGER DEFAULT 0,
+                snapshot_name TEXT,
+                status TEXT NOT NULL,
+                error_message TEXT
+            );
+        """)
+        conn.close()
+        monkeypatch.setattr(db_mod, "DB_PATH", db_file)
+        return db_file
+
+    def test_adds_confidence_column(self, tmp_path, monkeypatch):
+        db_file = self._make_old_db(tmp_path, monkeypatch)
+        conn = get_db()
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(rule_references)").fetchall()}
+        assert "confidence" in cols
+        conn.close()
+
+    def test_adds_source_column(self, tmp_path, monkeypatch):
+        db_file = self._make_old_db(tmp_path, monkeypatch)
+        conn = get_db()
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(rule_references)").fetchall()}
+        assert "source" in cols
+        conn.close()
+
+    def test_adds_last_offset_column(self, tmp_path, monkeypatch):
+        db_file = self._make_old_db(tmp_path, monkeypatch)
+        conn = get_db()
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(sessions)").fetchall()}
+        assert "last_offset" in cols
+        conn.close()
