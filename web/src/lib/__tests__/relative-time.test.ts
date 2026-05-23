@@ -49,4 +49,10 @@ describe('relativeTime', () => {
     const result = relativeTime(past, 'en');
     expect(result).toContain('3');
   });
+
+  it('formats minutes ago', () => {
+    const past = new Date(Date.now() - 5 * 60000).toISOString();
+    const result = relativeTime(past, 'en');
+    expect(result).toContain('5');
+  });
 });

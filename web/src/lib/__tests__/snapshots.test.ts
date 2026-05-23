@@ -84,6 +84,40 @@ describe('listSnapshotFiles', () => {
     expect(result[0].size).toBe(42);
     expect(result[1].filename).toBe('2026-01-01.md');
   });
+
+  it('deduplicates consecutive snapshots with identical content', () => {
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readdirSync).mockReturnValue([
+      '2026-01-03.md',
+      '2026-01-02.md',
+      '2026-01-01.md',
+    ] as unknown as ReturnType<typeof fs.readdirSync>);
+    // All three have same content → deduped to 1
+    vi.mocked(fs.readFileSync).mockReturnValue('same-content');
+    vi.mocked(fs.statSync).mockReturnValue({ size: 10 } as fs.Stats);
+
+    const result = listSnapshotFiles();
+    expect(result).toHaveLength(1);
+    expect(result[0].filename).toBe('2026-01-03.md');
+  });
+
+  it('computes diffStats between consecutive different snapshots', () => {
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readdirSync).mockReturnValue([
+      '2026-01-02.md',
+      '2026-01-01.md',
+    ] as unknown as ReturnType<typeof fs.readdirSync>);
+    vi.mocked(fs.readFileSync)
+      .mockReturnValueOnce('line-a\nline-b')      // dedup: 2026-01-02
+      .mockReturnValueOnce('line-a\nline-c')      // dedup: 2026-01-01 (different)
+      .mockReturnValueOnce('line-a\nline-b')      // diff: 2026-01-02 current
+      .mockReturnValueOnce('line-a\nline-c');     // diff: 2026-01-01 previous
+    vi.mocked(fs.statSync).mockReturnValue({ size: 20 } as fs.Stats);
+
+    const result = listSnapshotFiles();
+    expect(result[0].diffStats).toEqual({ added: 1, removed: 1 });
+    expect(result[1].diffStats).toBeUndefined();
+  });
 });
 
 describe('computeDiff', () => {

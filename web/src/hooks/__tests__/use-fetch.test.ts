@@ -62,6 +62,19 @@ describe('useFetch', () => {
     expect(result.current.data).toBeNull();
   });
 
+  it('cancels error dispatch on unmount', async () => {
+    let rejectFetch: (err: Error) => void;
+    globalThis.fetch = vi.fn(async () => new Promise<never>((_r, rej) => { rejectFetch = rej; }));
+
+    const { result, unmount } = renderHook(() => useFetch('/api/test'));
+    unmount();
+    rejectFetch!(new Error('late failure'));
+
+    await act(() => new Promise((r) => setTimeout(r, 0)));
+    expect(result.current.loading).toBe(true);
+    expect(result.current.error).toBeNull();
+  });
+
   it('re-fetches when url changes', async () => {
     const responses = [new Response('{"v":1}'), new Response('{"v":2}')];
     let callIdx = 0;
