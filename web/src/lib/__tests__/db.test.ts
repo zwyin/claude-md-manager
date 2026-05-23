@@ -7,6 +7,10 @@ import {
   getTotalSessionCount,
   getCitations,
   getAnalytics,
+  getRecentCitations,
+  getHeatmapData,
+  getSessionTrend,
+  getTotalCitationCount,
 } from '../db';
 
 const SCHEMA_SQL = `
@@ -221,5 +225,65 @@ describe('getAnalytics', () => {
     const a = getAnalytics(7, db);
     expect(a.total_citations).toBe(4);
     expect(a.top_rules).toHaveLength(2);
+  });
+});
+
+describe('getTotalCitationCount', () => {
+  it('returns total citation count', () => {
+    expect(getTotalCitationCount(undefined, db)).toBe(4);
+  });
+
+  it('filters by days', () => {
+    expect(getTotalCitationCount(7, db)).toBe(4);
+  });
+});
+
+describe('getRecentCitations', () => {
+  it('returns recent citations sorted by timestamp desc', () => {
+    const result = getRecentCitations(10, undefined, db);
+    expect(result.length).toBeGreaterThan(0);
+    expect(result[0].rule_id).toBeTruthy();
+    expect(result[0].title).toBeTruthy();
+  });
+
+  it('respects limit', () => {
+    const result = getRecentCitations(2, undefined, db);
+    expect(result.length).toBeLessThanOrEqual(2);
+  });
+
+  it('filters by days', () => {
+    const result = getRecentCitations(10, 7, db);
+    expect(result.length).toBeGreaterThan(0);
+  });
+});
+
+describe('getHeatmapData', () => {
+  it('returns heatmap cells with rule and day info', () => {
+    const result = getHeatmapData(undefined, 10, db);
+    expect(result.length).toBeGreaterThan(0);
+    expect(result[0].rule_id).toBeTruthy();
+    expect(result[0].day).toBeTruthy();
+    expect(result[0].count).toBeGreaterThan(0);
+  });
+
+  it('filters by days', () => {
+    const result = getHeatmapData(7, 10, db);
+    expect(result.length).toBeGreaterThan(0);
+  });
+});
+
+describe('getSessionTrend', () => {
+  it('returns daily session counts', () => {
+    db.prepare("UPDATE sessions SET started_at = datetime('now')").run();
+    const result = getSessionTrend(undefined, db);
+    expect(result.length).toBeGreaterThanOrEqual(1);
+    expect(result[0].period).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(result[0].count).toBe(3);
+  });
+
+  it('filters by days', () => {
+    db.prepare("UPDATE sessions SET started_at = datetime('now')").run();
+    const result = getSessionTrend(7, db);
+    expect(result.length).toBeGreaterThanOrEqual(1);
   });
 });

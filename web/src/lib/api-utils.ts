@@ -40,7 +40,7 @@ export function zeroFillTrend(
   const d = new Date(start);
   d.setHours(0, 0, 0, 0);
   while (d <= end) {
-    const key = d.toISOString().slice(0, 10);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     result.push({ period: key, count: lookup.get(key) ?? 0 });
     d.setDate(d.getDate() + 1);
   }

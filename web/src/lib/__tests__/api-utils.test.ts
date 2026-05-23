@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseDays, parseEnum, sanitizeRuleId, ValidationError } from '../api-utils';
+import { parseDays, parseEnum, sanitizeRuleId, ValidationError, zeroFillTrend } from '../api-utils';
 
 describe('parseDays', () => {
   it('returns undefined for null', () => {
@@ -93,6 +93,36 @@ describe('sanitizeRuleId', () => {
 
   it('decodes percent-encoded valid IDs', () => {
     expect(sanitizeRuleId('core-principles.brain')).toBe('core-principles.brain');
+  });
+});
+
+describe('zeroFillTrend', () => {
+  it('returns empty array as-is', () => {
+    expect(zeroFillTrend([])).toEqual([]);
+  });
+
+  it('fills gaps between data points when no days param', () => {
+    const data = [
+      { period: '2026-01-01', count: 3 },
+      { period: '2026-01-04', count: 1 },
+    ];
+    const result = zeroFillTrend(data);
+    expect(result).toHaveLength(4);
+    expect(result.map((r) => r.period)).toEqual([
+      '2026-01-01', '2026-01-02', '2026-01-03', '2026-01-04',
+    ]);
+    expect(result.map((r) => r.count)).toEqual([3, 0, 0, 1]);
+  });
+
+  it('fills from days ago when days param given', () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const result = zeroFillTrend([{ period: todayStr, count: 5 }], 3);
+    expect(result.length).toBeGreaterThanOrEqual(4);
+    expect(result[result.length - 1].count).toBe(5);
+    const earlierEntries = result.filter((r) => r.count === 0);
+    expect(earlierEntries.length).toBeGreaterThanOrEqual(3);
   });
 });
 
