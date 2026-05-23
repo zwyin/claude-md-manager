@@ -460,7 +460,10 @@ export default function DashboardPage() {
                       >{rule.section_id}</Badge>
                       <span className="text-sm truncate">{rule.title}</span>
                     </div>
-                    <Badge variant="outline" className="text-xs text-muted-foreground">{rule.match_count} {t('table.matches')}</Badge>
+                    <Badge variant="outline" className="text-xs text-muted-foreground">
+                      {rule.match_count} {t('table.matches')}
+                      {rule.last_cited && <span className="ml-1.5 text-[10px]">{relativeTime(rule.last_cited, locale)}</span>}
+                    </Badge>
                   </Link>
                 ))}
               </div>

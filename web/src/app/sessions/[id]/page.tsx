@@ -1,6 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,6 +63,19 @@ export default function SessionDetailPage() {
   sections.forEach((s, i) => {
     sectionColorMap[s.section_id] = SECTION_COLORS[i % SECTION_COLORS.length];
   });
+
+  const timeline = useMemo(() => {
+    if (!session.started_at || citations.length < 2) return null;
+    const start = new Date(session.started_at).getTime();
+    const end = session.ended_at ? new Date(session.ended_at).getTime() : new Date(citations[citations.length - 1].timestamp).getTime();
+    const dur = end - start;
+    if (dur <= 0) return null;
+    return citations.map((c) => {
+      const t = new Date(c.timestamp).getTime();
+      const pct = Math.max(0, Math.min(1, (t - start) / dur));
+      return { pct, confidence: c.confidence, rule_id: c.rule_id, title: c.title };
+    });
+  }, [session, citations]);
 
   return (
     <div className="space-y-6">
@@ -130,6 +144,29 @@ export default function SessionDetailPage() {
           </CardContent>
         )}
       </Card>
+
+      {timeline && (
+        <Card className="rounded-xl border-border bg-card">
+          <CardContent className="pt-4">
+            <svg width="100%" height="28" viewBox="0 0 100 28" preserveAspectRatio="none" className="w-full">
+              <line x1="0" y1="14" x2="100" y2="14" stroke="currentColor" strokeOpacity="0.15" strokeWidth="0.5" />
+              {timeline.map((pt, i) => (
+                <circle
+                  key={i}
+                  cx={pt.pct * 100}
+                  cy="14"
+                  r="2"
+                  fill={pt.confidence === 'high' ? '#34d399' : pt.confidence === 'medium' ? '#fbbf24' : '#fb7185'}
+                  fillOpacity={0.8}
+                  className="hover:fill-opacity-100 transition-all"
+                >
+                  <title>{pt.title} ({pt.confidence})</title>
+                </circle>
+              ))}
+            </svg>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="rounded-xl border-border bg-card">
         <CardHeader>

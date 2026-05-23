@@ -16,6 +16,7 @@ import { StatCard } from '@/components/stat-card';
 import { TermTooltip } from '@/components/term-tooltip';
 import { CitationHeatmap } from '@/components/citation-heatmap';
 import { useI18n } from '@/i18n';
+import { relativeTime } from '@/lib/relative-time';
 import { useChartTheme } from '@/hooks/use-chart-theme';
 import { useFetch } from '@/hooks/use-fetch';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
@@ -28,7 +29,7 @@ export default function AnalyticsPage() {
   const [trendMode, setTrendMode] = useState<'day' | 'week' | 'month'>('day');
   const [timeRange, setTimeRange] = useState<number | undefined>(undefined);
   const [expandedConf, setExpandedConf] = useState<string | null>(null);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const router = useRouter();
   const chartTheme = useChartTheme();
   usePageTitle('analytics.title');
@@ -345,6 +346,9 @@ export default function AnalyticsPage() {
                     {rule.citation_count > 0
                       ? `${rule.citation_count} ${t('table.matches')}`
                       : t('analytics.neverCited')}
+                    {rule.last_cited && (
+                      <span className="ml-2 text-[10px]">{relativeTime(rule.last_cited, locale)}</span>
+                    )}
                   </span>
                 </Link>
               ))}
