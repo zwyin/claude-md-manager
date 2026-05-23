@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     const orderCol = validSorts[sort] ?? validSorts.time;
 
     const search = searchParams.get('search')?.trim().toLowerCase() ?? '';
+    const model = searchParams.get('model')?.trim() ?? '';
 
     const db = new Database(path.join(process.cwd(), '..', 'data', 'usage.db'), { readonly: true });
     try {
@@ -29,13 +30,14 @@ export async function GET(request: NextRequest) {
       const searchFilter = search
         ? `AND (LOWER(s.session_id) LIKE ? OR LOWER(s.task_summary) LIKE ?)`
         : '';
+      const modelFilter = model ? `AND s.model = ?` : '';
       const searchParam = search ? `%${search}%` : '';
-      const params = [
+      const baseParams = [
         ...(days ? [`-${days}`] : []),
         ...(search ? [searchParam, searchParam] : []),
-        limit,
-        offset,
+        ...(model ? [model] : []),
       ];
+      const params = [...baseParams, limit, offset];
 
       const sessions = db.prepare(`
         SELECT
@@ -51,7 +53,7 @@ export async function GET(request: NextRequest) {
             ELSE 0 END AS duration_sec
         FROM sessions s
         LEFT JOIN rule_references r ON r.session_id = s.session_id
-        WHERE 1=1 ${timeFilter} ${searchFilter}
+        WHERE 1=1 ${timeFilter} ${searchFilter} ${modelFilter}
         GROUP BY s.session_id
         ORDER BY ${orderCol} ${dir}
         LIMIT ? OFFSET ?
@@ -70,7 +72,8 @@ export async function GET(request: NextRequest) {
         WHERE 1=1
         ${days ? "AND started_at >= datetime('now', ? || ' days')" : ''}
         ${search ? "AND (LOWER(session_id) LIKE ? OR LOWER(task_summary) LIKE ?)" : ''}
-      `).bind(...(days ? [`-${days}`] : []), ...(search ? [searchParam, searchParam] : [])).get() as { total: number };
+        ${model ? "AND model = ?" : ''}
+      `).bind(...baseParams).get() as { total: number };
 
       const statsResult = db.prepare(`
         SELECT
@@ -82,13 +85,19 @@ export async function GET(request: NextRequest) {
         WHERE 1=1
         ${days ? "AND s.started_at >= datetime('now', ? || ' days')" : ''}
         ${search ? "AND (LOWER(s.session_id) LIKE ? OR LOWER(s.task_summary) LIKE ?)" : ''}
-      `).bind(...(days ? [`-${days}`] : []), ...(search ? [searchParam, searchParam] : [])).get() as { avg_duration: number | null; avg_citations: number | null };
+        ${model ? "AND s.model = ?" : ''}
+      `).bind(...baseParams).get() as { avg_duration: number | null; avg_citations: number | null };
+
+      const models = db.prepare(
+        `SELECT DISTINCT model FROM sessions WHERE model IS NOT NULL AND model != '' ORDER BY model`
+      ).all() as { model: string }[];
 
       return NextResponse.json({
         sessions,
         total: totalResult.total,
         avg_duration: statsResult.avg_duration ? Math.round(statsResult.avg_duration) : null,
         avg_citations: statsResult.avg_citations ? Math.round(statsResult.avg_citations * 10) / 10 : null,
+        models: models.map((m) => m.model),
         limit,
         offset,
       });

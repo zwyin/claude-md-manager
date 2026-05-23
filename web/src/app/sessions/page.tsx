@@ -29,6 +29,7 @@ interface SessionsData {
   total: number;
   avg_duration: number | null;
   avg_citations: number | null;
+  models: string[];
   limit: number;
   offset: number;
 }
@@ -41,6 +42,7 @@ export default function SessionsPage() {
   const [offset, setOffset] = useState(0);
   const [days, setDays] = useState<number | null>(null);
   const [search, setSearch] = useState('');
+  const [modelFilter, setModelFilter] = useState('');
   const [sortBy, setSortBy] = useState<SortKey>('time');
   const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
   const { t, locale } = useI18n();
@@ -52,8 +54,9 @@ export default function SessionsPage() {
     params.set('sort', sortBy);
     params.set('dir', sortDir);
     if (search.trim()) params.set('search', search.trim());
+    if (modelFilter) params.set('model', modelFilter);
     return `/api/sessions?${params}`;
-  }, [offset, days, sortBy, sortDir, search]);
+  }, [offset, days, sortBy, sortDir, search, modelFilter]);
 
   const { data, loading, error } = useFetch<SessionsData>(url);
 
@@ -61,6 +64,11 @@ export default function SessionsPage() {
 
   const handleFilterChange = useCallback((newDays: number | null) => {
     setDays(newDays);
+    setOffset(0);
+  }, []);
+
+  const handleModelChange = useCallback((m: string) => {
+    setModelFilter(m);
     setOffset(0);
   }, []);
 
@@ -123,6 +131,18 @@ export default function SessionsPage() {
             </Button>
           ))}
         </div>
+        {data.models && data.models.length > 1 && (
+          <select
+            value={modelFilter}
+            onChange={(e) => handleModelChange(e.target.value)}
+            className="h-7 text-xs rounded-md border border-border bg-card text-foreground px-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          >
+            <option value="">{t('session.allModels')}</option>
+            {data.models.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        )}
         <div className="flex items-center gap-1.5 flex-wrap">
           <Badge variant="outline" className="text-xs">{t('dashboard.totalSessions')}: {total}</Badge>
           {data.avg_duration != null && (

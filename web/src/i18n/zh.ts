@@ -67,6 +67,7 @@ const zh = {
   'ruleDetail.coOccurring.desc': '同一会话中经常一起引用的规则',
   'ruleDetail.model': '模型',
   'ruleDetail.copyId': '复制规则 ID',
+  'ruleDetail.copied': '已复制到剪贴板',
   'ruleDetail.noCitations': '暂无引用数据',
   'ruleDetail.noContent': '暂无正文内容',
   'ruleDetail.showing': '显示 {shown} / {total} 条',
@@ -221,6 +222,7 @@ const zh = {
   // Sessions filter
   'session.searchPlaceholder': '搜索会话 ID 或任务描述...',
   'session.allTime': '全部',
+  'session.allModels': '全部模型',
   'session.avgDuration': '平均时长',
   'session.avgCitations': '平均匹配',
   'session.sort.time': '时间',
