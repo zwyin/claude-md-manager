@@ -70,6 +70,12 @@ describe('listSnapshotFiles', () => {
       '2026-01-02.md',
       'ignore.txt',
     ] as unknown as ReturnType<typeof fs.readdirSync>);
+    // readFileSync calls: dedup(2 files) + diff stats(2 files)
+    vi.mocked(fs.readFileSync)
+      .mockReturnValueOnce('content-02')  // dedup: 2026-01-02 (sorted reverse, first)
+      .mockReturnValueOnce('content-01')  // dedup: 2026-01-01 (different, kept)
+      .mockReturnValueOnce('content-02')  // diff: 2026-01-02 current
+      .mockReturnValueOnce('content-01'); // diff: 2026-01-01 previous
     vi.mocked(fs.statSync).mockReturnValue({ size: 42 } as fs.Stats);
 
     const result = listSnapshotFiles();
