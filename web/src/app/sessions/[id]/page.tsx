@@ -165,7 +165,9 @@ export default function SessionDetailPage() {
                   <TooltipContent side="top" className="text-xs max-w-[200px]">
                     <span className="font-medium">{pt.title}</span>
                     <br />
-                    <span className="text-muted-foreground">{pt.confidence}</span>
+                    <span className="text-muted-foreground">
+                      {pt.confidence === 'high' ? t('analytics.confidence.high') : pt.confidence === 'medium' ? t('analytics.confidence.medium') : t('analytics.confidence.low')}
+                    </span>
                   </TooltipContent>
                 </Tooltip>
               ))}

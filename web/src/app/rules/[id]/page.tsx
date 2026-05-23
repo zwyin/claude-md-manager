@@ -21,6 +21,7 @@ import { PageLoader, PageError, RuleDetailSkeleton } from '@/components/page-sta
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { useDynamicPageTitle } from '@/hooks/use-page-title';
+import { toast } from 'sonner';
 import type { RuleDetail, CitationRecord, SiblingRule, CoOccurringRule } from '@/lib/types';
 
 export default function RuleDetailPage() {
@@ -93,7 +94,7 @@ export default function RuleDetailPage() {
               <div className="flex items-center gap-2 mb-1">
                 <p className="text-xs font-mono text-muted-foreground">{rule.rule_id}</p>
                 <button
-                  onClick={() => { navigator.clipboard.writeText(rule.rule_id); }}
+                  onClick={() => { navigator.clipboard.writeText(rule.rule_id); toast.success(t('ruleDetail.copied')); }}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                   aria-label={t('ruleDetail.copyId')}
                   title={t('ruleDetail.copyId')}
@@ -324,6 +325,7 @@ export default function RuleDetailPage() {
                       <TableHead>{t('table.time')}</TableHead>
                       <TableHead>{t('table.keyword')}</TableHead>
                       <TableHead>{t('ruleDetail.model')}</TableHead>
+                      <TableHead>{t('session.confidence')}</TableHead>
                       <TableHead>{t('table.sessionId')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -334,6 +336,7 @@ export default function RuleDetailPage() {
                           {relativeTime(c.timestamp, locale)}
                         </TableCell>
                         <TableCell><Badge variant="outline" className="border-indigo-500/30 text-indigo-300">{c.matched_keyword}</Badge></TableCell>
+                        <TableCell><Badge variant={c.confidence === "high" ? "default" : c.confidence === "medium" ? "secondary" : "outline"} className="text-[10px]">{c.confidence === "high" ? t("analytics.confidence.high") : c.confidence === "medium" ? t("analytics.confidence.medium") : t("analytics.confidence.low")}</Badge></TableCell>
                         <TableCell className="text-xs">
                           {c.model ? <Badge variant="secondary" className="text-[10px] font-mono">{c.model}</Badge> : <span className="text-muted-foreground">—</span>}
                         </TableCell>

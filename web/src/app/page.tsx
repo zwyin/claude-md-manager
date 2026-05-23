@@ -174,35 +174,35 @@ export default function DashboardPage() {
         />
       </div>
 
-      {data.model_distribution && data.model_distribution.length > 0 && (
-        <Card className="rounded-xl border-border bg-card">
-          <CardHeader>
-            <CardTitle className="text-base">{t('dashboard.modelDistribution')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {(() => {
-                const models = data.model_distribution;
-                const maxCount = Math.max(...models.map((m) => m.count), 1);
-                return models.map((m) => (
-                  <div key={m.model} className="flex items-center gap-3">
-                    <span className="text-xs font-mono text-muted-foreground w-24 shrink-0 truncate" title={m.model}>{m.model}</span>
-                    <div className="flex-1 h-5 bg-muted/30 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-indigo-500/70 rounded-full transition-all"
-                        style={{ width: `${(m.count / maxCount) * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-xs font-mono text-muted-foreground w-12 text-right">{m.count}</span>
-                  </div>
-                ));
-              })()}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {data.model_distribution && data.model_distribution.length > 0 && (
+          <Card className="rounded-xl border-border bg-card">
+            <CardHeader>
+              <CardTitle className="text-base">{t('dashboard.modelDistribution')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {(() => {
+                  const models = data.model_distribution;
+                  const maxCount = Math.max(...models.map((m) => m.count), 1);
+                  return models.map((m) => (
+                    <div key={m.model} className="flex items-center gap-3">
+                      <span className="text-xs font-mono text-muted-foreground w-24 shrink-0 truncate" title={m.model}>{m.model}</span>
+                      <div className="flex-1 h-5 bg-muted/30 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-indigo-500/70 rounded-full transition-all"
+                          style={{ width: `${(m.count / maxCount) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-mono text-muted-foreground w-12 text-right">{m.count}</span>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {data.citation_trend && data.citation_trend.length > 1 && (
           <Card className="rounded-xl border-border bg-card">
             <CardHeader>
@@ -335,6 +335,9 @@ export default function DashboardPage() {
                       <Link href={`/rules?search=${encodeURIComponent(c.matched_keyword)}`}>
                       <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px] shrink-0 hover:bg-indigo-500/10 cursor-pointer transition-colors">{c.matched_keyword}</Badge>
                     </Link>
+                      <Link href={`/rules?section=${c.section_id}`}>
+                        <Badge variant="secondary" className="text-[10px] shrink-0 hover:opacity-80 cursor-pointer transition-opacity">{c.section_id}</Badge>
+                      </Link>
                       <Link href={`/rules/${c.rule_id}`} className="text-sm truncate hover:text-indigo-400 transition-colors">{c.title}</Link>
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-3">

@@ -165,7 +165,7 @@ export function getRuleDetail(
     const citations = conn
       .prepare(
         `
-        SELECT r.id, r.rule_id, r.session_id, r.matched_keyword, r.timestamp,
+        SELECT r.id, r.rule_id, r.session_id, r.matched_keyword, r.confidence, r.timestamp,
                s.model, s.task_summary
         FROM rule_references r
         LEFT JOIN sessions s ON s.session_id = r.session_id
@@ -490,7 +490,7 @@ export function getRecentCitations(limit: number, days?: number, db?: Database.D
     const params = days ? [`-${days}`, limit] : [limit];
     return conn
       .prepare(
-        `SELECT r.rule_id, m.title, r.matched_keyword, r.timestamp, r.session_id, s.model, r.confidence
+        `SELECT r.rule_id, m.title, m.section_id, r.matched_keyword, r.timestamp, r.session_id, s.model, r.confidence
          FROM rule_references r
          JOIN rules_metadata m ON m.rule_id = r.rule_id
          LEFT JOIN sessions s ON s.session_id = r.session_id

@@ -48,10 +48,11 @@ const SortableCard = memo(function SortableCard({ rule, isSelected, onSelect, co
           <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0" title={t('editor.draft')} />
         )}
       </div>
-      <div className="mt-1 pl-6">
+      <div className="mt-1 pl-6 flex items-center gap-1.5">
         <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-          {rule.source_file}
+          {rule.section_id}
         </Badge>
+        <span className="text-[10px] text-muted-foreground truncate">{rule.source_file}</span>
       </div>
     </div>
   );

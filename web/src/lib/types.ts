@@ -58,6 +58,7 @@ export interface CitationRecord {
   rule_id: string;
   session_id: string;
   matched_keyword: string;
+  confidence: string;
   timestamp: string;
   model: string | null;
   task_summary: string | null;
@@ -134,6 +135,7 @@ export interface RuleDetail {
 export interface RecentCitation {
   rule_id: string;
   title: string;
+  section_id: string;
   matched_keyword: string;
   timestamp: string;
   session_id: string;
