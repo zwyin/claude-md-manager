@@ -56,6 +56,7 @@ const en: Dict = {
   'ruleDetail.coOccurring.desc': 'Rules frequently cited in the same sessions',
   'ruleDetail.model': 'Model',
   'ruleDetail.copyId': 'Copy rule ID',
+  'ruleDetail.copied': 'Copied to clipboard',
   'ruleDetail.noCitations': 'No citation data available',
   'ruleDetail.noContent': 'No content available',
   'ruleDetail.showing': 'Showing {shown} / {total}',
