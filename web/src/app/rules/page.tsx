@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, useMemo, useRef, useCallback } from 'rea
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Search, X, ChevronRight, Home, FileSearch } from 'lucide-react';
@@ -211,17 +212,27 @@ function RulesContent() {
             </button>
           )}
         </div>
-        <select
-          aria-label={t('rules.allSections')}
-          value={sectionFilter}
-          onChange={(e) => { setSectionFilter(e.target.value); syncUrl(e.target.value, sortBy, sortDir, searchQuery); }}
-          className="h-9 text-sm rounded-md border border-border bg-card text-foreground px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-        >
-          <option value="all">{t('rules.allSections')} ({data.total_rules})</option>
+        <div className="flex items-center gap-1.5 overflow-x-auto">
+          <Button
+            size="sm"
+            variant={sectionFilter === 'all' ? 'default' : 'outline'}
+            className="h-7 text-xs px-2.5 whitespace-nowrap"
+            onClick={() => { setSectionFilter('all'); syncUrl('all', sortBy, sortDir, searchQuery); }}
+          >
+            {t('rules.allSections')}
+          </Button>
           {sectionOrder.map((id) => (
-            <option key={id} value={id}>{sectionTitleMap[id] || id} ({(grouped[id] || []).length})</option>
+            <Button
+              key={id}
+              size="sm"
+              variant={sectionFilter === id ? 'default' : 'outline'}
+              className="h-7 text-xs px-2.5 whitespace-nowrap"
+              onClick={() => { setSectionFilter(id); syncUrl(id, sortBy, sortDir, searchQuery); }}
+            >
+              {sectionTitleMap[id] || id}
+            </Button>
           ))}
-        </select>
+        </div>
         <button
           onClick={toggleAll}
           className="h-9 text-xs px-3 rounded-md border border-border bg-card text-muted-foreground hover:text-foreground hover:border-indigo-500/30 transition-colors whitespace-nowrap"

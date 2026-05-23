@@ -38,6 +38,8 @@ const SortableCard = memo(function SortableCard({ rule, isSelected, onSelect, co
       className={`px-3 py-2 cursor-pointer border-b border-border last:border-b-0 transition-colors ${
         isSelected
           ? "bg-primary/10"
+          : rule.has_draft
+          ? "bg-orange-500/5 hover:bg-orange-500/10"
           : "hover:bg-accent/50"
       }`}
     >
