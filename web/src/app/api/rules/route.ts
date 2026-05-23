@@ -42,6 +42,12 @@ export async function GET(request: NextRequest) {
         "SELECT id, published_at, rules_changed, status FROM publish_history ORDER BY published_at DESC LIMIT 5"
       ).all() as PublishEvent[];
 
+      const model_distribution = db.prepare(
+        `SELECT model, COUNT(*) AS count FROM sessions WHERE model IS NOT NULL AND model != ''
+         ${days ? `AND started_at >= datetime('now', ? || ' days')` : ''}
+         GROUP BY model ORDER BY count DESC LIMIT 10`
+      ).bind(...(days ? [`-${days}`] : [])).all() as { model: string; count: number }[];
+
       return NextResponse.json({
         rules,
         sections: getSectionsWithStats(days, db),
@@ -55,6 +61,7 @@ export async function GET(request: NextRequest) {
         session_trend,
         recent_citations,
         recent_builds,
+        model_distribution,
       });
     } finally {
       db.close();
