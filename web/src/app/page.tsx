@@ -197,67 +197,69 @@ export default function DashboardPage() {
         </Card>
       )}
 
-      {data.citation_trend && data.citation_trend.length > 1 && (
-        <Card className="rounded-xl border-border bg-card">
-          <CardHeader>
-            <CardTitle className="text-base">
-              {t('analytics.citationTrend')}
-              <span className="text-xs font-normal text-muted-foreground ml-2">
-                ({t('analytics.avgPerDay')}: {Math.round(data.citation_trend.reduce((s, p) => s + p.count, 0) / data.citation_trend.length).toLocaleString()})
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data.citation_trend} margin={{ left: 0, right: 20 }}>
-                  <defs>
-                    <linearGradient id="dashTrendGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={PRIMARY} stopOpacity={0.3} />
-                      <stop offset="100%" stopColor={PRIMARY} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="period" tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
-                  <YAxis tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
-                  <RechartsTooltip {...tooltipStyle} />
-                  <Area type="monotone" dataKey="count" stroke={PRIMARY} fill="url(#dashTrendGrad)" strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {data.citation_trend && data.citation_trend.length > 1 && (
+          <Card className="rounded-xl border-border bg-card">
+            <CardHeader>
+              <CardTitle className="text-base">
+                {t('analytics.citationTrend')}
+                <span className="text-xs font-normal text-muted-foreground ml-2">
+                  ({t('analytics.avgPerDay')}: {Math.round(data.citation_trend.reduce((s, p) => s + p.count, 0) / data.citation_trend.length).toLocaleString()})
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[180px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={data.citation_trend} margin={{ left: 0, right: 20 }}>
+                    <defs>
+                      <linearGradient id="dashTrendGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={PRIMARY} stopOpacity={0.3} />
+                        <stop offset="100%" stopColor={PRIMARY} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="period" tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
+                    <YAxis tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
+                    <RechartsTooltip {...tooltipStyle} />
+                    <Area type="monotone" dataKey="count" stroke={PRIMARY} fill="url(#dashTrendGrad)" strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-      {data.session_trend && data.session_trend.length > 1 && (
-        <Card className="rounded-xl border-border bg-card">
-          <CardHeader>
-            <CardTitle className="text-base">
-              {t('dashboard.sessionTrend')}
-              <span className="text-xs font-normal text-muted-foreground ml-2">
-                ({t('analytics.avgPerDay')}: {Math.round(data.session_trend.reduce((s, p) => s + p.count, 0) / data.session_trend.length).toLocaleString()})
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[160px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data.session_trend} margin={{ left: 0, right: 20 }}>
-                  <defs>
-                    <linearGradient id="sessionTrendGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="period" tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
-                  <YAxis tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
-                  <RechartsTooltip {...tooltipStyle} />
-                  <Area type="monotone" dataKey="count" stroke="#8b5cf6" fill="url(#sessionTrendGrad)" strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        {data.session_trend && data.session_trend.length > 1 && (
+          <Card className="rounded-xl border-border bg-card">
+            <CardHeader>
+              <CardTitle className="text-base">
+                {t('dashboard.sessionTrend')}
+                <span className="text-xs font-normal text-muted-foreground ml-2">
+                  ({t('analytics.avgPerDay')}: {Math.round(data.session_trend.reduce((s, p) => s + p.count, 0) / data.session_trend.length).toLocaleString()})
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[180px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={data.session_trend} margin={{ left: 0, right: 20 }}>
+                    <defs>
+                      <linearGradient id="sessionTrendGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="period" tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
+                    <YAxis tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
+                    <RechartsTooltip {...tooltipStyle} />
+                    <Area type="monotone" dataKey="count" stroke="#8b5cf6" fill="url(#sessionTrendGrad)" strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       <Card className="rounded-xl border-border bg-card">
         <CardHeader>
