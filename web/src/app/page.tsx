@@ -84,6 +84,7 @@ export default function DashboardPage() {
     name: s.title.length > 12 ? s.title.slice(0, 12) + '…' : s.title,
     fullName: s.title,
     citations: s.total_citations,
+    ruleCount: s.rule_count,
     section_id: s.section_id,
   }));
 
@@ -289,7 +290,7 @@ export default function DashboardPage() {
                 <YAxis type="category" dataKey="name" width={160} tick={{ fill: chartTheme.mutedForeground, fontSize: 12 }} />
                 <RechartsTooltip
                   {...tooltipStyle}
-                  formatter={(value, _name, props) => [value, (props as { payload: { fullName: string } }).payload.fullName]}
+                  formatter={(value, _name, props) => [`${value} (${(props as { payload: { ruleCount: number } }).payload.ruleCount} ${t('table.rules').toLowerCase()})`, (props as { payload: { fullName: string } }).payload.fullName]}
                 />
                 <Bar dataKey="citations" radius={[0, 4, 4, 0]} maxBarSize={24} style={{ cursor: 'pointer' }}>
                   {sectionChartData.map((entry, i) => (

@@ -334,7 +334,7 @@ export default function RuleDetailPage() {
                   </TableHeader>
                   <TableBody>
                     {citations.slice(0, citeLimit).map((c) => (
-                      <TableRow key={c.id}>
+                      <TableRow key={c.id} className="even:bg-muted/10">
                         <TableCell className="text-xs font-mono whitespace-nowrap" title={new Date(c.timestamp).toLocaleString(locale)}>
                           {relativeTime(c.timestamp, locale)}
                         </TableCell>

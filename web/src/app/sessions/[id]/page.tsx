@@ -225,7 +225,7 @@ export default function SessionDetailPage() {
                   </TableHeader>
                   <TableBody>
                     {citations.map((c, i) => (
-                      <TableRow key={`${c.rule_id}-${i}`}>
+                      <TableRow key={`${c.rule_id}-${i}`} className="even:bg-muted/10">
                         <TableCell className="text-xs font-mono whitespace-nowrap">
                           {relativeTime(c.timestamp, locale)}
                         </TableCell>
