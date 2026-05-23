@@ -218,9 +218,8 @@ export default function DashboardPage() {
             <CardContent>
               <div className="h-[180px]">
                 <ChartErrorBoundary>
-              <ChartErrorBoundary>
-            <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data.citation_trend} margin={{ left: 0, right: 20 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={data.citation_trend} margin={{ left: 0, right: 20 }}>
                     <defs>
                       <linearGradient id="dashTrendGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor={PRIMARY} stopOpacity={0.3} />
@@ -232,9 +231,8 @@ export default function DashboardPage() {
                     <RechartsTooltip {...tooltipStyle} />
                     <Area type="monotone" dataKey="count" stroke={PRIMARY} fill="url(#dashTrendGrad)" strokeWidth={2} />
                   </AreaChart>
-                </ResponsiveContainer>
-            </ChartErrorBoundary>
-              </ChartErrorBoundary>
+                  </ResponsiveContainer>
+                </ChartErrorBoundary>
               </div>
             </CardContent>
           </Card>
@@ -253,9 +251,8 @@ export default function DashboardPage() {
             <CardContent>
               <div className="h-[180px]">
                 <ChartErrorBoundary>
-              <ChartErrorBoundary>
-            <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data.session_trend} margin={{ left: 0, right: 20 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={data.session_trend} margin={{ left: 0, right: 20 }}>
                     <defs>
                       <linearGradient id="sessionTrendGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.3} />
@@ -269,7 +266,6 @@ export default function DashboardPage() {
                   </AreaChart>
                 </ResponsiveContainer>
             </ChartErrorBoundary>
-              </ChartErrorBoundary>
               </div>
             </CardContent>
           </Card>
