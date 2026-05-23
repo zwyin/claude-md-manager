@@ -318,7 +318,7 @@ export default function SessionsPage() {
             size="sm"
             variant="outline"
             disabled={!hasPrev}
-            onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
+            onClick={() => { setOffset(Math.max(0, offset - PAGE_SIZE)); setSelectedIdx(null); document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" }); }}
           >
             ← {t('pagination.prev')}
           </Button>
@@ -329,7 +329,7 @@ export default function SessionsPage() {
             size="sm"
             variant="outline"
             disabled={!hasMore}
-            onClick={() => setOffset(offset + PAGE_SIZE)}
+            onClick={() => { setOffset(offset + PAGE_SIZE); setSelectedIdx(null); document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" }); }}
           >
             {t('pagination.next')} →
           </Button>
