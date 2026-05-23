@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 web/.next/
+.next/
 
 # Python
 __pycache__/
