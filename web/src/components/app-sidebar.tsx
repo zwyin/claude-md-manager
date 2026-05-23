@@ -68,7 +68,10 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="px-2 py-1 text-xs text-muted-foreground">{t('app.version')}</div>
+        <div className="px-2 py-1 text-xs text-muted-foreground flex items-center justify-between">
+          <span>{t('app.version')}</span>
+          <kbd className="text-[10px] bg-muted px-1.5 py-0.5 rounded opacity-60">?</kbd>
+        </div>
       </SidebarFooter>
     </Sidebar>
   );

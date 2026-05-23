@@ -162,7 +162,7 @@ export default function HistoryPage() {
           {Object.entries(grouped).map(([date, items]) => (
             <div key={date}>
               <div className="relative -left-8 mb-3">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-card pr-2">{formatDate(date)}</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-card pr-2 pb-1 border-b border-border">{formatDate(date)}</span>
               </div>
               <div className="relative">
                 <div className="absolute left-[-17px] top-0 bottom-0 w-px bg-border" />

@@ -123,7 +123,7 @@ export default function DashboardPage() {
           </div>
           {data.recent_citations && data.recent_citations.length > 0 && (
             <span className="text-xs text-muted-foreground whitespace-nowrap">
-              {t('dashboard.lastActivity', { time: new Date(data.recent_citations[0].timestamp).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) })}
+              {t('dashboard.lastActivity', { time: relativeTime(data.recent_citations[0].timestamp, locale) })}
             </span>
           )}
           {data.recent_builds && data.recent_builds.length > 0 && (
