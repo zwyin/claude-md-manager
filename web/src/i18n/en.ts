@@ -31,6 +31,7 @@ const en: Dict = {
   'dashboard.sessionTrend': 'Session Trend',
   'dashboard.modelDistribution': 'Model Distribution',
   'dashboard.refresh': 'Refresh data',
+  'dashboard.lastUpdated': 'Updated {ago}',
   'table.rules': 'Rules',
   'table.sessions': 'Sessions',
   'table.time': 'Time',

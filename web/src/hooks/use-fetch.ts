@@ -6,17 +6,18 @@ type FetchState<T> = {
   loading: boolean;
   error: string | null;
   refresh: () => void;
+  fetchedAt: number | null;
 };
 
 type Action<T> =
   | { type: 'start' }
-  | { type: 'success'; data: T }
+  | { type: 'success'; data: T; fetchedAt: number }
   | { type: 'error'; error: string };
 
 function reducer<T>(state: FetchState<T>, action: Action<T>): FetchState<T> {
   switch (action.type) {
     case 'start': return { ...state, loading: true, error: null };
-    case 'success': return { ...state, data: action.data, loading: false, error: null };
+    case 'success': return { ...state, data: action.data, loading: false, error: null, fetchedAt: action.fetchedAt };
     case 'error': return { ...state, loading: false, error: action.error };
   }
 }
@@ -30,6 +31,7 @@ export function useFetch<T>(url: string | null): FetchState<T> {
     loading: url !== null,
     error: null,
     refresh,
+    fetchedAt: null,
   });
 
   useEffect(() => {
@@ -38,7 +40,7 @@ export function useFetch<T>(url: string | null): FetchState<T> {
 
     let cancelled = false;
     fetchJson<T>(url)
-      .then((data) => { if (!cancelled) dispatch({ type: 'success', data }); })
+      .then((data) => { if (!cancelled) dispatch({ type: 'success', data, fetchedAt: Date.now() }); })
       .catch((err) => { if (!cancelled) dispatch({ type: 'error', error: err.message }); });
 
     return () => { cancelled = true; };

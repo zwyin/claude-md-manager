@@ -36,6 +36,7 @@ const zh = {
   'dashboard.sessionTrend': '会话趋势',
   'dashboard.modelDistribution': '模型分布',
   'dashboard.refresh': '刷新数据',
+  'dashboard.lastUpdated': '更新于 {ago}',
 
   // 表格通用
   'table.rules': '子规则',
