@@ -7,7 +7,6 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { TopBar } from "@/components/top-bar";
 import { I18nProvider } from "@/i18n";
 import { Toaster } from "@/components/ui/sonner";
-import { ErrorBoundary } from "@/components/error-boundary";
 import { RoutedErrorBoundary } from "@/components/routed-error-boundary";
 import { FontScaleProvider } from "@/components/font-scale-provider";
 import { BackToTop } from "@/components/back-to-top";

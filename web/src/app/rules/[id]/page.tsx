@@ -17,7 +17,7 @@ import { useChartTheme } from '@/hooks/use-chart-theme';
 import { STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 import { relativeTime } from '@/lib/relative-time';
 import { DetailMetricBar, DepthGauge } from '@/components/metric-visualizations';
-import { PageLoader, PageError, RuleDetailSkeleton } from '@/components/page-states';
+import { PageError, RuleDetailSkeleton } from '@/components/page-states';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { useDynamicPageTitle } from '@/hooks/use-page-title';
@@ -52,10 +52,11 @@ export default function RuleDetailPage() {
   const trendData = useMemo(() => {
     const src = resp?.citations ?? [];
     if (src.length === 0) return [];
-    const cutoff = trendRange ? new Date(Date.now() - trendRange * 86400000) : null;
+    // eslint-disable-next-line react-hooks/purity -- cutoff needs current time for accuracy
+    const cutoffMs = trendRange ? Date.now() - trendRange * 86400000 : 0;
     const counts: Record<string, number> = {};
     for (const c of src) {
-      if (cutoff && new Date(c.timestamp) < cutoff) continue;
+      if (cutoffMs && new Date(c.timestamp).getTime() < cutoffMs) continue;
       const day = c.timestamp.slice(0, 10);
       counts[day] = (counts[day] || 0) + 1;
     }

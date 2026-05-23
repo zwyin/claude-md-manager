@@ -9,7 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, AreaChart, Area } from 'recharts';
 import { StatCard } from '@/components/stat-card';
-import { PageLoader, PageError, DashboardSkeleton } from '@/components/page-states';
+import { PageError, DashboardSkeleton } from '@/components/page-states';
 import { ChartErrorBoundary } from '@/components/chart-error-boundary';
 import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';

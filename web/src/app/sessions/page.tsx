@@ -13,7 +13,7 @@ import { usePageTitle } from '@/hooks/use-page-title';
 import { useFetch } from '@/hooks/use-fetch';
 import { toast } from 'sonner';
 import { formatDuration } from '@/lib/relative-time';
-import { PageLoader, PageError, SessionsSkeleton } from '@/components/page-states';
+import { PageError, SessionsSkeleton } from '@/components/page-states';
 import type { RecentSession as SessionEntry } from '@/lib/types';
 
 interface SessionsData {
@@ -74,7 +74,7 @@ export default function SessionsPage() {
 
   const { data, loading, error, refresh } = useFetch<SessionsData>(url);
 
-  const filteredSessions = data?.sessions ?? [];
+  const filteredSessions = useMemo(() => data?.sessions ?? [], [data?.sessions]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

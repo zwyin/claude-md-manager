@@ -1,24 +1,26 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 
 export function ScrollRestorer({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const ref = useRef<HTMLElement>(null);
-  const [visible, setVisible] = useState(false);
+  const rafRef = useRef<number>(0);
 
   useEffect(() => {
-    ref.current?.scrollTo({ top: 0 });
-    setVisible(false);
-    const id = requestAnimationFrame(() => setVisible(true));
-    return () => cancelAnimationFrame(id);
+    const el = ref.current;
+    if (!el) return;
+    el.scrollTo({ top: 0 });
+    el.style.opacity = '0';
+    rafRef.current = requestAnimationFrame(() => { el.style.opacity = '1'; });
+    return () => cancelAnimationFrame(rafRef.current);
   }, [pathname]);
 
   return (
     <main
       ref={ref}
-      className={`flex-1 overflow-y-auto p-6 transition-opacity duration-150 ${visible ? 'opacity-100' : 'opacity-0'}`}
+      className="flex-1 overflow-y-auto p-6 transition-opacity duration-150"
     >
       {children}
     </main>

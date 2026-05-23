@@ -154,7 +154,7 @@ function RulesContent() {
       setSortDir('desc');
     }
     syncUrl(sectionFilter, newSort, newDir, searchQuery);
-  }, [sortBy, sortDir, sectionFilter, syncUrl]);
+  }, [sortBy, sortDir, sectionFilter, searchQuery, syncUrl]);
 
   const sortIcon = (key: typeof sortBy) => {
     if (sortBy !== key) return <svg className="w-3 h-3 ml-0.5 opacity-30 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 15l5 5 5-5M7 9l5-5 5 5" /></svg>;
@@ -301,7 +301,6 @@ function RulesContent() {
                         rule={rule}
                         totalSessions={data?.total_sessions ?? 0}
                         maxDepth={maxDepth}
-                        totalCitations={data?.total_citations ?? 0}
                       />
                     ))}
                   </div>

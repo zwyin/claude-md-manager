@@ -12,14 +12,14 @@ import remarkGfm from 'remark-gfm';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useFetch } from '@/hooks/use-fetch';
-import { PageLoader, PageError, HistorySkeleton } from '@/components/page-states';
+import { PageError, HistorySkeleton } from '@/components/page-states';
 import { toast } from 'sonner';
 import type { SnapshotInfo, DiffResult } from '@/lib/snapshots';
 
 export default function HistoryPage() {
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const { data: historyData, loading, error } = useFetch<{ snapshots: SnapshotInfo[] }>('/api/history');
-  const snapshots = historyData?.snapshots ?? [];
+  const snapshots = useMemo(() => historyData?.snapshots ?? [], [historyData?.snapshots]);
   const [selected, setSelected] = useState<string[]>([]);
   const [diffResult, setDiffResult] = useState<DiffResult | null>(null);
   const [diffLoading, setDiffLoading] = useState(false);

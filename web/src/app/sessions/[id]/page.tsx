@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { useDynamicPageTitle } from '@/hooks/use-page-title';
-import { PageLoader, PageError, SessionDetailSkeleton } from '@/components/page-states';
+import { PageError, SessionDetailSkeleton } from '@/components/page-states';
 import { toast } from 'sonner';
 import { relativeTime, formatDuration } from '@/lib/relative-time';
 import { SECTION_COLORS } from '@/lib/chart-colors';
@@ -32,12 +32,26 @@ export default function SessionDetailPage() {
   const url = sessionId ? `/api/sessions/${encodeURIComponent(sessionId)}` : null;
   const { data: resp, loading, error } = useFetch<SessionData>(url);
 
+  const citations = useMemo(() => resp?.citations ?? [], [resp?.citations]);
+  const timeline = useMemo(() => {
+    const session = resp?.session;
+    if (!session?.started_at || citations.length < 2) return null;
+    const start = new Date(session.started_at).getTime();
+    const end = session.ended_at ? new Date(session.ended_at).getTime() : new Date(citations[citations.length - 1].timestamp).getTime();
+    const dur = end - start;
+    if (dur <= 0) return null;
+    return citations.map((c) => {
+      const t = new Date(c.timestamp).getTime();
+      const pct = Math.max(0, Math.min(1, (t - start) / dur));
+      return { pct, confidence: c.confidence, rule_id: c.rule_id, title: c.title };
+    });
+  }, [resp?.session, citations]);
+
   if (loading) return <SessionDetailSkeleton />;
   if (error) return <PageError message={t('status.error', { error })} />;
   if (!resp) return null;
 
   const session = resp.session;
-  const citations = resp.citations ?? [];
   const sections = resp.sections ?? [];
   const displayId = sessionId.replace('historical_', '');
 
@@ -57,19 +71,6 @@ export default function SessionDetailPage() {
   sections.forEach((s, i) => {
     sectionColorMap[s.section_id] = SECTION_COLORS[i % SECTION_COLORS.length];
   });
-
-  const timeline = useMemo(() => {
-    if (!session.started_at || citations.length < 2) return null;
-    const start = new Date(session.started_at).getTime();
-    const end = session.ended_at ? new Date(session.ended_at).getTime() : new Date(citations[citations.length - 1].timestamp).getTime();
-    const dur = end - start;
-    if (dur <= 0) return null;
-    return citations.map((c) => {
-      const t = new Date(c.timestamp).getTime();
-      const pct = Math.max(0, Math.min(1, (t - start) / dur));
-      return { pct, confidence: c.confidence, rule_id: c.rule_id, title: c.title };
-    });
-  }, [session, citations]);
 
   return (
     <div className="space-y-6">

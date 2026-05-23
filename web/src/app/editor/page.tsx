@@ -4,7 +4,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { RuleFile, PublishEvent } from "./types";
 import { EditorLayout } from "./EditorLayout";
@@ -39,14 +39,14 @@ function EditorContent() {
   const [publishing, setPublishing] = useState(false);
   const [publishHistory, setPublishHistory] = useState<PublishEvent[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [baselineFm, setBaselineFm] = useState("");
+  const [baselineBody, setBaselineBody] = useState("");
   const { t, locale } = useI18n();
   usePageTitle('editor.title');
   const initialLoadDone = useRef(false);
   const prevSelectedId = useRef<string | null>(null);
-  const baselineFm = useRef("");
-  const baselineBody = useRef("");
 
-  const dirty = frontmatter !== baselineFm.current || body !== baselineBody.current;
+  const dirty = frontmatter !== baselineFm || body !== baselineBody;
 
   useEffect(() => {
     if (!dirty) return;
@@ -62,6 +62,13 @@ function EditorContent() {
   }, [dirty]);
 
   const selectedRule = rules.find((r) => r.rule_id === selectedId) ?? null;
+
+  const fetchPublishHistory = useCallback(() => {
+    fetch("/api/editor/publish-history")
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data.history)) setPublishHistory(data.history); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const preselected = searchParams.get('rule');
@@ -84,7 +91,7 @@ function EditorContent() {
         initialLoadDone.current = true;
       })
       .catch(() => toast.error(t('editor.loadFailed')));
-  }, [t, searchParams]);
+  }, [t, searchParams, fetchPublishHistory]);
 
   useEffect(() => {
     if (!selectedId || prevSelectedId.current === selectedId) return;
@@ -103,14 +110,14 @@ function EditorContent() {
         if (draft) {
           setFrontmatter(draft.frontmatter_yaml);
           setBody(draft.markdown_body);
-          baselineFm.current = draft.frontmatter_yaml;
-          baselineBody.current = draft.markdown_body;
+          setBaselineFm(draft.frontmatter_yaml);
+          setBaselineBody(draft.markdown_body);
           setHasDraft(true);
         } else {
           setFrontmatter(currentRule.frontmatter_yaml);
           setBody(currentRule.markdown_body);
-          baselineFm.current = currentRule.frontmatter_yaml;
-          baselineBody.current = currentRule.markdown_body;
+          setBaselineFm(currentRule.frontmatter_yaml);
+          setBaselineBody(currentRule.markdown_body);
           setHasDraft(false);
         }
       })
@@ -130,8 +137,8 @@ function EditorContent() {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setHasDraft(true);
-      baselineFm.current = frontmatter;
-      baselineBody.current = body;
+      setBaselineFm(frontmatter);
+      setBaselineBody(body);
       toast.success(t('editor.draftSaved'));
       const refreshed = await fetch("/api/editor/rules").then((r) => r.json());
       if (Array.isArray(refreshed.rules)) setRules(refreshed.rules);
@@ -162,8 +169,8 @@ function EditorContent() {
       const bd = selectedRule?.markdown_body ?? "";
       setFrontmatter(fm);
       setBody(bd);
-      baselineFm.current = fm;
-      baselineBody.current = bd;
+      setBaselineFm(fm);
+      setBaselineBody(bd);
       setHasDraft(false);
       toast.success(t('editor.draftDiscarded'));
       const refreshed = await fetch("/api/editor/rules").then((r) => r.json());
@@ -211,13 +218,6 @@ function EditorContent() {
       setHasDraft(false);
     }
   }, [t]);
-
-  const fetchPublishHistory = useCallback(() => {
-    fetch("/api/editor/publish-history")
-      .then((r) => r.json())
-      .then((data) => { if (Array.isArray(data.history)) setPublishHistory(data.history); })
-      .catch(() => {});
-  }, []);
 
   const draftCount = rules.filter((r) => r.has_draft).length;
 

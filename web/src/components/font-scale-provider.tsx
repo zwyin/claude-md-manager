@@ -33,15 +33,15 @@ export function useFontScale() {
 }
 
 export function FontScaleProvider({ children }: { children: ReactNode }) {
-  const [scaleIndex, setScaleIndex] = useState(SCALE_INDEX_DEFAULT);
-
-  useEffect(() => {
+  const [scaleIndex, setScaleIndex] = useState(() => {
+    if (typeof window === 'undefined') return SCALE_INDEX_DEFAULT;
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const idx = parseInt(saved, 10);
-      if (idx >= 0 && idx < SCALES.length) setScaleIndex(idx);
+      if (idx >= 0 && idx < SCALES.length) return idx;
     }
-  }, []);
+    return SCALE_INDEX_DEFAULT;
+  });
 
   const scale = SCALES[scaleIndex];
 

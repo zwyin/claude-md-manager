@@ -14,10 +14,9 @@ interface RuleRowProps {
   rule: RuleWithStats;
   totalSessions: number;
   maxDepth: number;
-  totalCitations: number;
 }
 
-export function RuleRow({ rule, totalSessions, maxDepth, totalCitations }: RuleRowProps) {
+export function RuleRow({ rule, totalSessions, maxDepth }: RuleRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [body, setBody] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

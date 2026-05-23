@@ -21,7 +21,7 @@ import { useChartTheme } from '@/hooks/use-chart-theme';
 import { useFetch } from '@/hooks/use-fetch';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { usePageTitle } from '@/hooks/use-page-title';
-import { PageLoader, PageError, AnalyticsSkeleton } from '@/components/page-states';
+import { PageError, AnalyticsSkeleton } from '@/components/page-states';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 import type { AnalyticsData } from '@/lib/types';
 
