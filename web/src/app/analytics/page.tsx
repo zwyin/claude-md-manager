@@ -212,141 +212,141 @@ export default function AnalyticsPage() {
 
       <Card className="rounded-xl border-border bg-card">
         <CardHeader>
-            <CardTitle className="text-base">{t('analytics.confidence')}</CardTitle>
-            <p className="text-xs text-muted-foreground">{t('analytics.confidence.subtitle')}</p>
-          </CardHeader>
-          <CardContent>
-            {data.confidence_distribution && data.confidence_distribution.length > 0 ? (() => {
-              const total = data.confidence_distribution.reduce((s, c) => s + c.count, 0);
-              const confMap: Record<string, { count: number; color: string; label: string; top_rules: { rule_id: string; title: string; count: number }[] }> = {};
-              for (const c of data.confidence_distribution) {
-                confMap[c.confidence] = { count: c.count, color: '', label: c.confidence, top_rules: c.top_rules ?? [] };
-              }
-              const levels = [
-                { key: 'high', color: 'bg-emerald-500', textColor: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/5', label: t('analytics.confidence.high'), desc: t('analytics.confidence.high.desc'), source: t('analytics.confidence.source.mcp') },
-                { key: 'medium', color: 'bg-amber-500', textColor: 'text-amber-400', border: 'border-amber-500/30', bg: 'bg-amber-500/5', label: t('analytics.confidence.medium'), desc: t('analytics.confidence.medium.desc'), source: t('analytics.confidence.source.stop') },
-                { key: 'low', color: 'bg-rose-500', textColor: 'text-rose-400', border: 'border-rose-500/30', bg: 'bg-rose-500/5', label: t('analytics.confidence.low'), desc: t('analytics.confidence.low.desc'), source: t('analytics.confidence.source.posttool') },
-              ];
-              return (
-                <div className="space-y-3">
-                  <div className="flex h-6 rounded-full overflow-hidden">
-                    {levels.map(({ key, color }) => {
-                      const count = confMap[key]?.count ?? 0;
-                      const pct = total > 0 ? (count / total) * 100 : 0;
-                      if (pct === 0) return null;
-                      return (
-                        <div key={key} className={`${color} flex items-center justify-center transition-all`} style={{ width: `${pct}%` }}>
-                          {pct > 8 && <span className="text-[10px] text-white font-medium">{pct.toFixed(0)}%</span>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="space-y-2">
-                    {levels.map(({ key, color, textColor, border, bg, label, desc, source }) => {
-                      const count = confMap[key]?.count ?? 0;
-                      const pct = total > 0 ? (count / total) * 100 : 0;
-                      const isExpanded = expandedConf === key;
-                      return (
-                        <div key={key}>
-                          <button
-                            onClick={() => setExpandedConf(isExpanded ? null : key)}
-                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors text-left ${isExpanded ? `${border} ${bg}` : 'border-transparent hover:bg-accent/30'}`}
-                          >
-                            <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${color}`} />
-                            <span className="text-xs text-muted-foreground">{label}</span>
-                            <span className="text-xs font-mono font-medium">{count}</span>
-                            <span className="text-[10px] text-muted-foreground">({pct.toFixed(1)}%)</span>
-                            <svg className={`w-3 h-3 ml-auto text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                            </svg>
-                          </button>
-                          {isExpanded && (
-                            <div className={`mt-1 ml-5 pl-3 border-l-2 ${border} py-2 space-y-2`}>
-                              <p className="text-xs text-muted-foreground">{desc}</p>
-                              <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
-                                <span>{t('analytics.confidence.source')}: <span className={`font-mono ${textColor}`}>{source}</span></span>
-                              </div>
-                              {(confMap[key]?.top_rules?.length ?? 0) > 0 && (
-                                <div className="space-y-1 mt-1">
-                                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('analytics.topRules')}</p>
-                                  {(confMap[key]?.top_rules ?? []).map((rule: { rule_id: string; title: string; count: number }) => (
-                                    <Link
-                                      key={rule.rule_id}
-                                      href={`/rules/${rule.rule_id}`}
-                                      className="flex items-center justify-between gap-2 text-xs px-2 py-1 rounded hover:bg-accent/30 transition-colors"
-                                    >
-                                      <span className="text-muted-foreground truncate">{rule.title}</span>
-                                      <Badge variant="secondary" className="text-[10px] font-mono shrink-0">{rule.count}</Badge>
-                                    </Link>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+          <CardTitle className="text-base">{t('analytics.confidence')}</CardTitle>
+          <p className="text-xs text-muted-foreground">{t('analytics.confidence.subtitle')}</p>
+        </CardHeader>
+        <CardContent>
+          {data.confidence_distribution && data.confidence_distribution.length > 0 ? (() => {
+            const total = data.confidence_distribution.reduce((s, c) => s + c.count, 0);
+            const confMap: Record<string, { count: number; color: string; label: string; top_rules: { rule_id: string; title: string; count: number }[] }> = {};
+            for (const c of data.confidence_distribution) {
+              confMap[c.confidence] = { count: c.count, color: '', label: c.confidence, top_rules: c.top_rules ?? [] };
+            }
+            const levels = [
+              { key: 'high', color: 'bg-emerald-500', textColor: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/5', label: t('analytics.confidence.high'), desc: t('analytics.confidence.high.desc'), source: t('analytics.confidence.source.mcp') },
+              { key: 'medium', color: 'bg-amber-500', textColor: 'text-amber-400', border: 'border-amber-500/30', bg: 'bg-amber-500/5', label: t('analytics.confidence.medium'), desc: t('analytics.confidence.medium.desc'), source: t('analytics.confidence.source.stop') },
+              { key: 'low', color: 'bg-rose-500', textColor: 'text-rose-400', border: 'border-rose-500/30', bg: 'bg-rose-500/5', label: t('analytics.confidence.low'), desc: t('analytics.confidence.low.desc'), source: t('analytics.confidence.source.posttool') },
+            ];
+            return (
+              <div className="space-y-3">
+                <div className="flex h-6 rounded-full overflow-hidden">
+                  {levels.map(({ key, color }) => {
+                    const count = confMap[key]?.count ?? 0;
+                    const pct = total > 0 ? (count / total) * 100 : 0;
+                    if (pct === 0) return null;
+                    return (
+                      <div key={key} className={`${color} flex items-center justify-center transition-all`} style={{ width: `${pct}%` }}>
+                        {pct > 8 && <span className="text-[10px] text-white font-medium">{pct.toFixed(0)}%</span>}
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })() : (
-              <div className="h-[80px] flex items-center justify-center text-sm text-muted-foreground">{t('analytics.noData')}</div>
-            )}
-          </CardContent>
-        </Card>
-
-      <Card className="rounded-xl border-border bg-card">
-          <CardHeader>
-            <CardTitle className="text-base">{t('analytics.heatmap')}</CardTitle>
-            <p className="text-xs text-muted-foreground">{t('analytics.heatmap.subtitle')}</p>
-          </CardHeader>
-          <CardContent>
-            {data.heatmap && data.heatmap.length > 0 ? (
-              <CitationHeatmap data={data.heatmap} />
-            ) : (
-              <div className="h-[80px] flex items-center justify-center text-sm text-muted-foreground">{t('analytics.noData')}</div>
-            )}
-          </CardContent>
-        </Card>
-
-      <Card className="rounded-xl border-border bg-card">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">
-                <TermTooltip term={t('term.coldRule')} explanation={t('term.coldRule.desc')} />
-              </CardTitle>
-              {data.cold_rules && data.cold_rules.length > 0 && (
-                <Badge variant="outline" className="text-amber-500">{data.cold_rules.length}</Badge>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className={data.cold_rules && data.cold_rules.length > 0 ? 'p-0' : ''}>
-            {data.cold_rules && data.cold_rules.length > 0 ? (
-              <div className="divide-y divide-border">
-                {data.cold_rules.map((rule) => (
-                  <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
-                    className="flex items-center justify-between px-6 py-3 hover:bg-accent/30 transition-colors">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Badge
-                        variant="secondary"
-                        className="text-[10px] shrink-0 hover:bg-primary/20 cursor-pointer"
-                        onClick={(e) => { e.preventDefault(); router.push(`/rules?section=${rule.section_id}`); }}
-                      >{rule.section_id}</Badge>
-                      <span className="text-sm truncate">{rule.title}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground shrink-0 font-mono">
-                      {rule.citation_count > 0
-                        ? `${rule.citation_count} ${t('table.matches')}`
-                        : t('analytics.neverCited')}
-                    </span>
-                  </Link>
-                ))}
+                <div className="space-y-2">
+                  {levels.map(({ key, color, textColor, border, bg, label, desc, source }) => {
+                    const count = confMap[key]?.count ?? 0;
+                    const pct = total > 0 ? (count / total) * 100 : 0;
+                    const isExpanded = expandedConf === key;
+                    return (
+                      <div key={key}>
+                        <button
+                          onClick={() => setExpandedConf(isExpanded ? null : key)}
+                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors text-left ${isExpanded ? `${border} ${bg}` : 'border-transparent hover:bg-accent/30'}`}
+                        >
+                          <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${color}`} />
+                          <span className="text-xs text-muted-foreground">{label}</span>
+                          <span className="text-xs font-mono font-medium">{count}</span>
+                          <span className="text-[10px] text-muted-foreground">({pct.toFixed(1)}%)</span>
+                          <svg className={`w-3 h-3 ml-auto text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                        {isExpanded && (
+                          <div className={`mt-1 ml-5 pl-3 border-l-2 ${border} py-2 space-y-2`}>
+                            <p className="text-xs text-muted-foreground">{desc}</p>
+                            <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+                              <span>{t('analytics.confidence.source')}: <span className={`font-mono ${textColor}`}>{source}</span></span>
+                            </div>
+                            {(confMap[key]?.top_rules?.length ?? 0) > 0 && (
+                              <div className="space-y-1 mt-1">
+                                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('analytics.topRules')}</p>
+                                {(confMap[key]?.top_rules ?? []).map((rule: { rule_id: string; title: string; count: number }) => (
+                                  <Link
+                                    key={rule.rule_id}
+                                    href={`/rules/${rule.rule_id}`}
+                                    className="flex items-center justify-between gap-2 text-xs px-2 py-1 rounded hover:bg-accent/30 transition-colors"
+                                  >
+                                    <span className="text-muted-foreground truncate">{rule.title}</span>
+                                    <Badge variant="secondary" className="text-[10px] font-mono shrink-0">{rule.count}</Badge>
+                                  </Link>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            ) : (
-              <div className="h-[60px] flex items-center justify-center text-sm text-muted-foreground">{t('analytics.allRulesActive')}</div>
+            );
+          })() : (
+            <div className="h-[80px] flex items-center justify-center text-sm text-muted-foreground">{t('analytics.noData')}</div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-xl border-border bg-card">
+        <CardHeader>
+          <CardTitle className="text-base">{t('analytics.heatmap')}</CardTitle>
+          <p className="text-xs text-muted-foreground">{t('analytics.heatmap.subtitle')}</p>
+        </CardHeader>
+        <CardContent>
+          {data.heatmap && data.heatmap.length > 0 ? (
+            <CitationHeatmap data={data.heatmap} />
+          ) : (
+            <div className="h-[80px] flex items-center justify-center text-sm text-muted-foreground">{t('analytics.noData')}</div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-xl border-border bg-card">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">
+              <TermTooltip term={t('term.coldRule')} explanation={t('term.coldRule.desc')} />
+            </CardTitle>
+            {data.cold_rules && data.cold_rules.length > 0 && (
+              <Badge variant="outline" className="text-amber-500">{data.cold_rules.length}</Badge>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </CardHeader>
+        <CardContent className={data.cold_rules && data.cold_rules.length > 0 ? 'p-0' : ''}>
+          {data.cold_rules && data.cold_rules.length > 0 ? (
+            <div className="divide-y divide-border">
+              {data.cold_rules.map((rule) => (
+                <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
+                  className="flex items-center justify-between px-6 py-3 hover:bg-accent/30 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Badge
+                      variant="secondary"
+                      className="text-[10px] shrink-0 hover:bg-primary/20 cursor-pointer"
+                      onClick={(e) => { e.preventDefault(); router.push(`/rules?section=${rule.section_id}`); }}
+                    >{rule.section_id}</Badge>
+                    <span className="text-sm truncate">{rule.title}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground shrink-0 font-mono">
+                    {rule.citation_count > 0
+                      ? `${rule.citation_count} ${t('table.matches')}`
+                      : t('analytics.neverCited')}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="h-[60px] flex items-center justify-center text-sm text-muted-foreground">{t('analytics.allRulesActive')}</div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
