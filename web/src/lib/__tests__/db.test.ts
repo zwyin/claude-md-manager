@@ -456,4 +456,21 @@ describe('getFilteredSessions', () => {
     const result = getFilteredSessions({ limit: 1, offset: 1, sort: 'time', dir: 'DESC' }, db);
     expect(result.sessions.length).toBeLessThanOrEqual(1);
   });
+
+  it('computes avg_citations including zero-citation sessions', () => {
+    const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'time', dir: 'DESC' }, db);
+    // 4 refs across 3 sessions → avg = 4/3 ≈ 1.3
+    expect(result.avg_citations).toBeCloseTo(4 / 3, 0);
+  });
+
+  it('computes avg_duration from started_at/ended_at', () => {
+    db.prepare("UPDATE sessions SET started_at = '2026-01-01 00:00:00', ended_at = '2026-01-01 00:05:00'").run();
+    const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'time', dir: 'DESC' }, db);
+    expect(result.avg_duration).toBe(300);
+  });
+
+  it('returns null avg_duration when no sessions have timestamps', () => {
+    const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'time', dir: 'DESC' }, db);
+    expect(result.avg_duration).toBeNull();
+  });
 });
