@@ -45,12 +45,14 @@ export default function SessionsPage() {
   const [modelFilter, setModelFilter] = useState('');
   const [sortBy, setSortBy] = useState<SortKey>('time');
   const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
+  const [focusIdx, setFocusIdx] = useState(-1);
   const { t, locale } = useI18n();
   usePageTitle('session.listTitle');
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         searchRef.current?.focus();
@@ -191,11 +193,11 @@ export default function SessionsPage() {
         <Card className="rounded-xl border-border">
           <CardContent className="p-0">
             <div className="divide-y divide-border">
-              {filteredSessions.map((s) => (
+              {filteredSessions.map((s, idx) => (
                 <Link
                   key={s.session_id}
                   href={`/sessions/${encodeURIComponent(s.session_id)}`}
-                  className="flex items-center justify-between px-6 py-3 hover:bg-accent/30 transition-colors"
+                  className={`flex items-center justify-between px-6 py-3 hover:bg-accent/30 transition-colors ${focusIdx === idx ? 'bg-accent/30' : ''}`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="text-xs font-mono text-muted-foreground shrink-0">
