@@ -17,6 +17,8 @@ import type {
   PublishEvent,
   ModelDistribution,
   RecentSession,
+  SessionCitation,
+  SessionSection,
 } from './types';
 
 const DB_PATH = path.join(process.cwd(), '..', 'data', 'usage.db');
@@ -580,6 +582,162 @@ export function getRecentSessions(limit: number, days: number | undefined, db?: 
       ${timeFilter}
       GROUP BY s.session_id ORDER BY s.started_at DESC LIMIT ?
     `).bind(...params, limit).all() as RecentSession[];
+  } finally {
+    if (own) conn.close();
+  }
+}
+
+// ── Confidence distribution ──
+
+export function getConfidenceDistribution(days: number | undefined, db?: Database.Database): ConfidenceDistribution[] {
+  const own = !db;
+  const conn = db || getDb();
+  try {
+    const timeFilter = days ? `WHERE r.timestamp >= datetime('now', ? || ' days')` : '';
+    const confParams = days ? [`-${days}`] : [];
+    const rawConf = conn.prepare(
+      `SELECT confidence, COUNT(*) as count FROM rule_references r ${timeFilter} GROUP BY confidence ORDER BY count DESC`
+    ).bind(...confParams).all() as { confidence: string; count: number }[];
+
+    return rawConf.map((row) => {
+      const dayFilter = days ? "AND r.timestamp >= datetime('now', ? || ' days')" : '';
+      const top_rules = conn.prepare(
+        `SELECT r.rule_id, m.title, COUNT(*) as count
+         FROM rule_references r
+         JOIN rules_metadata m ON m.rule_id = r.rule_id
+         WHERE r.confidence = ? ${dayFilter}
+         GROUP BY r.rule_id
+         ORDER BY count DESC
+         LIMIT 5`
+      ).bind(row.confidence, ...(days ? [`-${days}`] : [])).all() as { rule_id: string; title: string; count: number }[];
+      return { ...row, top_rules };
+    });
+  } finally {
+    if (own) conn.close();
+  }
+}
+
+// ── Session detail ──
+
+export function getSessionDetail(
+  sessionId: string,
+  db?: Database.Database,
+): { session: Record<string, unknown>; citations: SessionCitation[]; sections: SessionSection[] } | null {
+  const own = !db;
+  const conn = db || getDb();
+  try {
+    const session = conn.prepare(
+      'SELECT session_id, started_at, ended_at, model, task_summary FROM sessions WHERE session_id = ?'
+    ).get(sessionId) as Record<string, unknown> | undefined;
+
+    const citations = conn.prepare(`
+      SELECT r.rule_id, m.title, m.section_id, r.matched_keyword, r.confidence, r.timestamp
+      FROM rule_references r
+      JOIN rules_metadata m ON m.rule_id = r.rule_id
+      WHERE r.session_id = ?
+      ORDER BY r.timestamp ASC
+    `).all(sessionId) as SessionCitation[];
+
+    const sections = conn.prepare(`
+      SELECT DISTINCT m.section_id, COALESCE(s.title, m.section_id) AS section_title
+      FROM rule_references r
+      JOIN rules_metadata m ON m.rule_id = r.rule_id
+      LEFT JOIN sections_metadata s ON s.section_id = m.section_id
+      WHERE r.session_id = ?
+      ORDER BY section_title
+    `).all(sessionId) as SessionSection[];
+
+    return {
+      session: session ?? { session_id: sessionId },
+      citations,
+      sections,
+    };
+  } finally {
+    if (own) conn.close();
+  }
+}
+
+// ── Filtered sessions list ──
+
+export function getFilteredSessions(
+  opts: {
+    days?: number;
+    limit: number;
+    offset: number;
+    sort: string;
+    dir: 'ASC' | 'DESC';
+    search?: string;
+    model?: string;
+    confidence?: string;
+  },
+  db?: Database.Database,
+): { sessions: RecentSession[]; total: number; avg_duration: number | null; avg_citations: number | null; models: string[] } {
+  const own = !db;
+  const conn = db || getDb();
+  try {
+    const { days, limit, offset, search, model, confidence } = opts;
+    const dir = opts.dir;
+    const validSorts: Record<string, string> = {
+      time: 's.started_at', citations: 'citation_count', rules: 'rule_count', duration: 'duration_sec',
+    };
+    const orderCol = validSorts[opts.sort] ?? validSorts.time;
+
+    const timeFilter = days ? `AND s.started_at >= datetime('now', ? || ' days')` : '';
+    const searchFilter = search ? `AND (LOWER(s.session_id) LIKE ? OR LOWER(s.task_summary) LIKE ?)` : '';
+    const modelFilter = model ? `AND s.model = ?` : '';
+    const confidenceFilter = confidence ? `AND EXISTS (SELECT 1 FROM rule_references rr WHERE rr.session_id = s.session_id AND rr.confidence = ?)` : '';
+    const searchParam = search ? `%${search}%` : '';
+    const baseParams = [
+      ...(days ? [`-${days}`] : []),
+      ...(search ? [searchParam, searchParam] : []),
+      ...(model ? [model] : []),
+      ...(confidence ? [confidence] : []),
+    ];
+
+    const sessions = conn.prepare(`
+      SELECT s.session_id, s.started_at, s.ended_at, s.model, s.task_summary,
+        COUNT(r.id) AS citation_count, COUNT(DISTINCT r.rule_id) AS rule_count,
+        CASE WHEN s.started_at AND s.ended_at
+          THEN CAST((julianday(s.ended_at) - julianday(s.started_at)) * 86400 AS INTEGER)
+          ELSE 0 END AS duration_sec
+      FROM sessions s LEFT JOIN rule_references r ON r.session_id = s.session_id
+      WHERE 1=1 ${timeFilter} ${searchFilter} ${modelFilter} ${confidenceFilter}
+      GROUP BY s.session_id ORDER BY ${orderCol} ${dir} LIMIT ? OFFSET ?
+    `).bind(...baseParams, limit, offset).all() as RecentSession[];
+
+    const totalResult = conn.prepare(`
+      SELECT COUNT(*) AS total FROM sessions WHERE 1=1
+      ${days ? "AND started_at >= datetime('now', ? || ' days')" : ''}
+      ${search ? "AND (LOWER(session_id) LIKE ? OR LOWER(task_summary) LIKE ?)" : ''}
+      ${model ? "AND model = ?" : ''}
+      ${confidence ? "AND EXISTS (SELECT 1 FROM rule_references rr WHERE rr.session_id = session_id AND rr.confidence = ?)" : ''}
+    `).bind(...baseParams).get() as { total: number };
+
+    const statsResult = conn.prepare(`
+      SELECT
+        AVG(CASE WHEN s.started_at AND s.ended_at
+          THEN (julianday(s.ended_at) - julianday(s.started_at)) * 86400 ELSE NULL END) AS avg_duration,
+        AVG(sub.cnt) AS avg_citations
+      FROM sessions s
+      LEFT JOIN (SELECT session_id, COUNT(*) AS cnt FROM rule_references GROUP BY session_id) sub ON sub.session_id = s.session_id
+      WHERE 1=1
+      ${days ? "AND s.started_at >= datetime('now', ? || ' days')" : ''}
+      ${search ? "AND (LOWER(s.session_id) LIKE ? OR LOWER(s.task_summary) LIKE ?)" : ''}
+      ${model ? "AND s.model = ?" : ''}
+      ${confidence ? "AND EXISTS (SELECT 1 FROM rule_references rr WHERE rr.session_id = s.session_id AND rr.confidence = ?)" : ''}
+    `).bind(...baseParams).get() as { avg_duration: number | null; avg_citations: number | null };
+
+    const models = conn.prepare(
+      "SELECT DISTINCT model FROM sessions WHERE model IS NOT NULL AND model != '' ORDER BY model"
+    ).all() as { model: string }[];
+
+    return {
+      sessions,
+      total: totalResult.total,
+      avg_duration: statsResult.avg_duration ? Math.round(statsResult.avg_duration) : null,
+      avg_citations: statsResult.avg_citations ? Math.round(statsResult.avg_citations * 10) / 10 : null,
+      models: models.map((m) => m.model),
+    };
   } finally {
     if (own) conn.close();
   }

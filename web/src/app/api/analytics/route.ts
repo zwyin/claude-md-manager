@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Database from 'better-sqlite3';
 import path from 'path';
-import { getAnalytics, getCitations, getHeatmapData } from '@/lib/db';
+import { getAnalytics, getCitations, getHeatmapData, getConfidenceDistribution } from '@/lib/db';
 import { parseDays, parseEnum, zeroFillTrend } from '@/lib/api-utils';
 import { handleApiError } from '@/lib/api-handler';
-import type { ConfidenceDistribution } from '@/lib/types';
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,25 +18,7 @@ export async function GET(request: NextRequest) {
         ? zeroFillTrend(getCitations({ days, group_by: trendGroup }, db), days)
         : getCitations({ days, group_by: trendGroup }, db);
       const heatmap = getHeatmapData(days, 50, db);
-
-      const timeFilter = days ? `WHERE r.timestamp >= datetime('now', ? || ' days')` : '';
-      const confParams = days ? [`-${days}`] : [];
-      const rawConf = db.prepare(
-        `SELECT confidence, COUNT(*) as count FROM rule_references r ${timeFilter} GROUP BY confidence ORDER BY count DESC`
-      ).bind(...confParams).all() as { confidence: string; count: number }[];
-
-      const confidence_distribution: ConfidenceDistribution[] = rawConf.map((row) => {
-        const top_rules = db.prepare(
-          `SELECT r.rule_id, m.title, COUNT(*) as count
-           FROM rule_references r
-           JOIN rules_metadata m ON r.rule_id = m.rule_id
-           WHERE r.confidence = ? ${days ? "AND r.timestamp >= datetime('now', ? || ' days')" : ''}
-           GROUP BY r.rule_id
-           ORDER BY count DESC
-           LIMIT 5`
-        ).bind(row.confidence, ...(days ? [`-${days}`] : [])).all() as { rule_id: string; title: string; count: number }[];
-        return { ...row, top_rules };
-      });
+      const confidence_distribution = getConfidenceDistribution(days, db);
 
       return NextResponse.json({ ...analytics, citation_trend, heatmap, confidence_distribution });
     } finally {

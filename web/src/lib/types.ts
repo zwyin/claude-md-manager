@@ -190,3 +190,17 @@ export interface RecentSession {
   rule_count: number;
   duration_sec: number;
 }
+
+export interface SessionCitation {
+  rule_id: string;
+  title: string;
+  section_id: string;
+  matched_keyword: string;
+  confidence: string;
+  timestamp: string;
+}
+
+export interface SessionSection {
+  section_id: string;
+  section_title: string;
+}

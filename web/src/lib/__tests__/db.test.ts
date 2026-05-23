@@ -14,6 +14,9 @@ import {
   getRecentBuilds,
   getModelDistribution,
   getRecentSessions,
+  getConfidenceDistribution,
+  getSessionDetail,
+  getFilteredSessions,
 } from '../db';
 
 const SCHEMA_SQL = `
@@ -348,5 +351,74 @@ describe('getRecentSessions', () => {
     db.prepare("UPDATE sessions SET started_at = datetime('now')").run();
     const result = getRecentSessions(10, 7, db);
     expect(result.length).toBeGreaterThan(0);
+  });
+});
+
+describe('getConfidenceDistribution', () => {
+  it('returns confidence buckets with top rules', () => {
+    const result = getConfidenceDistribution(undefined, db);
+    expect(result.length).toBeGreaterThan(0);
+    expect(result[0].confidence).toBeTruthy();
+    expect(result[0].count).toBeGreaterThan(0);
+    expect(result[0].top_rules).toBeInstanceOf(Array);
+  });
+
+  it('filters by days', () => {
+    const result = getConfidenceDistribution(7, db);
+    expect(result.length).toBeGreaterThan(0);
+  });
+});
+
+describe('getSessionDetail', () => {
+  it('returns session with citations and sections', () => {
+    const detail = getSessionDetail('s1', db);
+    expect(detail).not.toBeNull();
+    expect(detail!.session.session_id).toBe('s1');
+    expect(detail!.citations.length).toBeGreaterThan(0);
+    expect(detail!.sections.length).toBeGreaterThan(0);
+  });
+
+  it('returns fallback session for nonexistent id', () => {
+    const detail = getSessionDetail('nonexistent', db);
+    expect(detail).not.toBeNull();
+    expect(detail!.session.session_id).toBe('nonexistent');
+    expect(detail!.citations).toEqual([]);
+  });
+
+  it('citations include rule metadata', () => {
+    const detail = getSessionDetail('s1', db);
+    const c = detail!.citations[0];
+    expect(c.rule_id).toBeTruthy();
+    expect(c.title).toBeTruthy();
+    expect(c.section_id).toBeTruthy();
+  });
+});
+
+describe('getFilteredSessions', () => {
+  it('returns paginated sessions with totals', () => {
+    const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'time', dir: 'DESC' }, db);
+    expect(result.sessions.length).toBeGreaterThan(0);
+    expect(result.total).toBe(3);
+    expect(result.models.length).toBeGreaterThan(0);
+  });
+
+  it('filters by search term', () => {
+    const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'time', dir: 'DESC', search: 'task 1' }, db);
+    expect(result.total).toBeLessThanOrEqual(1);
+  });
+
+  it('filters by model', () => {
+    const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'time', dir: 'DESC', model: 'claude-4' }, db);
+    expect(result.total).toBeLessThanOrEqual(2);
+  });
+
+  it('sorts by citations', () => {
+    const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'citations', dir: 'DESC' }, db);
+    expect(result.sessions[0].citation_count).toBeGreaterThanOrEqual(result.sessions[result.sessions.length - 1].citation_count);
+  });
+
+  it('respects offset', () => {
+    const result = getFilteredSessions({ limit: 1, offset: 1, sort: 'time', dir: 'DESC' }, db);
+    expect(result.sessions.length).toBeLessThanOrEqual(1);
   });
 });
