@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Search, X, ChevronRight, Home } from 'lucide-react';
+import { Search, X, ChevronRight, Home, FileSearch } from 'lucide-react';
 import Link from 'next/link';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
@@ -231,8 +231,11 @@ function RulesContent() {
       </div>
 
       {filteredCount === 0 && (searchQuery || sectionFilter !== 'all') && (
-        <div className="text-center py-8 text-muted-foreground text-sm">
-          {t('rules.noResults')}
+        <div className="text-center py-12 text-muted-foreground">
+          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-border flex items-center justify-center">
+            <FileSearch className="w-6 h-6 text-muted-foreground" />
+          </div>
+          <p className="text-sm">{t('rules.noResults')}</p>
         </div>
       )}
       {(searchQuery || sectionFilter !== 'all') && filteredCount > 0 && (

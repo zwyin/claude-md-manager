@@ -14,7 +14,7 @@ import { PreviewPanel } from "./PreviewPanel";
 import { PublishDialog } from "./PublishDialog";
 import { useI18n } from "@/i18n";
 import Link from "next/link";
-import { ChevronRight, Home } from "lucide-react";
+import { ChevronRight, Home, Inbox } from "lucide-react";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { PageLoader } from "@/components/page-states";
 import { toast } from "sonner";
@@ -320,7 +320,10 @@ function EditorContent() {
                 ))}
               </div>
             ) : (
-              <div className="border-t border-border px-6 py-6 text-center text-sm text-muted-foreground">{t('editor.noPublishHistory')}</div>
+              <div className="border-t border-border px-6 py-8 flex flex-col items-center gap-2 text-muted-foreground">
+                <Inbox className="w-6 h-6 opacity-40" />
+                <span className="text-sm">{t('editor.noPublishHistory')}</span>
+              </div>
             )}
           </CollapsibleContent>
         </Card>
