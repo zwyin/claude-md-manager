@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Home } from 'lucide-react';
+import { ChevronRight, Home, Users } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -247,6 +247,9 @@ export default function SessionsPage() {
         </Card>
       ) : (
         <div className="text-center py-16">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-border flex items-center justify-center">
+            <Users className="w-8 h-8 text-muted-foreground" />
+          </div>
           <p className="text-muted-foreground">{t('session.noSessions')}</p>
         </div>
       )}

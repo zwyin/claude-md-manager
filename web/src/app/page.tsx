@@ -391,7 +391,7 @@ export default function DashboardPage() {
                         )}
                       </div>
                       {s.task_summary && (
-                        <p className="text-xs text-muted-foreground/70 truncate mt-0.5">{s.task_summary}</p>
+                        <p className="text-xs text-muted-foreground/70 truncate mt-0.5" title={s.task_summary}>{s.task_summary}</p>
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-3">

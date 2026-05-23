@@ -92,8 +92,8 @@ export function CitationHeatmap({ data, maxRules = 30 }: CitationHeatmapProps) {
                 const count = matrix[`${ruleId}::${day}`] ?? 0;
                 return (
                   <Tooltip key={day}>
-                    <TooltipTrigger className={`w-[28px] h-[20px] rounded-sm ${getColor(count)} transition-colors hover:ring-1 hover:ring-indigo-400/50`}>
-                      <Link href={`/rules/${ruleId}`} className="block w-full h-full" />
+                    <TooltipTrigger className={`w-[28px] h-[20px] rounded-sm ${getColor(count)} transition-colors hover:ring-1 hover:ring-indigo-400/50`} role="img" aria-label={`${title}: ${day} ${count} ${t('table.matches').toLowerCase()}`}>
+                      <Link href={`/rules/${ruleId}`} className="block w-full h-full" aria-label={title} />
                     </TooltipTrigger>
                     <TooltipContent side="top" className="text-xs">
                       <span className="font-medium">{title}</span>
