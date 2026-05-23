@@ -604,7 +604,7 @@ export function getConfidenceDistribution(days: number | undefined, db?: Databas
              ROW_NUMBER() OVER (PARTITION BY confidence ORDER BY rule_count DESC) AS rn
       FROM (
         SELECT r.confidence, r.rule_id, m.title,
-               COUNT(*) OVER (PARTITION BY r.confidence) AS per_conf_count,
+               SUM(COUNT(*)) OVER (PARTITION BY r.confidence) AS per_conf_count,
                COUNT(*) AS rule_count
         FROM rule_references r
         JOIN rules_metadata m ON m.rule_id = r.rule_id
