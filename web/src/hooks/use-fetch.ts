@@ -16,7 +16,7 @@ function reducer<T>(state: FetchState<T>, action: Action<T>): FetchState<T> {
   switch (action.type) {
     case 'start': return { data: state.data, loading: true, error: null };
     case 'success': return { data: action.data, loading: false, error: null };
-    case 'error': return { data: null, loading: false, error: action.error };
+    case 'error': return { data: state.data, loading: false, error: action.error };
   }
 }
 
