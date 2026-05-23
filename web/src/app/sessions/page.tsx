@@ -233,7 +233,11 @@ export default function SessionsPage() {
                   className="flex items-center justify-between px-6 py-3 hover:bg-accent/30 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-xs font-mono text-muted-foreground shrink-0">
+                    <span
+                      className="text-xs font-mono text-muted-foreground shrink-0 hover:text-foreground transition-colors"
+                      title={s.session_id}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigator.clipboard.writeText(s.session_id); }}
+                    >
                       {s.session_id.slice(0, 8)}
                     </span>
                     <div className="min-w-0">

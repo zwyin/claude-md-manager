@@ -98,7 +98,11 @@ export default function SessionDetailPage() {
           <div className="flex items-start justify-between">
             <div>
               <CardTitle className="text-xl">{t('session.title')}</CardTitle>
-              <p className="text-xs font-mono text-muted-foreground mt-1">{displayId}</p>
+              <p
+                className="text-xs font-mono text-muted-foreground mt-1 cursor-pointer hover:text-foreground transition-colors"
+                title="Click to copy"
+                onClick={() => { navigator.clipboard.writeText(displayId); }}
+              >{displayId}</p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Badge variant="secondary">{uniqueRules} {t('table.rules').toLowerCase()}</Badge>
