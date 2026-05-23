@@ -34,10 +34,10 @@ export default function RulesPage() {
 function RulesContent() {
   const { data, loading, error } = useFetch<RulesData>('/api/rules');
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
-  const [searchQuery, setSearchQuery] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('search') ?? '');
   const { t } = useI18n();
   usePageTitle('rules.title');
 
@@ -130,11 +130,12 @@ function RulesContent() {
     return result;
   }, [filteredGrouped, sortBy, sortDir]);
 
-  const syncUrl = useCallback((section: string, sort: string, dir: string) => {
+  const syncUrl = useCallback((section: string, sort: string, dir: string, search: string) => {
     const params = new URLSearchParams();
     if (section !== 'all') params.set('section', section);
     if (sort !== 'default') params.set('sort', sort);
     if (dir !== 'desc') params.set('dir', dir);
+    if (search) params.set('search', search);
     const qs = params.toString();
     router.replace(qs ? `?${qs}` : '/rules', { scroll: false });
   }, [router]);
@@ -151,7 +152,7 @@ function RulesContent() {
       setSortBy(key);
       setSortDir('desc');
     }
-    syncUrl(sectionFilter, newSort, newDir);
+    syncUrl(sectionFilter, newSort, newDir, searchQuery);
   }, [sortBy, sortDir, sectionFilter, syncUrl]);
 
   const sortIcon = (key: typeof sortBy) => {
@@ -200,12 +201,12 @@ function RulesContent() {
           <Input
             ref={searchRef}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { setSearchQuery(e.target.value); syncUrl(sectionFilter, sortBy, sortDir, e.target.value); }}
             placeholder={`${t('rules.searchPlaceholder')} (⌘K)`}
             className="pl-9 h-9 text-sm"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery('')} aria-label={t('rules.clearSearch')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+            <button onClick={() => { setSearchQuery(''); syncUrl(sectionFilter, sortBy, sortDir, ''); }} aria-label={t('rules.clearSearch')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <X className="w-3.5 h-3.5" />
             </button>
           )}
@@ -213,7 +214,7 @@ function RulesContent() {
         <select
           aria-label={t('rules.allSections')}
           value={sectionFilter}
-          onChange={(e) => { setSectionFilter(e.target.value); syncUrl(e.target.value, sortBy, sortDir); }}
+          onChange={(e) => { setSectionFilter(e.target.value); syncUrl(e.target.value, sortBy, sortDir, searchQuery); }}
           className="h-9 text-sm rounded-md border border-border bg-card text-foreground px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         >
           <option value="all">{t('rules.allSections')} ({data.total_rules})</option>
