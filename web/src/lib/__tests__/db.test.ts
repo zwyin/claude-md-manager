@@ -369,12 +369,33 @@ describe('getRecentSessions', () => {
 });
 
 describe('getConfidenceDistribution', () => {
-  it('returns confidence buckets with top rules', () => {
+  it('returns confidence buckets with correct totals and top rules', () => {
     const result = getConfidenceDistribution(undefined, db);
     expect(result.length).toBeGreaterThan(0);
     expect(result[0].confidence).toBeTruthy();
-    expect(result[0].count).toBeGreaterThan(0);
     expect(result[0].top_rules).toBeInstanceOf(Array);
+
+    // All 4 seed references default to confidence='medium'
+    const medium = result.find((r) => r.confidence === 'medium');
+    expect(medium).toBeDefined();
+    expect(medium!.count).toBe(4);
+    const totalFromDist = result.reduce((sum, r) => sum + r.count, 0);
+    expect(totalFromDist).toBe(4);
+  });
+
+  it('splits multiple confidence levels correctly', () => {
+    // Add refs with different confidence values
+    db.prepare("INSERT INTO rule_references (rule_id, session_id, matched_keyword, confidence) VALUES ('r1', 's1', 'kw1', 'high')").run();
+    db.prepare("INSERT INTO rule_references (rule_id, session_id, matched_keyword, confidence) VALUES ('r2', 's2', 'kw2', 'low')").run();
+    db.prepare("INSERT INTO rule_references (rule_id, session_id, matched_keyword, confidence) VALUES ('r3', 's3', 'kw3', 'low')").run();
+
+    const result = getConfidenceDistribution(undefined, db);
+    const byConf = Object.fromEntries(result.map((r) => [r.confidence, r.count]));
+    expect(byConf['medium']).toBe(4);
+    expect(byConf['high']).toBe(1);
+    expect(byConf['low']).toBe(2);
+    const total = result.reduce((sum, r) => sum + r.count, 0);
+    expect(total).toBe(7);
   });
 
   it('filters by days', () => {
