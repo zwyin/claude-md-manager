@@ -185,13 +185,13 @@ export default function DashboardPage() {
                 {(() => {
                   const models = data.model_distribution;
                   const maxCount = Math.max(...models.map((m) => m.count), 1);
-                  return models.map((m) => (
+                  return models.map((m, mi) => (
                     <div key={m.model} className="flex items-center gap-3">
                       <span className="text-xs font-mono text-muted-foreground w-24 shrink-0 truncate" title={m.model}>{m.model}</span>
                       <div className="flex-1 h-5 bg-muted/30 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-indigo-500/70 rounded-full transition-all"
-                          style={{ width: `${(m.count / maxCount) * 100}%` }}
+                          className="h-full rounded-full transition-all"
+                          style={{ width: `${(m.count / maxCount) * 100}%`, backgroundColor: CHART_COLORS[mi % CHART_COLORS.length] }}
                         />
                       </div>
                       <span className="text-xs font-mono text-muted-foreground w-12 text-right">{m.count}</span>
@@ -459,17 +459,19 @@ export default function DashboardPage() {
               <div className="border-t border-border divide-y divide-border">
                 {coldRules.map((rule) => (
                   <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
-                    className="flex items-center justify-between px-6 py-3 hover:bg-accent/50 transition-colors">
+                    className="flex items-center justify-between px-6 py-3 hover:bg-accent/30 transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
                       <Badge variant="secondary" className="text-[10px] shrink-0 hover:bg-primary/20 cursor-pointer"
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/rules?section=${rule.section_id}`); }}
                       >{rule.section_id}</Badge>
                       <span className="text-sm truncate">{rule.title}</span>
                     </div>
-                    <Badge variant="outline" className="text-xs text-muted-foreground">
-                      {rule.match_count} {t('table.matches')}
-                      {rule.last_cited && <span className="ml-1.5 text-[10px]">{relativeTime(rule.last_cited, locale)}</span>}
-                    </Badge>
+                    <span className="text-xs text-muted-foreground shrink-0 font-mono">
+                      {rule.match_count > 0
+                        ? `${rule.match_count} ${t('table.matches')}`
+                        : t('analytics.neverCited')}
+                      {rule.last_cited && <span className="ml-2 text-[10px]">{relativeTime(rule.last_cited, locale)}</span>}
+                    </span>
                   </Link>
                 ))}
               </div>
