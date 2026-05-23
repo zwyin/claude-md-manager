@@ -48,6 +48,17 @@ export async function GET(request: NextRequest) {
          GROUP BY model ORDER BY count DESC LIMIT 10`
       ).bind(...(days ? [`-${days}`] : [])).all() as { model: string; count: number }[];
 
+      const recent_sessions = db.prepare(`
+        SELECT s.session_id, s.started_at, s.ended_at, s.model, s.task_summary,
+          COUNT(r.id) AS citation_count, COUNT(DISTINCT r.rule_id) AS rule_count,
+          CASE WHEN s.started_at AND s.ended_at
+            THEN CAST((julianday(s.ended_at) - julianday(s.started_at)) * 86400 AS INTEGER)
+            ELSE 0 END AS duration_sec
+        FROM sessions s LEFT JOIN rule_references r ON r.session_id = s.session_id
+        ${days ? `WHERE s.started_at >= datetime('now', ? || ' days')` : ''}
+        GROUP BY s.session_id ORDER BY s.started_at DESC LIMIT 8
+      `).bind(...(days ? [`-${days}`] : [])).all();
+
       return NextResponse.json({
         rules,
         sections: getSectionsWithStats(days, db),
@@ -62,6 +73,7 @@ export async function GET(request: NextRequest) {
         recent_citations,
         recent_builds,
         model_distribution,
+        recent_sessions,
       });
     } finally {
       db.close();

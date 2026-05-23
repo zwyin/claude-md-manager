@@ -48,6 +48,7 @@ interface DashboardData {
   recent_citations: RecentCitation[];
   recent_builds: BuildEvent[];
   model_distribution: { model: string; count: number }[];
+  recent_sessions: SessionEntry[];
 }
 
 export default function DashboardPage() {
@@ -66,8 +67,7 @@ export default function DashboardPage() {
   }, [timeRange]);
 
   const { data, loading, error } = useFetch<DashboardData>(url);
-  const { data: sessionsData } = useFetch<{ sessions: SessionEntry[] }>('/api/sessions?limit=8');
-  const recentSessions = sessionsData?.sessions ?? [];
+  const recentSessions = data?.recent_sessions ?? [];
 
   if (loading && !data) return <DashboardSkeleton />;
   if (error) return <PageError message={t('status.error', { error })} />;
