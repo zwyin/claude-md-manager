@@ -206,7 +206,8 @@ export function getRuleDetail(
       .prepare(
         `
         SELECT m.rule_id, m.title, m.section_id,
-               COUNT(DISTINCT r2.session_id) AS co_sessions
+               COUNT(DISTINCT r2.session_id) AS co_sessions,
+               COUNT(*) AS total_matches
         FROM rule_references r1
         JOIN rule_references r2 ON r1.session_id = r2.session_id AND r2.rule_id != ?
         JOIN rules_metadata m ON m.rule_id = r2.rule_id AND m.section_id != ?

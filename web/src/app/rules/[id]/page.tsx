@@ -236,7 +236,10 @@ export default function RuleDetailPage() {
                   className="shrink-0 w-48 p-3 rounded-lg border border-border bg-accent/50 hover:border-indigo-500/30 transition-colors">
                   <p className="text-xs font-mono text-muted-foreground mb-1">{co.section_id}</p>
                   <p className="text-sm font-medium truncate">{co.title}</p>
-                  <Badge variant="secondary" className="text-[10px] font-mono mt-2">{co.co_sessions} {t('table.sessions').toLowerCase()}</Badge>
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <Badge variant="secondary" className="text-[10px] font-mono">{co.co_sessions} {t('table.sessions').toLowerCase()}</Badge>
+                    <Badge variant="outline" className="text-[10px] font-mono">{co.total_matches} {t('table.matches').toLowerCase()}</Badge>
+                  </div>
                 </Link>
               ))}
             </div>

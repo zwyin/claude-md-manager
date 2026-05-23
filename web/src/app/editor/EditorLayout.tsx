@@ -41,7 +41,7 @@ export function EditorLayout({ children }: EditorLayoutProps) {
             size="sm"
             variant="ghost"
             onClick={() => setListOpen((v) => !v)}
-            className="text-xs h-7 px-2 sm:hidden"
+            className="text-xs h-7 px-2"
           >
             {listOpen ? t('editor.hideRules') : t('editor.showRules')}
           </Button>

@@ -229,6 +229,7 @@ const zh = {
   'session.sort.citations': '匹配数',
   'session.sort.rules': '规则数',
   'session.sort.duration': '时长',
+  'session.sortBy': '排序：',
 } as const;
 
 export default zh;

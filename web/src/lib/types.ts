@@ -157,6 +157,7 @@ export interface CoOccurringRule {
   title: string;
   section_id: string;
   co_sessions: number;
+  total_matches: number;
 }
 
 export interface HeatmapCell {

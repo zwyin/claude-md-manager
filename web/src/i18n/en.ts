@@ -208,6 +208,7 @@ const en: Dict = {
   'session.sort.citations': 'Citations',
   'session.sort.rules': 'Rules',
   'session.sort.duration': 'Duration',
+  'session.sortBy': 'Sort:',
 };
 
 export default en;
