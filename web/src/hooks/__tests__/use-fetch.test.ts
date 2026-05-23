@@ -80,4 +80,36 @@ describe('useFetch', () => {
     await act(() => new Promise((r) => setTimeout(r, 0)));
     expect(result.current.data).toEqual({ v: 2 });
   });
+
+  it('sets fetchedAt timestamp on success', async () => {
+    globalThis.fetch = vi.fn(async () => new Response('{"ok":true}'));
+    const { result } = renderHook(() => useFetch('/api/test'));
+
+    await act(() => new Promise((r) => setTimeout(r, 0)));
+    expect(result.current.fetchedAt).toBeTypeOf('number');
+    expect(result.current.fetchedAt!).toBeGreaterThan(0);
+  });
+
+  it('fetchedAt is null when url is null', () => {
+    const { result } = renderHook(() => useFetch(null));
+    expect(result.current.fetchedAt).toBeNull();
+  });
+
+  it('refresh() triggers re-fetch with same url', async () => {
+    const responses = [new Response('{"v":1}'), new Response('{"v":2}')];
+    let callIdx = 0;
+    globalThis.fetch = vi.fn(async () => responses[callIdx++]);
+
+    const { result } = renderHook(() => useFetch<{ v: number }>('/api/test'));
+
+    await act(() => new Promise((r) => setTimeout(r, 0)));
+    expect(result.current.data).toEqual({ v: 1 });
+
+    act(() => { result.current.refresh(); });
+
+    await act(() => new Promise((r) => setTimeout(r, 0)));
+    expect(result.current.data).toEqual({ v: 2 });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    expect(globalThis.fetch).toHaveBeenNthCalledWith(2, '/api/test');
+  });
 });
