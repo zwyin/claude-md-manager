@@ -210,6 +210,16 @@ const en: Dict = {
   'session.sort.duration': 'Duration',
   'session.sortBy': 'Sort:',
   'session.allConfidence': 'All Confidence',
+
+  // Shortcuts
+  'shortcut.title': 'Keyboard Shortcuts',
+  'shortcut.search': 'Focus search',
+  'shortcut.save': 'Save draft (editor)',
+  'shortcut.preview': 'Toggle preview (editor)',
+  'shortcut.navigate': 'Navigate lists',
+  'shortcut.help': 'Show shortcut help',
+  'shortcut.close': 'Close dialog',
+  'shortcut.dismiss': 'Press Esc or click outside to close',
 };
 
 export default en;

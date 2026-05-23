@@ -11,6 +11,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { RoutedErrorBoundary } from "@/components/routed-error-boundary";
 import { FontScaleProvider } from "@/components/font-scale-provider";
 import { BackToTop } from "@/components/back-to-top";
+import { ShortcutHelp } from "@/components/shortcut-help";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -47,6 +48,7 @@ export default async function RootLayout({
               </SidebarInset>
             </SidebarProvider>
             <BackToTop />
+            <ShortcutHelp />
           </TooltipProvider>
           </FontScaleProvider>
           <Toaster />

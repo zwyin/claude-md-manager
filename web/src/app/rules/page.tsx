@@ -157,8 +157,8 @@ function RulesContent() {
   }, [sortBy, sortDir, sectionFilter, syncUrl]);
 
   const sortIcon = (key: typeof sortBy) => {
-    if (sortBy !== key) return ' ↕';
-    return sortDir === 'desc' ? ' ↓' : ' ↑';
+    if (sortBy !== key) return <svg className="w-3 h-3 ml-0.5 opacity-30 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 15l5 5 5-5M7 9l5-5 5 5" /></svg>;
+    return <svg className={"w-3 h-3 ml-0.5 transition-transform inline " + (sortDir === 'asc' ? 'rotate-180' : '')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>;
   };
 
   useEffect(() => {

@@ -231,6 +231,16 @@ const zh = {
   'session.sort.duration': '时长',
   'session.sortBy': '排序：',
   'session.allConfidence': '全部置信度',
+
+  // Shortcuts
+  'shortcut.title': '键盘快捷键',
+  'shortcut.search': '聚焦搜索框',
+  'shortcut.save': '保存草稿（编辑器）',
+  'shortcut.preview': '切换预览（编辑器）',
+  'shortcut.navigate': '导航列表',
+  'shortcut.help': '显示快捷键帮助',
+  'shortcut.close': '关闭对话框',
+  'shortcut.dismiss': '按 Esc 或点击外部关闭',
 } as const;
 
 export default zh;
