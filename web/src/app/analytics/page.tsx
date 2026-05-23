@@ -168,7 +168,14 @@ export default function AnalyticsPage() {
       <Card className="rounded-xl border-border bg-card">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">{t('analytics.citationTrend')}</CardTitle>
+            <CardTitle className="text-base">
+              {t('analytics.citationTrend')}
+              {data.citation_trend && data.citation_trend.length > 0 && (
+                <span className="text-xs font-normal text-muted-foreground ml-2">
+                  ({t('analytics.avgPerDay')}: {Math.round(data.citation_trend.reduce((s, p) => s + p.count, 0) / data.citation_trend.length).toLocaleString()})
+                </span>
+              )}
+            </CardTitle>
             {data.citation_trend && data.citation_trend.length > 0 && (
               <div className="flex gap-1">
                 {(['day', 'week', 'month'] as const).map((mode) => (

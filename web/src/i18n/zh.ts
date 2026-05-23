@@ -143,6 +143,7 @@ const zh = {
   'analytics.topRules': '热门规则 Top 10',
   'analytics.sectionDist': '章节分布',
   'analytics.citationTrend': '引用趋势',
+  'analytics.avgPerDay': '日均',
   'analytics.heatmap': '规则活跃热力图',
   'analytics.heatmap.subtitle': '按日展示规则引用密度，颜色越深引用越多',
   'analytics.confidence': '引用置信度分布',

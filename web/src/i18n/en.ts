@@ -126,6 +126,7 @@ const en: Dict = {
   'analytics.topRules': 'Top 10 Rules',
   'analytics.sectionDist': 'Section Distribution',
   'analytics.citationTrend': 'Citation Trend',
+  'analytics.avgPerDay': 'avg/day',
   'analytics.heatmap': 'Rule Activity Heatmap',
   'analytics.heatmap.subtitle': 'Daily citation density per rule — darker cells mean more citations',
   'analytics.confidence': 'Citation Confidence',
