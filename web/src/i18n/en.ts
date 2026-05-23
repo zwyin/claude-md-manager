@@ -42,6 +42,7 @@ const en: Dict = {
   'rules.searchPlaceholder': 'Search rules by title, keyword...',
   'rules.allSections': 'All Sections',
   'rules.noResults': 'No matching rules',
+  'rules.showing': 'Showing {shown} of {total} rules',
   'rules.ruleName': 'Rule Name',
   'rules.clearSearch': 'Clear search',
   'rules.viewDetail': 'View full detail',

@@ -216,6 +216,9 @@ function RulesContent() {
           {t('rules.noResults')}
         </div>
       )}
+      {searchQuery && filteredCount > 0 && (
+        <p className="text-xs text-muted-foreground">{t('rules.showing', { shown: filteredCount, total: data.total_rules })}</p>
+      )}
 
       <div className="space-y-3">
         {sectionOrder.map((sectionId, sIdx) => {

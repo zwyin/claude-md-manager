@@ -51,6 +51,7 @@ const zh = {
   'rules.searchPlaceholder': '搜索规则标题、关键词...',
   'rules.allSections': '全部章节',
   'rules.noResults': '没有匹配的规则',
+  'rules.showing': '显示 {total} 条规则中的 {shown} 条',
   'rules.ruleName': '规则名称',
   'rules.clearSearch': '清除搜索',
   'rules.viewDetail': '查看完整详情',
