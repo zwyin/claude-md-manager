@@ -22,6 +22,10 @@ interface EditorRulesData {
   rules: { rule_id: string; has_draft?: boolean }[];
 }
 
+interface SessionsSummaryData {
+  total: number;
+}
+
 const navItems = [
   { href: "/", labelKey: 'nav.dashboard' as const, Icon: Home },
   { href: "/rules", labelKey: 'nav.rules' as const, Icon: ListChecks },
@@ -35,7 +39,9 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { t } = useI18n();
   const { data: editorData } = useFetch<EditorRulesData>('/api/editor/rules');
+  const { data: sessionsData } = useFetch<SessionsSummaryData>('/api/sessions?days=1&limit=1');
   const draftCount = (editorData?.rules ?? []).filter((r) => r.has_draft).length;
+  const todaySessions = sessionsData?.total ?? 0;
 
   return (
     <Sidebar>
@@ -59,6 +65,9 @@ export function AppSidebar() {
                     <span>{t(item.labelKey)}</span>
                     {item.href === '/editor' && draftCount > 0 && (
                       <Badge variant="secondary" className="text-[10px] ml-auto px-1.5 py-0">{draftCount}</Badge>
+                    )}
+                    {item.href === '/sessions' && todaySessions > 0 && (
+                      <Badge variant="secondary" className="text-[10px] ml-auto px-1.5 py-0">{todaySessions}</Badge>
                     )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
