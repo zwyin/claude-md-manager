@@ -126,6 +126,11 @@ export default function DashboardPage() {
               {t('dashboard.lastActivity', { time: new Date(data.recent_citations[0].timestamp).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) })}
             </span>
           )}
+          {data.recent_builds && data.recent_builds.length > 0 && (
+            <Badge variant="outline" className="text-[10px] font-mono shrink-0">
+              {t('dashboard.recentBuilds')}: {relativeTime(data.recent_builds[0].published_at, locale)}
+            </Badge>
+          )}
         </div>
       </div>
 
