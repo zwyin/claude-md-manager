@@ -82,7 +82,7 @@ export default function SessionsPage() {
     return `/api/sessions?${params}`;
   }, [offset, days, sortBy, sortDir, search, modelFilter, confidenceFilter]);
 
-  const { data, loading, error } = useFetch<SessionsData>(url);
+  const { data, loading, error, refresh } = useFetch<SessionsData>(url);
 
   const filteredSessions = data?.sessions ?? [];
 
@@ -154,9 +154,16 @@ export default function SessionsPage() {
         <span className="text-foreground">{t('session.listTitle')}</span>
       </nav>
 
-      <div>
-        <h1 className="text-2xl font-bold">{t('session.listTitle')}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t('session.listSubtitle')}</p>
+      <div className="flex items-center gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">{t('session.listTitle')}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('session.listSubtitle')}</p>
+        </div>
+        <Button size="sm" variant="ghost" onClick={refresh} disabled={loading} className="h-7 px-2 mt-1" title={t('dashboard.refresh')}>
+          <svg className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </Button>
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
