@@ -352,6 +352,20 @@ describe('getRecentSessions', () => {
     const result = getRecentSessions(10, 7, db);
     expect(result.length).toBeGreaterThan(0);
   });
+
+  it('computes duration_sec from started_at/ended_at', () => {
+    db.prepare("UPDATE sessions SET started_at = '2026-01-01 00:00:00', ended_at = '2026-01-01 00:05:00' WHERE session_id = 's1'").run();
+    const result = getRecentSessions(10, undefined, db);
+    const s1 = result.find((s) => s.session_id === 's1');
+    expect(s1?.duration_sec).toBe(300);
+  });
+
+  it('returns 0 duration when ended_at is null', () => {
+    db.prepare("UPDATE sessions SET started_at = '2026-01-01 00:00:00', ended_at = NULL WHERE session_id = 's2'").run();
+    const result = getRecentSessions(10, undefined, db);
+    const s2 = result.find((s) => s.session_id === 's2');
+    expect(s2?.duration_sec).toBe(0);
+  });
 });
 
 describe('getConfidenceDistribution', () => {
