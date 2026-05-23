@@ -289,19 +289,19 @@ function EditorContent() {
         }}
       </EditorLayout>
 
-      {publishHistory.length > 0 && (
-        <Collapsible open={historyOpen} onOpenChange={setHistoryOpen} className="mt-4">
-          <Card className="rounded-xl border-border">
-            <CollapsibleTrigger className="w-full flex items-center justify-between px-6 py-3 hover:bg-accent/50 transition-colors text-left">
-              <div className="flex items-center gap-3">
-                <svg className={`w-4 h-4 text-muted-foreground transition-transform ${historyOpen ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-                <span className="text-sm font-semibold">{t('editor.publishHistory')}</span>
-              </div>
-              <Badge variant="outline" className="text-xs">{publishHistory.length}</Badge>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
+      <Collapsible open={historyOpen} onOpenChange={setHistoryOpen} className="mt-4">
+        <Card className="rounded-xl border-border">
+          <CollapsibleTrigger className="w-full flex items-center justify-between px-6 py-3 hover:bg-accent/50 transition-colors text-left">
+            <div className="flex items-center gap-3">
+              <svg className={`w-4 h-4 text-muted-foreground transition-transform ${historyOpen ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+              <span className="text-sm font-semibold">{t('editor.publishHistory')}</span>
+            </div>
+            {publishHistory.length > 0 && <Badge variant="outline" className="text-xs">{publishHistory.length}</Badge>}
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            {publishHistory.length > 0 ? (
               <div className="border-t border-border divide-y divide-border">
                 {publishHistory.map((ev) => (
                   <div key={ev.id} className="flex items-center justify-between px-6 py-2.5">
@@ -319,10 +319,12 @@ function EditorContent() {
                   </div>
                 ))}
               </div>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-      )}
+            ) : (
+              <div className="border-t border-border px-6 py-6 text-center text-sm text-muted-foreground">{t('editor.noPublishHistory')}</div>
+            )}
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       {showPublish && (
         <PublishDialog

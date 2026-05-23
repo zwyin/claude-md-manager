@@ -183,11 +183,11 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
-      {data.citation_trend && data.citation_trend.length > 0 && (
-        <Card className="rounded-xl border-border bg-card">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">{t('analytics.citationTrend')}</CardTitle>
+      <Card className="rounded-xl border-border bg-card">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">{t('analytics.citationTrend')}</CardTitle>
+            {data.citation_trend && data.citation_trend.length > 0 && (
               <div className="flex gap-1">
                 {(['day', 'week', 'month'] as const).map((mode) => (
                   <Button
@@ -201,9 +201,11 @@ export default function AnalyticsPage() {
                   </Button>
                 ))}
               </div>
-            </div>
-          </CardHeader>
-          <CardContent>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {data.citation_trend && data.citation_trend.length > 0 ? (
             <div className="h-[250px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={data.citation_trend} margin={{ left: 0, right: 20 }}>
@@ -220,18 +222,19 @@ export default function AnalyticsPage() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <div className="h-[120px] flex items-center justify-center text-sm text-muted-foreground">{t('analytics.noData')}</div>
+          )}
+        </CardContent>
+      </Card>
 
-      {data.confidence_distribution && data.confidence_distribution.length > 0 && (
-        <Card className="rounded-xl border-border bg-card">
-          <CardHeader>
+      <Card className="rounded-xl border-border bg-card">
+        <CardHeader>
             <CardTitle className="text-base">{t('analytics.confidence')}</CardTitle>
             <p className="text-xs text-muted-foreground">{t('analytics.confidence.subtitle')}</p>
           </CardHeader>
           <CardContent>
-            {(() => {
+            {data.confidence_distribution && data.confidence_distribution.length > 0 ? (() => {
               const total = data.confidence_distribution.reduce((s, c) => s + c.count, 0);
               const confMap: Record<string, { count: number; color: string; label: string; top_rules: { rule_id: string; title: string; count: number }[] }> = {};
               for (const c of data.confidence_distribution) {
@@ -304,57 +307,64 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
               );
-            })()}
+            })() : (
+              <div className="h-[80px] flex items-center justify-center text-sm text-muted-foreground">{t('analytics.noData')}</div>
+            )}
           </CardContent>
         </Card>
-      )}
 
-      {data.heatmap && data.heatmap.length > 0 && (
-        <Card className="rounded-xl border-border bg-card">
+      <Card className="rounded-xl border-border bg-card">
           <CardHeader>
             <CardTitle className="text-base">{t('analytics.heatmap')}</CardTitle>
             <p className="text-xs text-muted-foreground">{t('analytics.heatmap.subtitle')}</p>
           </CardHeader>
           <CardContent>
-            <CitationHeatmap data={data.heatmap} />
+            {data.heatmap && data.heatmap.length > 0 ? (
+              <CitationHeatmap data={data.heatmap} />
+            ) : (
+              <div className="h-[80px] flex items-center justify-center text-sm text-muted-foreground">{t('analytics.noData')}</div>
+            )}
           </CardContent>
         </Card>
-      )}
 
-      {data.cold_rules && data.cold_rules.length > 0 && (
-        <Card className="rounded-xl border-border bg-card">
+      <Card className="rounded-xl border-border bg-card">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">
                 <TermTooltip term={t('term.coldRule')} explanation={t('term.coldRule.desc')} />
               </CardTitle>
-              <Badge variant="outline" className="text-amber-500">{data.cold_rules.length}</Badge>
+              {data.cold_rules && data.cold_rules.length > 0 && (
+                <Badge variant="outline" className="text-amber-500">{data.cold_rules.length}</Badge>
+              )}
             </div>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-border">
-              {data.cold_rules.map((rule) => (
-                <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
-                  className="flex items-center justify-between px-6 py-3 hover:bg-accent/30 transition-colors">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Badge
-                      variant="secondary"
-                      className="text-[10px] shrink-0 hover:bg-primary/20 cursor-pointer"
-                      onClick={(e) => { e.preventDefault(); router.push(`/rules?section=${rule.section_id}`); }}
-                    >{rule.section_id}</Badge>
-                    <span className="text-sm truncate">{rule.title}</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground shrink-0 font-mono">
-                    {rule.citation_count > 0
-                      ? `${rule.citation_count} ${t('table.matches')}`
-                      : t('analytics.neverCited')}
-                  </span>
-                </Link>
-              ))}
-            </div>
+          <CardContent className={data.cold_rules && data.cold_rules.length > 0 ? 'p-0' : ''}>
+            {data.cold_rules && data.cold_rules.length > 0 ? (
+              <div className="divide-y divide-border">
+                {data.cold_rules.map((rule) => (
+                  <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
+                    className="flex items-center justify-between px-6 py-3 hover:bg-accent/30 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Badge
+                        variant="secondary"
+                        className="text-[10px] shrink-0 hover:bg-primary/20 cursor-pointer"
+                        onClick={(e) => { e.preventDefault(); router.push(`/rules?section=${rule.section_id}`); }}
+                      >{rule.section_id}</Badge>
+                      <span className="text-sm truncate">{rule.title}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground shrink-0 font-mono">
+                      {rule.citation_count > 0
+                        ? `${rule.citation_count} ${t('table.matches')}`
+                        : t('analytics.neverCited')}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="h-[60px] flex items-center justify-center text-sm text-muted-foreground">{t('analytics.allRulesActive')}</div>
+            )}
           </CardContent>
         </Card>
-      )}
     </div>
   );
 }
