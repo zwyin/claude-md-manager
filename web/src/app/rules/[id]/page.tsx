@@ -358,10 +358,10 @@ export default function RuleDetailPage() {
                           {relativeTime(c.timestamp, locale)}
                         </TableCell>
                         <TableCell><Badge variant="outline" className="border-indigo-500/30 text-indigo-300">{c.matched_keyword}</Badge></TableCell>
-                        <TableCell><Badge variant={c.confidence === "high" ? "default" : c.confidence === "medium" ? "secondary" : "outline"} className="text-[10px]">{c.confidence === "high" ? t("analytics.confidence.high") : c.confidence === "medium" ? t("analytics.confidence.medium") : t("analytics.confidence.low")}</Badge></TableCell>
                         <TableCell className="text-xs">
                           {c.model ? <Badge variant="secondary" className="text-[10px] font-mono">{c.model}</Badge> : <span className="text-muted-foreground">—</span>}
                         </TableCell>
+                        <TableCell><Badge variant={c.confidence === "high" ? "default" : c.confidence === "medium" ? "secondary" : "outline"} className="text-[10px]">{c.confidence === "high" ? t("analytics.confidence.high") : c.confidence === "medium" ? t("analytics.confidence.medium") : t("analytics.confidence.low")}</Badge></TableCell>
                         <TableCell className="text-xs font-mono text-muted-foreground max-w-[200px] truncate" title={c.task_summary || undefined}>
                           <Link href={`/sessions/${encodeURIComponent(c.session_id)}`} className="hover:text-indigo-400 transition-colors">
                             {c.session_id.replace('historical_', '')}
