@@ -20,7 +20,7 @@ import { useChartTheme } from '@/hooks/use-chart-theme';
 import { useFetch } from '@/hooks/use-fetch';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { usePageTitle } from '@/hooks/use-page-title';
-import { PageLoader, PageError, Skeleton } from '@/components/page-states';
+import { PageLoader, PageError, AnalyticsSkeleton } from '@/components/page-states';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 import type { AnalyticsData } from '@/lib/types';
 
@@ -42,25 +42,7 @@ export default function AnalyticsPage() {
 
   const { data, loading, error } = useFetch<AnalyticsData>(url);
 
-  if (loading && !data) return (
-    <div className="space-y-6">
-      <div>
-        <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-4 w-48 mt-2" />
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="rounded-xl border border-border bg-card overflow-hidden">
-            <div className="flex"><Skeleton className="w-1 h-16 rounded-l-xl" /><div className="p-5 pl-4 flex-1"><Skeleton className="h-3 w-14 mb-2" /><Skeleton className="h-6 w-10" /></div></div>
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Skeleton className="h-[360px] rounded-xl" />
-        <Skeleton className="h-[360px] rounded-xl" />
-      </div>
-    </div>
-  );
+  if (loading && !data) return <AnalyticsSkeleton />;
   if (error) return <PageError message={t('status.error', { error })} />;
   if (!data) return null;
 

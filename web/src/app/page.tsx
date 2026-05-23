@@ -17,7 +17,7 @@ import { useFetch } from '@/hooks/use-fetch';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
-import { relativeTime } from '@/lib/relative-time';
+import { relativeTime, formatDuration } from '@/lib/relative-time';
 import type { RuleWithStats, SectionWithStats, CitationTimePoint, RecentCitation } from '@/lib/types';
 
 interface SessionEntry {
@@ -306,11 +306,9 @@ export default function DashboardPage() {
                             ? new Date(s.started_at).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
                             : '—'}
                         </span>
-                        {s.duration_sec > 0 && (() => {
-                          const sec = s.duration_sec;
-                          const dur = sec < 60 ? `${sec}s` : sec < 3600 ? `${Math.floor(sec / 60)}m` : `${Math.floor(sec / 3600)}h`;
-                          return <span className="text-[10px] text-muted-foreground font-mono">{dur}</span>;
-                        })()}
+                        {formatDuration(s.duration_sec) && (
+                          <span className="text-[10px] text-muted-foreground font-mono">{formatDuration(s.duration_sec)}</span>
+                        )}
                         {s.model && (
                           <Badge variant="secondary" className="text-[10px] font-mono px-1 py-0">{s.model}</Badge>
                         )}

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useFetch } from '@/hooks/use-fetch';
+import { formatDuration } from '@/lib/relative-time';
 import { PageLoader, PageError, SessionsSkeleton } from '@/components/page-states';
 
 interface SessionEntry {
@@ -33,17 +34,6 @@ interface SessionsData {
 const PAGE_SIZE = 50;
 const TIME_RANGES = [7, 30, 90] as const;
 type SortKey = 'time' | 'citations' | 'rules' | 'duration';
-
-function formatDurationSec(sec: number): string | null {
-  if (sec <= 0) return null;
-  if (sec < 60) return `${sec}s`;
-  const min = Math.floor(sec / 60);
-  const remSec = sec % 60;
-  if (min < 60) return `${min}m${remSec > 0 ? `${remSec}s` : ''}`;
-  const hr = Math.floor(min / 60);
-  const remMin = min % 60;
-  return `${hr}h${remMin > 0 ? `${remMin}m` : ''}`;
-}
 
 export default function SessionsPage() {
   const [offset, setOffset] = useState(0);
@@ -185,9 +175,9 @@ export default function SessionsPage() {
                             {s.model}
                           </Badge>
                         )}
-                        {formatDurationSec(s.duration_sec) && (
+                        {formatDuration(s.duration_sec) && (
                           <span className="text-[10px] text-muted-foreground">
-                            {formatDurationSec(s.duration_sec)}
+                            {formatDuration(s.duration_sec)}
                           </span>
                         )}
                       </div>

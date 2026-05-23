@@ -10,7 +10,7 @@ import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { useDynamicPageTitle } from '@/hooks/use-page-title';
 import { PageLoader, PageError, SessionDetailSkeleton } from '@/components/page-states';
-import { relativeTime } from '@/lib/relative-time';
+import { relativeTime, formatDuration } from '@/lib/relative-time';
 import { SECTION_COLORS } from '@/lib/chart-colors';
 
 interface SessionCitation {
@@ -104,15 +104,9 @@ export default function SessionDetailPage() {
                 <>
                   {` → ${new Date(session.ended_at).toLocaleString(locale)}`}
                   {(() => {
-                    const ms = new Date(session.ended_at!).getTime() - new Date(session.started_at!).getTime();
-                    if (ms <= 0) return null;
-                    const sec = Math.floor(ms / 1000);
-                    const min = Math.floor(sec / 60);
-                    const remSec = sec % 60;
-                    const hr = Math.floor(min / 60);
-                    const remMin = min % 60;
-                    const dur = hr > 0 ? `${hr}h${remMin > 0 ? `${remMin}m` : ''}` : min > 0 ? `${min}m${remSec > 0 ? `${remSec}s` : ''}` : `${sec}s`;
-                    return <span className="ml-2 font-mono">({dur})</span>;
+                    const sec = Math.floor((new Date(session.ended_at!).getTime() - new Date(session.started_at!).getTime()) / 1000);
+                    const dur = formatDuration(sec);
+                    return dur ? <span className="ml-2 font-mono">({dur})</span> : null;
                   })()}
                 </>
               )}

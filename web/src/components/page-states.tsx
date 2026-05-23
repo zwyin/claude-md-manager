@@ -162,3 +162,28 @@ export function RuleDetailSkeleton() {
     </div>
   );
 }
+
+export function AnalyticsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-4 w-48 mt-2" />
+        </div>
+        <Skeleton className="h-7 w-48 rounded-md" />
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="flex"><Skeleton className="w-1 h-16 rounded-l-xl" /><div className="p-5 pl-4 flex-1"><Skeleton className="h-3 w-14 mb-2" /><Skeleton className="h-6 w-10" /></div></div>
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Skeleton className="h-[360px] rounded-xl" />
+        <Skeleton className="h-[360px] rounded-xl" />
+      </div>
+    </div>
+  );
+}
