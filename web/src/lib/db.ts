@@ -14,6 +14,9 @@ import type {
   CategoryDistribution,
   HeatmapCell,
   ConfidenceDistribution,
+  PublishEvent,
+  ModelDistribution,
+  RecentSession,
 } from './types';
 
 const DB_PATH = path.join(process.cwd(), '..', 'data', 'usage.db');
@@ -526,6 +529,57 @@ export function getHeatmapData(days: number | undefined, limit: number, db?: Dat
       ORDER BY count DESC
       LIMIT ?
     `).bind(...params, limit * 90).all() as HeatmapCell[];
+  } finally {
+    if (own) conn.close();
+  }
+}
+
+// ── Dashboard extras ──
+
+export function getRecentBuilds(limit: number, db?: Database.Database): PublishEvent[] {
+  const own = !db;
+  const conn = db || getDb();
+  try {
+    return conn.prepare(
+      'SELECT id, published_at, rules_changed, status FROM publish_history ORDER BY published_at DESC LIMIT ?'
+    ).bind(limit).all() as PublishEvent[];
+  } finally {
+    if (own) conn.close();
+  }
+}
+
+export function getModelDistribution(days: number | undefined, db?: Database.Database): ModelDistribution[] {
+  const own = !db;
+  const conn = db || getDb();
+  try {
+    const timeFilter = days ? `AND started_at >= datetime('now', ? || ' days')` : '';
+    const params = days ? [`-${days}`] : [];
+    return conn.prepare(
+      `SELECT model, COUNT(*) AS count FROM sessions
+       WHERE model IS NOT NULL AND model != '' ${timeFilter}
+       GROUP BY model ORDER BY count DESC LIMIT 10`
+    ).bind(...params).all() as ModelDistribution[];
+  } finally {
+    if (own) conn.close();
+  }
+}
+
+export function getRecentSessions(limit: number, days: number | undefined, db?: Database.Database): RecentSession[] {
+  const own = !db;
+  const conn = db || getDb();
+  try {
+    const timeFilter = days ? `WHERE s.started_at >= datetime('now', ? || ' days')` : '';
+    const params = days ? [`-${days}`] : [];
+    return conn.prepare(`
+      SELECT s.session_id, s.started_at, s.ended_at, s.model, s.task_summary,
+        COUNT(r.id) AS citation_count, COUNT(DISTINCT r.rule_id) AS rule_count,
+        CASE WHEN s.started_at AND s.ended_at
+          THEN CAST((julianday(s.ended_at) - julianday(s.started_at)) * 86400 AS INTEGER)
+          ELSE 0 END AS duration_sec
+      FROM sessions s LEFT JOIN rule_references r ON r.session_id = r.session_id
+      ${timeFilter}
+      GROUP BY s.session_id ORDER BY s.started_at DESC LIMIT ?
+    `).bind(...params, limit).all() as RecentSession[];
   } finally {
     if (own) conn.close();
   }

@@ -11,6 +11,9 @@ import {
   getHeatmapData,
   getSessionTrend,
   getTotalCitationCount,
+  getRecentBuilds,
+  getModelDistribution,
+  getRecentSessions,
 } from '../db';
 
 const SCHEMA_SQL = `
@@ -43,6 +46,12 @@ CREATE TABLE IF NOT EXISTS sections_metadata (
   source_file TEXT NOT NULL,
   rule_count INTEGER DEFAULT 0,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS publish_history (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  published_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  rules_changed INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'success'
 );
 `;
 
@@ -285,5 +294,59 @@ describe('getSessionTrend', () => {
     db.prepare("UPDATE sessions SET started_at = datetime('now')").run();
     const result = getSessionTrend(7, db);
     expect(result.length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('getRecentBuilds', () => {
+  it('returns empty when no publish history', () => {
+    expect(getRecentBuilds(5, db)).toEqual([]);
+  });
+
+  it('returns recent builds sorted by date', () => {
+    db.prepare("INSERT INTO publish_history (rules_changed, status) VALUES (3, 'success')").run();
+    db.prepare("INSERT INTO publish_history (rules_changed, status, published_at) VALUES (1, 'success', datetime('now', '+1 second'))").run();
+    const result = getRecentBuilds(5, db);
+    expect(result).toHaveLength(2);
+    expect(result[0].rules_changed).toBe(1);
+  });
+
+  it('respects limit', () => {
+    for (let i = 0; i < 10; i++) {
+      db.prepare("INSERT INTO publish_history (rules_changed, status) VALUES (?, 'success')").run(i);
+    }
+    expect(getRecentBuilds(3, db)).toHaveLength(3);
+  });
+});
+
+describe('getModelDistribution', () => {
+  it('returns model counts', () => {
+    const result = getModelDistribution(undefined, db);
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.some((r) => r.model.includes('claude'))).toBe(true);
+  });
+
+  it('filters by days', () => {
+    db.prepare("UPDATE sessions SET started_at = datetime('now')").run();
+    const result = getModelDistribution(7, db);
+    expect(result.length).toBeGreaterThan(0);
+  });
+});
+
+describe('getRecentSessions', () => {
+  it('returns sessions with citation and rule counts', () => {
+    const result = getRecentSessions(10, undefined, db);
+    expect(result.length).toBeGreaterThan(0);
+    expect(result[0].session_id).toBeTruthy();
+    expect(typeof result[0].citation_count).toBe('number');
+  });
+
+  it('respects limit', () => {
+    expect(getRecentSessions(2, undefined, db).length).toBeLessThanOrEqual(2);
+  });
+
+  it('filters by days', () => {
+    db.prepare("UPDATE sessions SET started_at = datetime('now')").run();
+    const result = getRecentSessions(10, 7, db);
+    expect(result.length).toBeGreaterThan(0);
   });
 });

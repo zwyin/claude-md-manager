@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Database from 'better-sqlite3';
 import path from 'path';
-import { getRulesWithStats, getSectionsWithStats, getTotalSessionCount, getTotalCitationCount, getCitations, getRecentCitations, getSessionTrend } from '@/lib/db';
+import { getRulesWithStats, getSectionsWithStats, getTotalSessionCount, getTotalCitationCount, getCitations, getRecentCitations, getSessionTrend, getRecentBuilds, getModelDistribution, getRecentSessions } from '@/lib/db';
 import { parseDays, zeroFillTrend } from '@/lib/api-utils';
 import { handleApiError } from '@/lib/api-handler';
-
-interface PublishEvent {
-  id: number;
-  published_at: string;
-  rules_changed: number;
-  status: string;
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -38,27 +31,6 @@ export async function GET(request: NextRequest) {
       const session_trend = zeroFillTrend(getSessionTrend(days, db), days);
       const recent_citations = getRecentCitations(20, days, db);
 
-      const recent_builds = db.prepare(
-        "SELECT id, published_at, rules_changed, status FROM publish_history ORDER BY published_at DESC LIMIT 5"
-      ).all() as PublishEvent[];
-
-      const model_distribution = db.prepare(
-        `SELECT model, COUNT(*) AS count FROM sessions WHERE model IS NOT NULL AND model != ''
-         ${days ? `AND started_at >= datetime('now', ? || ' days')` : ''}
-         GROUP BY model ORDER BY count DESC LIMIT 10`
-      ).bind(...(days ? [`-${days}`] : [])).all() as { model: string; count: number }[];
-
-      const recent_sessions = db.prepare(`
-        SELECT s.session_id, s.started_at, s.ended_at, s.model, s.task_summary,
-          COUNT(r.id) AS citation_count, COUNT(DISTINCT r.rule_id) AS rule_count,
-          CASE WHEN s.started_at AND s.ended_at
-            THEN CAST((julianday(s.ended_at) - julianday(s.started_at)) * 86400 AS INTEGER)
-            ELSE 0 END AS duration_sec
-        FROM sessions s LEFT JOIN rule_references r ON r.session_id = s.session_id
-        ${days ? `WHERE s.started_at >= datetime('now', ? || ' days')` : ''}
-        GROUP BY s.session_id ORDER BY s.started_at DESC LIMIT 8
-      `).bind(...(days ? [`-${days}`] : [])).all();
-
       return NextResponse.json({
         rules,
         sections: getSectionsWithStats(days, db),
@@ -71,9 +43,9 @@ export async function GET(request: NextRequest) {
         citation_trend,
         session_trend,
         recent_citations,
-        recent_builds,
-        model_distribution,
-        recent_sessions,
+        recent_builds: getRecentBuilds(5, db),
+        model_distribution: getModelDistribution(days, db),
+        recent_sessions: getRecentSessions(8, days, db),
       });
     } finally {
       db.close();

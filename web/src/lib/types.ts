@@ -167,3 +167,26 @@ export interface HeatmapCell {
   day: string;
   count: number;
 }
+
+export interface PublishEvent {
+  id: number;
+  published_at: string;
+  rules_changed: number;
+  status: string;
+}
+
+export interface ModelDistribution {
+  model: string;
+  count: number;
+}
+
+export interface RecentSession {
+  session_id: string;
+  started_at: string | null;
+  ended_at: string | null;
+  model: string | null;
+  task_summary: string | null;
+  citation_count: number;
+  rule_count: number;
+  duration_sec: number;
+}
