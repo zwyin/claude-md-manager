@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, AreaChart, Area } from 'recharts';
 import { StatCard } from '@/components/stat-card';
 import { PageLoader, PageError, DashboardSkeleton } from '@/components/page-states';
+import { ChartErrorBoundary } from '@/components/chart-error-boundary';
 import { TermTooltip } from '@/components/term-tooltip';
 import { useI18n } from '@/i18n';
 import { useChartTheme } from '@/hooks/use-chart-theme';
@@ -215,7 +216,9 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="h-[180px]">
-                <ResponsiveContainer width="100%" height="100%">
+                <ChartErrorBoundary>
+              <ChartErrorBoundary>
+            <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={data.citation_trend} margin={{ left: 0, right: 20 }}>
                     <defs>
                       <linearGradient id="dashTrendGrad" x1="0" y1="0" x2="0" y2="1">
@@ -229,6 +232,8 @@ export default function DashboardPage() {
                     <Area type="monotone" dataKey="count" stroke={PRIMARY} fill="url(#dashTrendGrad)" strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>
+            </ChartErrorBoundary>
+              </ChartErrorBoundary>
               </div>
             </CardContent>
           </Card>
@@ -246,7 +251,9 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="h-[180px]">
-                <ResponsiveContainer width="100%" height="100%">
+                <ChartErrorBoundary>
+              <ChartErrorBoundary>
+            <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={data.session_trend} margin={{ left: 0, right: 20 }}>
                     <defs>
                       <linearGradient id="sessionTrendGrad" x1="0" y1="0" x2="0" y2="1">
@@ -260,6 +267,8 @@ export default function DashboardPage() {
                     <Area type="monotone" dataKey="count" stroke="#8b5cf6" fill="url(#sessionTrendGrad)" strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>
+            </ChartErrorBoundary>
+              </ChartErrorBoundary>
               </div>
             </CardContent>
           </Card>
@@ -273,6 +282,7 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div style={{ height: `${Math.max(300, sections.length * 32)}px` }}>
+            <ChartErrorBoundary>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={sectionChartData} layout="vertical" margin={{ left: 10, right: 20 }}>
                 <XAxis type="number" hide />
@@ -288,6 +298,7 @@ export default function DashboardPage() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+            </ChartErrorBoundary>
           </div>
         </CardContent>
       </Card>
@@ -298,6 +309,7 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
+            <ChartErrorBoundary>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={topRulesChartData} layout="vertical" margin={{ left: 10, right: 20 }}>
                 <XAxis type="number" hide />
@@ -316,6 +328,7 @@ export default function DashboardPage() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+            </ChartErrorBoundary>
           </div>
         </CardContent>
       </Card>
