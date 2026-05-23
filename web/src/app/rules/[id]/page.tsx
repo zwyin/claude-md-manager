@@ -189,10 +189,10 @@ export default function RuleDetailPage() {
                     {rule.body.trim().split(/\s+/).filter(Boolean).length} {t('editor.words')} · {rule.body.split('\n').length} {t('editor.lines')}
                   </span>
                   <button
-                    onClick={() => { navigator.clipboard.writeText(rule.body!); toast.success(t('ruleDetail.copied')); }}
+                    onClick={() => { navigator.clipboard.writeText(rule.body!); toast.success(t('ruleDetail.copyContent')); }}
                     className="text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label={t('ruleDetail.copyId')}
-                    title={t('ruleDetail.copyId')}
+                    aria-label={t('ruleDetail.copyContent')}
+                    title={t('ruleDetail.copyContent')}
                   >
                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />

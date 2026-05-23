@@ -69,6 +69,7 @@ const zh = {
   'ruleDetail.coOccurring.desc': '同一会话中经常一起引用的规则',
   'ruleDetail.model': '模型',
   'ruleDetail.copyId': '复制规则 ID',
+  'ruleDetail.copyContent': '复制内容',
   'ruleDetail.copied': '已复制到剪贴板',
   'ruleDetail.noCitations': '暂无引用数据',
   'ruleDetail.noContent': '暂无正文内容',
