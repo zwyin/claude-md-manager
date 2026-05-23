@@ -52,6 +52,12 @@ export default function SessionDetailPage() {
   const displayId = sessionId.replace('historical_', '');
 
   const uniqueRules = new Set(citations.map((c) => c.rule_id)).size;
+  const confCounts = { high: 0, medium: 0, low: 0 };
+  for (const c of citations) {
+    if (c.confidence === 'high') confCounts.high++;
+    else if (c.confidence === 'medium') confCounts.medium++;
+    else confCounts.low++;
+  }
   const sectionColorMap: Record<string, string> = {};
   sections.forEach((s, i) => {
     sectionColorMap[s.section_id] = SECTION_COLORS[i % SECTION_COLORS.length];
@@ -80,6 +86,14 @@ export default function SessionDetailPage() {
               {session.model && <Badge variant="outline" className="text-[10px] font-mono">{session.model}</Badge>}
             </div>
           </div>
+          {citations.length > 0 && (
+            <div className="flex items-center gap-2 mt-3">
+              <span className="text-xs text-muted-foreground">{t('session.confidence')}:</span>
+              {confCounts.high > 0 && <Badge className="text-[10px] bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 border-0">{confCounts.high} {t('analytics.confidence.high')}</Badge>}
+              {confCounts.medium > 0 && <Badge className="text-[10px] bg-amber-500/20 text-amber-400 hover:bg-amber-500/20 border-0">{confCounts.medium} {t('analytics.confidence.medium')}</Badge>}
+              {confCounts.low > 0 && <Badge className="text-[10px] bg-rose-500/20 text-rose-400 hover:bg-rose-500/20 border-0">{confCounts.low} {t('analytics.confidence.low')}</Badge>}
+            </div>
+          )}
           {session.task_summary && (
             <p className="text-sm text-muted-foreground mt-2">{session.task_summary}</p>
           )}

@@ -21,10 +21,21 @@ export async function GET(request: NextRequest) {
     };
     const orderCol = validSorts[sort] ?? validSorts.time;
 
+    const search = searchParams.get('search')?.trim().toLowerCase() ?? '';
+
     const db = new Database(path.join(process.cwd(), '..', 'data', 'usage.db'), { readonly: true });
     try {
       const timeFilter = days ? `AND s.started_at >= datetime('now', ? || ' days')` : '';
-      const params = days ? [`-${days}`, limit, offset] : [limit, offset];
+      const searchFilter = search
+        ? `AND (LOWER(s.session_id) LIKE ? OR LOWER(s.task_summary) LIKE ?)`
+        : '';
+      const searchParam = search ? `%${search}%` : '';
+      const params = [
+        ...(days ? [`-${days}`] : []),
+        ...(search ? [searchParam, searchParam] : []),
+        limit,
+        offset,
+      ];
 
       const sessions = db.prepare(`
         SELECT
@@ -40,7 +51,7 @@ export async function GET(request: NextRequest) {
             ELSE 0 END AS duration_sec
         FROM sessions s
         LEFT JOIN rule_references r ON r.session_id = s.session_id
-        WHERE 1=1 ${timeFilter}
+        WHERE 1=1 ${timeFilter} ${searchFilter}
         GROUP BY s.session_id
         ORDER BY ${orderCol} ${dir}
         LIMIT ? OFFSET ?
@@ -56,8 +67,10 @@ export async function GET(request: NextRequest) {
 
       const totalResult = db.prepare(`
         SELECT COUNT(*) AS total FROM sessions
-        ${days ? "WHERE started_at >= datetime('now', ? || ' days')" : ''}
-      `).bind(...(days ? [`-${days}`] : [])).get() as { total: number };
+        WHERE 1=1
+        ${days ? "AND started_at >= datetime('now', ? || ' days')" : ''}
+        ${search ? "AND (LOWER(session_id) LIKE ? OR LOWER(task_summary) LIKE ?)" : ''}
+      `).bind(...(days ? [`-${days}`] : []), ...(search ? [searchParam, searchParam] : [])).get() as { total: number };
 
       return NextResponse.json({
         sessions,
