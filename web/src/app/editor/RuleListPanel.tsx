@@ -68,9 +68,10 @@ export function RuleListPanel({ rules, selectedId, onSelect, onReorder }: RuleLi
   );
 
   const sections = useMemo(() => {
-    const seen = new Map<string, string>();
+    const seen = new Map<string, { sectionId: string; count: number }>();
     for (const r of rules) {
-      if (!seen.has(r.source_file)) seen.set(r.source_file, r.section_id);
+      if (!seen.has(r.source_file)) seen.set(r.source_file, { sectionId: r.section_id, count: 0 });
+      seen.get(r.source_file)!.count++;
     }
     return Array.from(seen.entries());
   }, [rules]);
@@ -135,8 +136,8 @@ export function RuleListPanel({ rules, selectedId, onSelect, onReorder }: RuleLi
             className="text-[10px] rounded border border-border bg-card text-foreground px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             <option value="all">{t('rules.allSections')}</option>
-            {sections.map(([file]) => (
-              <option key={file} value={file}>{file}</option>
+            {sections.map(([file, { count }]) => (
+              <option key={file} value={file}>{file} ({count})</option>
             ))}
           </select>
         )}
