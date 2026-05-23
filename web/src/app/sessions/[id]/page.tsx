@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
@@ -148,22 +149,27 @@ export default function SessionDetailPage() {
       {timeline && (
         <Card className="rounded-xl border-border bg-card">
           <CardContent className="pt-4">
-            <svg width="100%" height="28" viewBox="0 0 100 28" preserveAspectRatio="none" className="w-full">
-              <line x1="0" y1="14" x2="100" y2="14" stroke="currentColor" strokeOpacity="0.15" strokeWidth="0.5" />
+            <div className="relative h-6">
+              <div className="absolute inset-x-0 top-1/2 h-px bg-border" />
               {timeline.map((pt, i) => (
-                <circle
-                  key={i}
-                  cx={pt.pct * 100}
-                  cy="14"
-                  r="2"
-                  fill={pt.confidence === 'high' ? '#34d399' : pt.confidence === 'medium' ? '#fbbf24' : '#fb7185'}
-                  fillOpacity={0.8}
-                  className="hover:fill-opacity-100 transition-all"
-                >
-                  <title>{pt.title} ({pt.confidence})</title>
-                </circle>
+                <Tooltip key={i}>
+                  <TooltipTrigger
+                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full transition-transform hover:scale-150"
+                    style={{
+                      left: `${pt.pct * 100}%`,
+                      backgroundColor: pt.confidence === 'high' ? '#34d399' : pt.confidence === 'medium' ? '#fbbf24' : '#fb7185',
+                    }}
+                  >
+                    <Link href={`/rules/${pt.rule_id}`} className="block w-full h-full" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs max-w-[200px]">
+                    <span className="font-medium">{pt.title}</span>
+                    <br />
+                    <span className="text-muted-foreground">{pt.confidence}</span>
+                  </TooltipContent>
+                </Tooltip>
               ))}
-            </svg>
+            </div>
           </CardContent>
         </Card>
       )}
