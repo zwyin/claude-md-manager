@@ -72,9 +72,23 @@ export async function GET(request: NextRequest) {
         ${search ? "AND (LOWER(session_id) LIKE ? OR LOWER(task_summary) LIKE ?)" : ''}
       `).bind(...(days ? [`-${days}`] : []), ...(search ? [searchParam, searchParam] : [])).get() as { total: number };
 
+      const statsResult = db.prepare(`
+        SELECT
+          AVG(CASE WHEN s.started_at AND s.ended_at
+            THEN (julianday(s.ended_at) - julianday(s.started_at)) * 86400 ELSE NULL END) AS avg_duration,
+          AVG(sub.cnt) AS avg_citations
+        FROM sessions s
+        LEFT JOIN (SELECT session_id, COUNT(*) AS cnt FROM rule_references GROUP BY session_id) sub ON sub.session_id = s.session_id
+        WHERE 1=1
+        ${days ? "AND s.started_at >= datetime('now', ? || ' days')" : ''}
+        ${search ? "AND (LOWER(s.session_id) LIKE ? OR LOWER(s.task_summary) LIKE ?)" : ''}
+      `).bind(...(days ? [`-${days}`] : []), ...(search ? [searchParam, searchParam] : [])).get() as { avg_duration: number | null; avg_citations: number | null };
+
       return NextResponse.json({
         sessions,
         total: totalResult.total,
+        avg_duration: statsResult.avg_duration ? Math.round(statsResult.avg_duration) : null,
+        avg_citations: statsResult.avg_citations ? Math.round(statsResult.avg_citations * 10) / 10 : null,
         limit,
         offset,
       });

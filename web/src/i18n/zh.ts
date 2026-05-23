@@ -219,6 +219,8 @@ const zh = {
   // Sessions filter
   'session.searchPlaceholder': '搜索会话 ID 或任务描述...',
   'session.allTime': '全部',
+  'session.avgDuration': '平均时长',
+  'session.avgCitations': '平均匹配',
   'session.sort.time': '时间',
   'session.sort.citations': '匹配数',
   'session.sort.rules': '规则数',

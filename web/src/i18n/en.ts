@@ -198,6 +198,8 @@ const en: Dict = {
   // Sessions filter
   'session.searchPlaceholder': 'Search session ID or task...',
   'session.allTime': 'All',
+  'session.avgDuration': 'Avg Duration',
+  'session.avgCitations': 'Avg Matches',
   'session.sort.time': 'Time',
   'session.sort.citations': 'Citations',
   'session.sort.rules': 'Rules',

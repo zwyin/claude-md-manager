@@ -27,6 +27,8 @@ interface SessionEntry {
 interface SessionsData {
   sessions: SessionEntry[];
   total: number;
+  avg_duration: number | null;
+  avg_citations: number | null;
   limit: number;
   offset: number;
 }
@@ -122,6 +124,12 @@ export default function SessionsPage() {
           ))}
         </div>
         <Badge variant="outline" className="text-xs">{t('dashboard.totalSessions')}: {total}</Badge>
+        {data.avg_duration != null && (
+          <Badge variant="outline" className="text-xs">{t('session.avgDuration')}: {formatDuration(data.avg_duration)}</Badge>
+        )}
+        {data.avg_citations != null && (
+          <Badge variant="outline" className="text-xs">{t('session.avgCitations')}: {data.avg_citations}</Badge>
+        )}
       </div>
 
       <div className="flex items-center gap-1.5">
