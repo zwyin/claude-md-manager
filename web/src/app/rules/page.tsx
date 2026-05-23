@@ -89,6 +89,12 @@ function RulesContent() {
     return order;
   }, [data, grouped]);
 
+  const allOpen = sectionOrder.length > 0 && sectionOrder.every((id) => openSections[id] !== false);
+  const toggleAll = () => {
+    const next: Record<string, boolean> = {};
+    sectionOrder.forEach((id) => { next[id] = !allOpen; });
+    setOpenSections(next);
+  };
   const filteredGrouped = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     const result: Record<string, RuleWithStats[]> = {};
@@ -215,6 +221,12 @@ function RulesContent() {
             <option key={id} value={id}>{sectionTitleMap[id] || id} ({(grouped[id] || []).length})</option>
           ))}
         </select>
+        <button
+          onClick={toggleAll}
+          className="h-9 text-xs px-3 rounded-md border border-border bg-card text-muted-foreground hover:text-foreground hover:border-indigo-500/30 transition-colors whitespace-nowrap"
+        >
+          {allOpen ? t('editor.hideRules') : t('editor.showRules')}
+        </button>
       </div>
 
       {filteredCount === 0 && (searchQuery || sectionFilter !== 'all') && (
