@@ -1,10 +1,11 @@
-import { useEffect, useReducer } from 'react';
+import { useCallback, useReducer, useEffect } from 'react';
 import { fetchJson } from '@/lib/fetch';
 
 type FetchState<T> = {
   data: T | null;
   loading: boolean;
   error: string | null;
+  refresh: () => void;
 };
 
 type Action<T> =
@@ -14,17 +15,21 @@ type Action<T> =
 
 function reducer<T>(state: FetchState<T>, action: Action<T>): FetchState<T> {
   switch (action.type) {
-    case 'start': return { data: state.data, loading: true, error: null };
-    case 'success': return { data: action.data, loading: false, error: null };
-    case 'error': return { data: state.data, loading: false, error: action.error };
+    case 'start': return { ...state, loading: true, error: null };
+    case 'success': return { ...state, data: action.data, loading: false, error: null };
+    case 'error': return { ...state, loading: false, error: action.error };
   }
 }
 
 export function useFetch<T>(url: string | null): FetchState<T> {
+  const [refreshCount, bump] = useReducer((c: number) => c + 1, 0);
+  const refresh = useCallback(() => { bump(); }, []);
+
   const [state, dispatch] = useReducer(reducer<T>, {
     data: null,
     loading: url !== null,
     error: null,
+    refresh,
   });
 
   useEffect(() => {
@@ -37,7 +42,7 @@ export function useFetch<T>(url: string | null): FetchState<T> {
       .catch((err) => { if (!cancelled) dispatch({ type: 'error', error: err.message }); });
 
     return () => { cancelled = true; };
-  }, [url]);
+  }, [url, refreshCount]);
 
-  return state;
+  return { ...state, refresh };
 }
