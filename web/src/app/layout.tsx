@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { RoutedErrorBoundary } from "@/components/routed-error-boundary";
 import { FontScaleProvider } from "@/components/font-scale-provider";
+import { BackToTop } from "@/components/back-to-top";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -45,6 +46,7 @@ export default async function RootLayout({
                 </main>
               </SidebarInset>
             </SidebarProvider>
+            <BackToTop />
           </TooltipProvider>
           </FontScaleProvider>
           <Toaster />
