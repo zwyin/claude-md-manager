@@ -60,6 +60,11 @@ export default function SessionDetailPage() {
     else if (c.confidence === 'medium') confCounts.medium++;
     else confCounts.low++;
   }
+  const confBadge = (conf: string) => {
+    const label = conf === 'high' ? t('analytics.confidence.high') : conf === 'medium' ? t('analytics.confidence.medium') : t('analytics.confidence.low');
+    const cls = conf === 'high' ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20' : conf === 'medium' ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/20' : 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/20';
+    return <Badge className={`text-[10px] border-0 ${cls}`}>{label}</Badge>;
+  };
   const sectionColorMap: Record<string, string> = {};
   sections.forEach((s, i) => {
     sectionColorMap[s.section_id] = SECTION_COLORS[i % SECTION_COLORS.length];
@@ -202,9 +207,7 @@ export default function SessionDetailPage() {
                       <Link href={`/rules?search=${encodeURIComponent(c.matched_keyword)}`}>
                         <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px] hover:bg-indigo-500/10 cursor-pointer transition-colors">{c.matched_keyword}</Badge>
                       </Link>
-                      <Badge variant={c.confidence === 'high' ? 'default' : c.confidence === 'medium' ? 'secondary' : 'outline'} className="text-[10px]">
-                        {c.confidence === 'high' ? t('analytics.confidence.high') : c.confidence === 'medium' ? t('analytics.confidence.medium') : t('analytics.confidence.low')}
-                      </Badge>
+                      {confBadge(c.confidence)}
                     </div>
                   </div>
                 ))}
@@ -246,9 +249,7 @@ export default function SessionDetailPage() {
                       </Link>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={c.confidence === 'high' ? 'default' : c.confidence === 'medium' ? 'secondary' : 'outline'} className="text-[10px]">
-                            {c.confidence === 'high' ? t('analytics.confidence.high') : c.confidence === 'medium' ? t('analytics.confidence.medium') : t('analytics.confidence.low')}
-                          </Badge>
+                          {confBadge(c.confidence)}
                         </TableCell>
                       </TableRow>
                     ))}

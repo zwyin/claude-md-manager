@@ -58,6 +58,7 @@ export default function AnalyticsPage() {
 
   const pieData = (data.category_distribution || []).map((c) => ({
     name: c.title || c.section_id,
+    section_id: c.section_id,
     value: c.citation_count,
     ruleCount: c.rule_count,
   }));
@@ -175,7 +176,7 @@ export default function AnalyticsPage() {
                     dataKey="value"
                     style={{ cursor: 'pointer' }}
                     label={({ name, percent }: { name?: string; percent?: number }) => <span className="text-xs text-foreground">{name ?? ''} {((percent ?? 0) * 100).toFixed(0)}%</span>}
-                    onClick={(_, index) => router.push(`/rules?section=${pieData[index].name}`)}
+                    onClick={(_, index) => router.push(`/rules?section=${encodeURIComponent(pieData[index].section_id)}`)}
                   >
                     {pieData.map((_, i) => (
                       <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
