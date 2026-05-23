@@ -730,27 +730,17 @@ export function getFilteredSessions(
       return { ...s, citation_count: stats.citation_count, rule_count: stats.rule_count };
     });
 
-    const totalResult = conn.prepare(`
-      SELECT COUNT(*) AS total FROM sessions WHERE 1=1
-      ${days ? "AND started_at >= datetime('now', ? || ' days')" : ''}
-      ${search ? "AND (LOWER(session_id) LIKE ? OR LOWER(task_summary) LIKE ?)" : ''}
-      ${model ? "AND model = ?" : ''}
-      ${confidence ? "AND EXISTS (SELECT 1 FROM rule_references rr WHERE rr.session_id = session_id AND rr.confidence = ?)" : ''}
-    `).bind(...baseParams).get() as { total: number };
-
-    const statsResult = conn.prepare(`
-      SELECT
+    const aggregateResult = conn.prepare(`
+      SELECT COUNT(*) AS total,
         AVG(CASE WHEN s.started_at AND s.ended_at
           THEN (julianday(s.ended_at) - julianday(s.started_at)) * 86400 ELSE NULL END) AS avg_duration,
-        AVG(sub.cnt) AS avg_citations
-      FROM sessions s
-      LEFT JOIN (SELECT session_id, COUNT(*) AS cnt FROM rule_references GROUP BY session_id) sub ON sub.session_id = s.session_id
-      WHERE 1=1
+        AVG((SELECT COUNT(*) FROM rule_references WHERE session_id = s.session_id)) AS avg_citations
+      FROM sessions s WHERE 1=1
       ${days ? "AND s.started_at >= datetime('now', ? || ' days')" : ''}
       ${search ? "AND (LOWER(s.session_id) LIKE ? OR LOWER(s.task_summary) LIKE ?)" : ''}
       ${model ? "AND s.model = ?" : ''}
       ${confidence ? "AND EXISTS (SELECT 1 FROM rule_references rr WHERE rr.session_id = s.session_id AND rr.confidence = ?)" : ''}
-    `).bind(...baseParams).get() as { avg_duration: number | null; avg_citations: number | null };
+    `).bind(...baseParams).get() as { total: number; avg_duration: number | null; avg_citations: number | null };
 
     const models = conn.prepare(
       "SELECT DISTINCT model FROM sessions WHERE model IS NOT NULL AND model != '' ORDER BY model"
@@ -758,9 +748,9 @@ export function getFilteredSessions(
 
     return {
       sessions,
-      total: totalResult.total,
-      avg_duration: statsResult.avg_duration ? Math.round(statsResult.avg_duration) : null,
-      avg_citations: statsResult.avg_citations ? Math.round(statsResult.avg_citations * 10) / 10 : null,
+      total: aggregateResult.total,
+      avg_duration: aggregateResult.avg_duration ? Math.round(aggregateResult.avg_duration) : null,
+      avg_citations: aggregateResult.avg_citations ? Math.round(aggregateResult.avg_citations * 10) / 10 : null,
       models: models.map((m) => m.model),
     };
   } finally {
