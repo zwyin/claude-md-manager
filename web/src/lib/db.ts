@@ -605,24 +605,36 @@ export function getConfidenceDistribution(days: number | undefined, db?: Databas
   const conn = db || getDb();
   try {
     const timeFilter = days ? `WHERE r.timestamp >= datetime('now', ? || ' days')` : '';
-    const confParams = days ? [`-${days}`] : [];
-    const rawConf = conn.prepare(
-      `SELECT confidence, COUNT(*) as count FROM rule_references r ${timeFilter} GROUP BY confidence ORDER BY count DESC`
-    ).bind(...confParams).all() as { confidence: string; count: number }[];
+    const params = days ? [`-${days}`] : [];
 
-    return rawConf.map((row) => {
-      const dayFilter = days ? "AND r.timestamp >= datetime('now', ? || ' days')" : '';
-      const top_rules = conn.prepare(
-        `SELECT r.rule_id, m.title, COUNT(*) as count
-         FROM rule_references r
-         JOIN rules_metadata m ON m.rule_id = r.rule_id
-         WHERE r.confidence = ? ${dayFilter}
-         GROUP BY r.rule_id
-         ORDER BY count DESC
-         LIMIT 5`
-      ).bind(row.confidence, ...(days ? [`-${days}`] : [])).all() as { rule_id: string; title: string; count: number }[];
-      return { ...row, top_rules };
-    });
+    const rows = conn.prepare(`
+      SELECT confidence, rule_id, title, per_conf_count, rule_count,
+             ROW_NUMBER() OVER (PARTITION BY confidence ORDER BY rule_count DESC) AS rn
+      FROM (
+        SELECT r.confidence, r.rule_id, m.title,
+               COUNT(*) OVER (PARTITION BY r.confidence) AS per_conf_count,
+               COUNT(*) AS rule_count
+        FROM rule_references r
+        JOIN rules_metadata m ON m.rule_id = r.rule_id
+        ${timeFilter}
+        GROUP BY r.confidence, r.rule_id
+      )
+      ORDER BY per_conf_count DESC, rn ASC
+    `).bind(...params).all() as {
+      confidence: string; rule_id: string; title: string;
+      per_conf_count: number; rule_count: number; rn: number;
+    }[];
+
+    const grouped: Record<string, { confidence: string; count: number; top_rules: { rule_id: string; title: string; count: number }[] }> = {};
+    for (const row of rows) {
+      if (!grouped[row.confidence]) {
+        grouped[row.confidence] = { confidence: row.confidence, count: row.per_conf_count, top_rules: [] };
+      }
+      if (row.rn <= 5) {
+        grouped[row.confidence].top_rules.push({ rule_id: row.rule_id, title: row.title, count: row.rule_count });
+      }
+    }
+    return Object.values(grouped).sort((a, b) => b.count - a.count);
   } finally {
     if (own) conn.close();
   }
