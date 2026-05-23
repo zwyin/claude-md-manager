@@ -19,6 +19,7 @@ import type {
   RecentSession,
   SessionCitation,
   SessionSection,
+  Session,
 } from './types';
 
 const DB_PATH = path.join(process.cwd(), '..', 'data', 'usage.db');
@@ -622,13 +623,13 @@ export function getConfidenceDistribution(days: number | undefined, db?: Databas
 export function getSessionDetail(
   sessionId: string,
   db?: Database.Database,
-): { session: Record<string, unknown>; citations: SessionCitation[]; sections: SessionSection[] } | null {
+): { session: Session; citations: SessionCitation[]; sections: SessionSection[] } {
   const own = !db;
   const conn = db || getDb();
   try {
     const session = conn.prepare(
       'SELECT session_id, started_at, ended_at, model, task_summary FROM sessions WHERE session_id = ?'
-    ).get(sessionId) as Record<string, unknown> | undefined;
+    ).get(sessionId) as Session | undefined;
 
     const citations = conn.prepare(`
       SELECT r.rule_id, m.title, m.section_id, r.matched_keyword, r.confidence, r.timestamp
@@ -648,7 +649,7 @@ export function getSessionDetail(
     `).all(sessionId) as SessionSection[];
 
     return {
-      session: session ?? { session_id: sessionId },
+      session: session ?? { session_id: sessionId, started_at: null, ended_at: null, model: null, task_summary: null },
       citations,
       sections,
     };

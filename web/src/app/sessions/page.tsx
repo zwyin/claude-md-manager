@@ -14,17 +14,7 @@ import { useFetch } from '@/hooks/use-fetch';
 import { toast } from 'sonner';
 import { formatDuration } from '@/lib/relative-time';
 import { PageLoader, PageError, SessionsSkeleton } from '@/components/page-states';
-
-interface SessionEntry {
-  session_id: string;
-  started_at: string | null;
-  ended_at: string | null;
-  model: string | null;
-  task_summary: string | null;
-  citation_count: number;
-  rule_count: number;
-  duration_sec: number;
-}
+import type { RecentSession as SessionEntry } from '@/lib/types';
 
 interface SessionsData {
   sessions: SessionEntry[];

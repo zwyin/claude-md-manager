@@ -19,18 +19,9 @@ import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
 import { relativeTime, formatDuration } from '@/lib/relative-time';
-import type { RuleWithStats, SectionWithStats, CitationTimePoint, RecentCitation } from '@/lib/types';
+import type { RuleWithStats, SectionWithStats, CitationTimePoint, RecentCitation, RecentSession } from '@/lib/types';
 
-interface SessionEntry {
-  session_id: string;
-  started_at: string | null;
-  ended_at: string | null;
-  model: string | null;
-  task_summary: string | null;
-  citation_count: number;
-  rule_count: number;
-  duration_sec: number;
-}
+type SessionEntry = RecentSession;
 
 interface BuildEvent {
   id: number;

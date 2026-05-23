@@ -15,23 +15,10 @@ import { PageLoader, PageError, SessionDetailSkeleton } from '@/components/page-
 import { toast } from 'sonner';
 import { relativeTime, formatDuration } from '@/lib/relative-time';
 import { SECTION_COLORS } from '@/lib/chart-colors';
-
-interface SessionCitation {
-  rule_id: string;
-  title: string;
-  section_id: string;
-  matched_keyword: string;
-  confidence: string;
-  timestamp: string;
-}
-
-interface SessionSection {
-  section_id: string;
-  section_title: string;
-}
+import type { SessionCitation, SessionSection } from '@/lib/types';
 
 interface SessionData {
-  session: { session_id: string; started_at?: string; ended_at?: string; model?: string; task_summary?: string };
+  session: { session_id: string; started_at: string | null; ended_at: string | null; model: string | null; task_summary: string | null };
   citations: SessionCitation[];
   sections: SessionSection[];
 }
