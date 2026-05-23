@@ -274,6 +274,21 @@ export function getTotalSessionCount(days?: number, db?: Database.Database): num
   }
 }
 
+export function getSessionTrend(days: number | undefined, db: Database.Database): { period: string; count: number }[] {
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+  if (days) {
+    conditions.push(`started_at >= datetime('now', ? || ' days')`);
+    params.push(`-${days}`);
+  }
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  return db.prepare(
+    `SELECT strftime('%Y-%m-%d', started_at) AS period, COUNT(*) AS count
+     FROM sessions ${where}
+     GROUP BY period ORDER BY period`
+  ).bind(...params).all() as { period: string; count: number }[];
+}
+
 // ── Citations ──
 
 export function getCitations(filters: {

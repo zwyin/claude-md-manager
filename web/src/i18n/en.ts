@@ -28,6 +28,7 @@ const en: Dict = {
   'dashboard.coldRules.count': '{count} rules',
   'dashboard.recentSessions': 'Recent Sessions',
   'dashboard.viewAll': 'View all',
+  'dashboard.sessionTrend': 'Session Trend',
   'table.rules': 'Rules',
   'table.sessions': 'Sessions',
   'table.time': 'Time',

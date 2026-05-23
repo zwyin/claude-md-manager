@@ -43,6 +43,7 @@ interface DashboardData {
   total_rules: number; total_sessions: number; active_rule_pct: number;
   total_citations: number; avg_coverage: number; avg_depth: number;
   citation_trend: CitationTimePoint[];
+  session_trend: { period: string; count: number }[];
   recent_citations: RecentCitation[];
   recent_builds: BuildEvent[];
 }
@@ -186,6 +187,32 @@ export default function DashboardPage() {
                   <YAxis tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
                   <RechartsTooltip {...tooltipStyle} />
                   <Area type="monotone" dataKey="count" stroke={PRIMARY} fill="url(#dashTrendGrad)" strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {data.session_trend && data.session_trend.length > 1 && (
+        <Card className="rounded-xl border-border bg-card">
+          <CardHeader>
+            <CardTitle className="text-base">{t('dashboard.sessionTrend')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[160px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data.session_trend} margin={{ left: 0, right: 20 }}>
+                  <defs>
+                    <linearGradient id="sessionTrendGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="period" tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
+                  <YAxis tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
+                  <RechartsTooltip {...tooltipStyle} />
+                  <Area type="monotone" dataKey="count" stroke="#8b5cf6" fill="url(#sessionTrendGrad)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

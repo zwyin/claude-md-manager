@@ -33,6 +33,7 @@ const zh = {
   'dashboard.coldRules.count': '{count} 条规则',
   'dashboard.recentSessions': '最近会话',
   'dashboard.viewAll': '查看全部',
+  'dashboard.sessionTrend': '会话趋势',
 
   // 表格通用
   'table.rules': '子规则',
