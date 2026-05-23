@@ -20,6 +20,7 @@ import type { RuleWithStats, SectionWithStats } from '@/lib/types';
 interface RulesData {
   rules: RuleWithStats[]; sections: SectionWithStats[]; total_rules: number;
   total_sessions: number; total_citations: number;
+  avg_coverage: number; avg_depth: number;
 }
 
 export default function RulesPage() {
@@ -180,6 +181,11 @@ function RulesContent() {
         <p className="text-sm text-muted-foreground mt-1">
           {t('rules.subtitle', { total: data.total_rules, sections: Object.keys(grouped).length })}
         </p>
+        <div className="flex items-center gap-1.5 flex-wrap mt-2">
+          <Badge variant="outline" className="text-xs">{t('rules.totalMatches', { count: data.total_citations })}</Badge>
+          <Badge variant="outline" className="text-xs">{t('metric.coverage')}: {(data.avg_coverage * 100).toFixed(0)}%</Badge>
+          <Badge variant="outline" className="text-xs">{t('metric.depth')}: {data.avg_depth.toFixed(1)}</Badge>
+        </div>
       </div>
 
       <div className="flex items-center gap-3">
@@ -211,12 +217,12 @@ function RulesContent() {
         </select>
       </div>
 
-      {filteredCount === 0 && searchQuery && (
+      {filteredCount === 0 && (searchQuery || sectionFilter !== 'all') && (
         <div className="text-center py-8 text-muted-foreground text-sm">
           {t('rules.noResults')}
         </div>
       )}
-      {searchQuery && filteredCount > 0 && (
+      {(searchQuery || sectionFilter !== 'all') && filteredCount > 0 && (
         <p className="text-xs text-muted-foreground">{t('rules.showing', { shown: filteredCount, total: data.total_rules })}</p>
       )}
 
