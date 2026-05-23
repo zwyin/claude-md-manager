@@ -93,6 +93,30 @@ export default function AnalyticsPage() {
               {t(`analytics.time.${key}`)}
             </Button>
           ))}
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-xs h-7 px-2 ml-2"
+            onClick={() => {
+              const rows = [['rule_id', 'title', 'citations', 'coverage', 'depth']];
+              for (const r of (data.top_rules || [])) {
+                rows.push([r.rule_id, `"${r.title}"`, String(r.citation_count), (r.session_coverage * 100).toFixed(1) + '%', r.avg_depth.toFixed(1)]);
+              }
+              const csv = rows.map((r) => r.join(',')).join('\n');
+              const blob = new Blob([csv], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `analytics-rules-${new Date().toISOString().slice(0, 10)}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            CSV
+          </Button>
         </div>
       </div>
 
