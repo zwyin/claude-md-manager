@@ -38,6 +38,23 @@ const PAGE_SIZE = 50;
 const TIME_RANGES = [7, 30, 90] as const;
 type SortKey = 'time' | 'citations' | 'rules' | 'duration';
 
+const MODEL_COLORS: Record<string, string> = {
+  'claude': 'bg-orange-500/15 text-orange-300',
+  'claude-opus': 'bg-orange-500/15 text-orange-300',
+  'claude-sonnet': 'bg-blue-500/15 text-blue-300',
+  'claude-haiku': 'bg-purple-500/15 text-purple-300',
+  'gpt-4': 'bg-emerald-500/15 text-emerald-300',
+  'gpt-4o': 'bg-emerald-500/15 text-emerald-300',
+  'gpt-3.5': 'bg-teal-500/15 text-teal-300',
+  'gemini': 'bg-blue-500/15 text-blue-300',
+  'glm': 'bg-indigo-500/15 text-indigo-300',
+};
+
+function modelBadgeClass(model: string): string {
+  const key = Object.keys(MODEL_COLORS).find((k) => model.toLowerCase().includes(k));
+  return key ? MODEL_COLORS[key] : '';
+}
+
 export default function SessionsPage() {
   const [offset, setOffset] = useState(0);
   const [days, setDays] = useState<number | null>(null);
@@ -232,7 +249,7 @@ export default function SessionsPage() {
                             : '—'}
                         </span>
                         {s.model && (
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                          <Badge variant="secondary" className={"text-[10px] px-1.5 py-0 border-0 " + modelBadgeClass(s.model)}>
                             {s.model}
                           </Badge>
                         )}

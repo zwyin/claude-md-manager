@@ -12,6 +12,7 @@ import { RoutedErrorBoundary } from "@/components/routed-error-boundary";
 import { FontScaleProvider } from "@/components/font-scale-provider";
 import { BackToTop } from "@/components/back-to-top";
 import { ShortcutHelp } from "@/components/shortcut-help";
+import { ScrollRestorer } from "@/components/scroll-restorer";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -38,13 +39,13 @@ export default async function RootLayout({
               <AppSidebar />
               <SidebarInset>
                 <TopBar />
-                <main className="flex-1 overflow-y-auto p-6">
+                <ScrollRestorer>
                   <div className="max-w-[1400px] mx-auto">
                     <RoutedErrorBoundary>
                       {children}
                     </RoutedErrorBoundary>
                   </div>
-                </main>
+                </ScrollRestorer>
               </SidebarInset>
             </SidebarProvider>
             <BackToTop />
