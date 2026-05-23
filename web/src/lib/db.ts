@@ -571,18 +571,28 @@ export function getRecentSessions(limit: number, days: number | undefined, db?: 
   const own = !db;
   const conn = db || getDb();
   try {
-    const timeFilter = days ? `WHERE s.started_at >= datetime('now', ? || ' days')` : '';
+    const timeFilter = days ? `WHERE started_at >= datetime('now', ? || ' days')` : '';
     const params = days ? [`-${days}`] : [];
-    return conn.prepare(`
-      SELECT s.session_id, s.started_at, s.ended_at, s.model, s.task_summary,
-        COUNT(r.id) AS citation_count, COUNT(DISTINCT r.rule_id) AS rule_count,
-        CASE WHEN s.started_at AND s.ended_at
-          THEN CAST((julianday(s.ended_at) - julianday(s.started_at)) * 86400 AS INTEGER)
-          ELSE 0 END AS duration_sec
-      FROM sessions s LEFT JOIN rule_references r ON r.session_id = r.session_id
-      ${timeFilter}
-      GROUP BY s.session_id ORDER BY s.started_at DESC LIMIT ?
+    const sessions = conn.prepare(`
+      SELECT session_id, started_at, ended_at, model, task_summary
+      FROM sessions ${timeFilter}
+      ORDER BY started_at DESC LIMIT ?
     `).bind(...params, limit).all() as RecentSession[];
+
+    const statsStmt = conn.prepare(
+      `SELECT COUNT(*) AS citation_count, COUNT(DISTINCT rule_id) AS rule_count FROM rule_references WHERE session_id = ?`
+    );
+    return sessions.map((s) => {
+      const stats = statsStmt.get(s.session_id) as { citation_count: number; rule_count: number };
+      return {
+        ...s,
+        citation_count: stats.citation_count,
+        rule_count: stats.rule_count,
+        duration_sec: s.started_at && s.ended_at
+          ? Math.round((new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) / 1000)
+          : 0,
+      };
+    });
   } finally {
     if (own) conn.close();
   }
