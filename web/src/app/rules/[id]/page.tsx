@@ -178,12 +178,12 @@ export default function RuleDetailPage() {
         )}
       </Card>
 
-      {rule.body && (
-        <Card className="rounded-xl border-border bg-card">
-          <CardHeader>
-            <CardTitle className="text-base">{t('ruleDetail.content')}</CardTitle>
-          </CardHeader>
-          <CardContent>
+      <Card className="rounded-xl border-border bg-card">
+        <CardHeader>
+          <CardTitle className="text-base">{t('ruleDetail.content')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {rule.body ? (
             <div className="prose prose-sm prose-invert max-w-none
               prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground
               prose-code:text-foreground prose-a:text-indigo-400
@@ -192,9 +192,11 @@ export default function RuleDetailPage() {
                 {rule.body}
               </ReactMarkdown>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <div className="py-6 text-sm text-muted-foreground text-center">{t('ruleDetail.noContent')}</div>
+          )}
+        </CardContent>
+      </Card>
 
       {siblings.length > 0 && (
         <Card className="rounded-xl border-border bg-card">
