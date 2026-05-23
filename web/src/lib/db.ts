@@ -692,10 +692,13 @@ export function getFilteredSessions(
   try {
     const { days, limit, offset, search, model, confidence } = opts;
     const dir = opts.dir;
-    const validSorts: Record<string, string> = {
-      time: 's.started_at', citations: 'citation_count', rules: 'rule_count', duration: 'duration_sec',
+    const orderExprs: Record<string, string> = {
+      time: 's.started_at',
+      citations: '(SELECT COUNT(*) FROM rule_references WHERE session_id = s.session_id)',
+      rules: '(SELECT COUNT(DISTINCT rule_id) FROM rule_references WHERE session_id = s.session_id)',
+      duration: `CASE WHEN s.started_at AND s.ended_at THEN CAST((julianday(s.ended_at) - julianday(s.started_at)) * 86400 AS INTEGER) ELSE 0 END`,
     };
-    const orderCol = validSorts[opts.sort] ?? validSorts.time;
+    const orderExpr = orderExprs[opts.sort] ?? orderExprs.time;
 
     const timeFilter = days ? `AND s.started_at >= datetime('now', ? || ' days')` : '';
     const searchFilter = search ? `AND (LOWER(s.session_id) LIKE ? OR LOWER(s.task_summary) LIKE ?)` : '';
@@ -709,16 +712,23 @@ export function getFilteredSessions(
       ...(confidence ? [confidence] : []),
     ];
 
-    const sessions = conn.prepare(`
+    const rows = conn.prepare(`
       SELECT s.session_id, s.started_at, s.ended_at, s.model, s.task_summary,
-        COUNT(r.id) AS citation_count, COUNT(DISTINCT r.rule_id) AS rule_count,
         CASE WHEN s.started_at AND s.ended_at
           THEN CAST((julianday(s.ended_at) - julianday(s.started_at)) * 86400 AS INTEGER)
           ELSE 0 END AS duration_sec
-      FROM sessions s LEFT JOIN rule_references r ON r.session_id = s.session_id
+      FROM sessions s
       WHERE 1=1 ${timeFilter} ${searchFilter} ${modelFilter} ${confidenceFilter}
-      GROUP BY s.session_id ORDER BY ${orderCol} ${dir} LIMIT ? OFFSET ?
-    `).bind(...baseParams, limit, offset).all() as RecentSession[];
+      ORDER BY ${orderExpr} ${dir} LIMIT ? OFFSET ?
+    `).bind(...baseParams, limit, offset).all() as (Omit<RecentSession, 'citation_count' | 'rule_count'> & { duration_sec: number })[];
+
+    const statsStmt = conn.prepare(
+      'SELECT COUNT(*) AS citation_count, COUNT(DISTINCT rule_id) AS rule_count FROM rule_references WHERE session_id = ?'
+    );
+    const sessions = rows.map((s) => {
+      const stats = statsStmt.get(s.session_id) as { citation_count: number; rule_count: number };
+      return { ...s, citation_count: stats.citation_count, rule_count: stats.rule_count };
+    });
 
     const totalResult = conn.prepare(`
       SELECT COUNT(*) AS total FROM sessions WHERE 1=1
