@@ -181,7 +181,14 @@ export default function RuleDetailPage() {
 
       <Card className="rounded-xl border-border bg-card">
         <CardHeader>
-          <CardTitle className="text-base">{t('ruleDetail.content')}</CardTitle>
+          <div className="flex items-center justify-between">
+              <CardTitle className="text-base">{t('ruleDetail.content')}</CardTitle>
+              {rule.body && (
+                <span className="text-xs text-muted-foreground font-mono">
+                  {rule.body.trim().split(/\s+/).filter(Boolean).length} {t('editor.words')} · {rule.body.split('\n').length} {t('editor.lines')}
+                </span>
+              )}
+            </div>
         </CardHeader>
         <CardContent>
           {rule.body ? (
