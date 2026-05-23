@@ -249,6 +249,7 @@ export default function SessionsPage() {
                 <Link
                   key={s.session_id}
                   href={`/sessions/${encodeURIComponent(s.session_id)}`}
+                  ref={selectedIdx === idx ? (el) => el?.scrollIntoView({ block: 'nearest' }) : undefined}
                   className={`flex items-center justify-between px-6 py-3 hover:bg-accent/30 transition-colors ${selectedIdx === idx ? 'bg-accent/40 ring-1 ring-inset ring-indigo-500/20' : ''}`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
