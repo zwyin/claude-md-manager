@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -47,6 +47,18 @@ export default function SessionsPage() {
   const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
   const { t, locale } = useI18n();
   usePageTitle('session.listTitle');
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const url = useMemo(() => {
     const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
@@ -105,7 +117,8 @@ export default function SessionsPage() {
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
         <Input
-          placeholder={t('session.searchPlaceholder')}
+          ref={searchRef}
+          placeholder={`${t('session.searchPlaceholder')} (⌘K)`}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full sm:w-64 h-8 text-sm"
