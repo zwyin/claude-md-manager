@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { getRulesWithStats, getSectionsWithStats, getTotalSessionCount, getTotalCitationCount, getCitations, getRecentCitations, getSessionTrend } from '@/lib/db';
-import { parseDays } from '@/lib/api-utils';
+import { parseDays, zeroFillTrend } from '@/lib/api-utils';
 import { handleApiError } from '@/lib/api-handler';
 
 interface PublishEvent {
@@ -34,8 +34,8 @@ export async function GET(request: NextRequest) {
         ? activeRules.reduce((s, r) => s + r.avg_depth, 0) / activeRules.length
         : 0;
 
-      const citation_trend = getCitations({ days, group_by: 'day' }, db);
-      const session_trend = getSessionTrend(days, db);
+      const citation_trend = zeroFillTrend(getCitations({ days, group_by: 'day' }, db), days);
+      const session_trend = zeroFillTrend(getSessionTrend(days, db), days);
       const recent_citations = getRecentCitations(20, days, db);
 
       const recent_builds = db.prepare(

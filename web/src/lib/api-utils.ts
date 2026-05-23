@@ -25,3 +25,24 @@ export function sanitizeRuleId(id: string): string {
   }
   return decoded;
 }
+
+export function zeroFillTrend(
+  data: { period: string; count: number }[],
+  days?: number,
+): { period: string; count: number }[] {
+  if (data.length === 0) return data;
+  const end = new Date(data[data.length - 1].period + 'T00:00:00');
+  const start = days
+    ? new Date(Date.now() - days * 86400000)
+    : new Date(data[0].period + 'T00:00:00');
+  const lookup = new Map(data.map((d) => [d.period, d.count]));
+  const result: { period: string; count: number }[] = [];
+  const d = new Date(start);
+  d.setHours(0, 0, 0, 0);
+  while (d <= end) {
+    const key = d.toISOString().slice(0, 10);
+    result.push({ period: key, count: lookup.get(key) ?? 0 });
+    d.setDate(d.getDate() + 1);
+  }
+  return result;
+}
