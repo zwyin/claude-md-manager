@@ -209,6 +209,7 @@ const en: Dict = {
   'session.sort.rules': 'Rules',
   'session.sort.duration': 'Duration',
   'session.sortBy': 'Sort:',
+  'session.allConfidence': 'All Confidence',
 };
 
 export default en;

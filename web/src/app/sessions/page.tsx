@@ -43,6 +43,7 @@ export default function SessionsPage() {
   const [days, setDays] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [modelFilter, setModelFilter] = useState('');
+  const [confidenceFilter, setConfidenceFilter] = useState('');
   const [sortBy, setSortBy] = useState<SortKey>('time');
   const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
   const { t, locale } = useI18n();
@@ -68,8 +69,9 @@ export default function SessionsPage() {
     params.set('dir', sortDir);
     if (search.trim()) params.set('search', search.trim());
     if (modelFilter) params.set('model', modelFilter);
+    if (confidenceFilter) params.set('confidence', confidenceFilter);
     return `/api/sessions?${params}`;
-  }, [offset, days, sortBy, sortDir, search, modelFilter]);
+  }, [offset, days, sortBy, sortDir, search, modelFilter, confidenceFilter]);
 
   const { data, loading, error } = useFetch<SessionsData>(url);
 
@@ -82,6 +84,11 @@ export default function SessionsPage() {
 
   const handleModelChange = useCallback((m: string) => {
     setModelFilter(m);
+    setOffset(0);
+  }, []);
+
+  const handleConfidenceChange = useCallback((c: string) => {
+    setConfidenceFilter(c);
     setOffset(0);
   }, []);
 
@@ -157,6 +164,16 @@ export default function SessionsPage() {
             ))}
           </select>
         )}
+        <select
+          value={confidenceFilter}
+          onChange={(e) => handleConfidenceChange(e.target.value)}
+          className="h-7 text-xs rounded-md border border-border bg-card text-foreground px-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        >
+          <option value="">{t('session.allConfidence')}</option>
+          <option value="high">{t('analytics.confidence.high')}</option>
+          <option value="medium">{t('analytics.confidence.medium')}</option>
+          <option value="low">{t('analytics.confidence.low')}</option>
+        </select>
         <div className="flex items-center gap-1.5 flex-wrap">
           <Badge variant="outline" className="text-xs">{t('dashboard.totalSessions')}: {total}</Badge>
           {data.avg_duration != null && (

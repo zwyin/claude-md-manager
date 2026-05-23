@@ -230,6 +230,7 @@ const zh = {
   'session.sort.rules': '规则数',
   'session.sort.duration': '时长',
   'session.sortBy': '排序：',
+  'session.allConfidence': '全部置信度',
 } as const;
 
 export default zh;
