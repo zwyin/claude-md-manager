@@ -204,9 +204,9 @@ function RulesContent() {
           onChange={(e) => { setSectionFilter(e.target.value); syncUrl(e.target.value, sortBy, sortDir); }}
           className="h-9 text-sm rounded-md border border-border bg-card text-foreground px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         >
-          <option value="all">{t('rules.allSections')}</option>
+          <option value="all">{t('rules.allSections')} ({data.total_rules})</option>
           {sectionOrder.map((id) => (
-            <option key={id} value={id}>{sectionTitleMap[id] || id}</option>
+            <option key={id} value={id}>{sectionTitleMap[id] || id} ({(grouped[id] || []).length})</option>
           ))}
         </select>
       </div>

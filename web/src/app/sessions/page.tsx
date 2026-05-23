@@ -123,13 +123,15 @@ export default function SessionsPage() {
             </Button>
           ))}
         </div>
-        <Badge variant="outline" className="text-xs">{t('dashboard.totalSessions')}: {total}</Badge>
-        {data.avg_duration != null && (
-          <Badge variant="outline" className="text-xs">{t('session.avgDuration')}: {formatDuration(data.avg_duration)}</Badge>
-        )}
-        {data.avg_citations != null && (
-          <Badge variant="outline" className="text-xs">{t('session.avgCitations')}: {data.avg_citations}</Badge>
-        )}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Badge variant="outline" className="text-xs">{t('dashboard.totalSessions')}: {total}</Badge>
+          {data.avg_duration != null && (
+            <Badge variant="outline" className="text-xs">{t('session.avgDuration')}: {formatDuration(data.avg_duration)}</Badge>
+          )}
+          {data.avg_citations != null && (
+            <Badge variant="outline" className="text-xs">{t('session.avgCitations')}: {data.avg_citations}</Badge>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-1.5">
