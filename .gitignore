@@ -9,6 +9,9 @@ __pycache__/
 .venv/
 .coverage
 
+# Test coverage (vitest)
+coverage/
+
 # Lockfiles (root is a stub, real lock is in web/)
 /package-lock.json
 
