@@ -197,7 +197,7 @@ export function publishDrafts(): { rulesChanged: number; snapshotName: string | 
     let snapshotName: string | null = null;
     let errorMsg: string | null = null;
     try {
-      const output = execFileSync("python", ["build/assemble.py"], {
+      const output = execFileSync("python3", ["build/assemble.py"], {
         cwd: path.join(process.cwd(), ".."),
         encoding: "utf-8",
         timeout: 30000,

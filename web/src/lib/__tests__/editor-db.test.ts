@@ -297,7 +297,7 @@ describe('publishDrafts', () => {
     const result = publishDrafts();
     expect(result.rulesChanged).toBe(1);
     expect(fs.writeFileSync).toHaveBeenCalled();
-    expect(execFileSync).toHaveBeenCalledWith('python', ['build/assemble.py'], expect.any(Object));
+    expect(execFileSync).toHaveBeenCalledWith('python3', ['build/assemble.py'], expect.any(Object));
   });
 
   it('handles assemble.py failure gracefully', () => {
