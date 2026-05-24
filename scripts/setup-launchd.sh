@@ -19,6 +19,14 @@ fi
 
 mkdir -p "$LOG_DIR"
 
+# Rotate logs: keep last 500 lines to prevent unbounded growth
+for log in "$LOG_DIR"/stdout.log "$LOG_DIR"/stderr.log; do
+    if [ -f "$log" ] && [ "$(wc -l < "$log")" -gt 500 ]; then
+        tail -500 "$log" > "${log}.tmp" && mv "${log}.tmp" "$log"
+        echo "Rotated $log (kept last 500 lines)"
+    fi
+done
+
 cat > "$PLIST_PATH" << PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
