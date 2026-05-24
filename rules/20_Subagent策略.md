@@ -9,7 +9,7 @@ rules:
     keywords: ["并行", "parallel", "dispatch", "子代理"]
   - id: subagent-strategy.never-dispatch
     title: 一定不派的场景
-    keywords: ["顺序依赖", "同一文件", "package.json", "单一目标"]
+    keywords: ["顺序依赖", "同一文件", "package.json", "单一目标", "sequential", "串行"]
 ---
 
 ## Subagent 策略

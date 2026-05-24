@@ -6,7 +6,7 @@ tags: [tdd, coverage, testing]
 rules:
   - id: tdd-coverage.baseline
     title: 覆盖率有底线
-    keywords: ["覆盖率目标", "覆盖率底线", "CLAUDE.md声明"]
+    keywords: ["覆盖率目标", "覆盖率底线", "CLAUDE.md声明", "coverage target"]
   - id: tdd-coverage.per-iteration
     title: 迭代交付包含覆盖率数据
     keywords: ["覆盖率数据", "交付报告", "覆盖率统计"]

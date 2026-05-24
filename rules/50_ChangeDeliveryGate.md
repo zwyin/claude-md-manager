@@ -15,7 +15,7 @@ rules:
     keywords: ["无法验证", "说明原因"]
   - id: change-delivery-gate.no-fabrication
     title: 禁止虚构命令输出
-    keywords: ["虚构", "命令输出", "造假"]
+    keywords: ["虚构", "命令输出", "造假", "fabricate", "fake output"]
   - id: change-delivery-gate.no-claim-without-evidence
     title: 没有验证证据不得声称完成
     keywords: ["声称完成", "验证证据", "通过"]

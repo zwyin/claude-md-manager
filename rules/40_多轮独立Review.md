@@ -6,13 +6,13 @@ tags: [review, quality]
 rules:
   - id: independent-review.separate-pass
     title: verification 和 code-review 分两个 pass
-    keywords: ["verification", "code-review", "独立review", "两个pass"]
+    keywords: ["verification", "code-review", "独立review", "两个pass", "分开review"]
   - id: independent-review.reviewer-isolation
     title: reviewer 不共享主对话上下文
-    keywords: ["独立", "不共享上下文", "只接收待审阅内容"]
+    keywords: ["独立", "不共享上下文", "只接收待审阅内容", "isolation", "隔离"]
   - id: independent-review.concurrent-limit
     title: 同时运行 reviewer 不超过 2 个
-    keywords: ["reviewer", "同时运行", "并发review"]
+    keywords: ["reviewer", "同时运行", "并发review", "review并发"]
 ---
 
 ## 多轮独立 Review
