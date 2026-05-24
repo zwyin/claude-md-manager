@@ -484,4 +484,82 @@ describe('getFilteredSessions', () => {
     expect(us.total).toBe(1);
     expect(us.sessions[0].session_id).toBe('w2');
   });
+
+  it('filters by confidence', () => {
+    db.prepare("INSERT INTO rule_references (rule_id, session_id, matched_keyword, confidence) VALUES ('r1', 's1', 'kw1', 'high')").run();
+    const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'time', dir: 'DESC', confidence: 'high' }, db);
+    expect(result.total).toBe(1);
+    expect(result.sessions[0].session_id).toBe('s1');
+  });
+
+  it('sorts by rules count', () => {
+    const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'rules', dir: 'DESC' }, db);
+    expect(result.sessions.length).toBeGreaterThan(0);
+  });
+
+  it('sorts by duration', () => {
+    db.prepare("UPDATE sessions SET started_at = '2026-01-01 00:00:00', ended_at = '2026-01-01 00:05:00' WHERE session_id = 's1'").run();
+    db.prepare("UPDATE sessions SET started_at = '2026-01-01 00:00:00', ended_at = '2026-01-01 00:10:00' WHERE session_id = 's2'").run();
+    const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'duration', dir: 'DESC' }, db);
+    expect(result.sessions[0].session_id).toBe('s2');
+  });
+
+  it('sorts ascending', () => {
+    const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'citations', dir: 'ASC' }, db);
+    expect(result.sessions[result.sessions.length - 1].citation_count).toBeGreaterThanOrEqual(
+      result.sessions[0].citation_count
+    );
+  });
+
+  it('returns null avg_citations when no sessions match', () => {
+    const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'time', dir: 'DESC', search: 'nonexistent_xyz' }, db);
+    expect(result.total).toBe(0);
+    expect(result.avg_citations).toBeNull();
+  });
+});
+
+describe('empty database edge cases', () => {
+  it('getRulesWithStats handles no citations', () => {
+    const emptyDb = new Database(':memory:');
+    emptyDb.exec(SCHEMA_SQL);
+    emptyDb.prepare("INSERT INTO sections_metadata (section_id, title, source_file, rule_count) VALUES ('sec1', 'S1', 'a.md', 1)").run();
+    emptyDb.prepare("INSERT INTO rules_metadata (rule_id, section_id, title, keywords, source_file) VALUES ('r1', 'sec1', 'R1', '[]', 'a.md')").run();
+    const result = getRulesWithStats(undefined, emptyDb);
+    expect(result).toHaveLength(1);
+    expect(result[0].match_count).toBe(0);
+    expect(result[0].session_coverage).toBe(0);
+    expect(result[0].avg_depth).toBe(0);
+    expect(result[0].citation_share).toBe(0);
+    emptyDb.close();
+  });
+
+  it('getRuleDetail handles empty keywords string', () => {
+    const emptyDb = new Database(':memory:');
+    emptyDb.exec(SCHEMA_SQL);
+    emptyDb.prepare("INSERT INTO sections_metadata (section_id, title, source_file, rule_count) VALUES ('sec1', 'S1', 'a.md', 1)").run();
+    emptyDb.prepare("INSERT INTO rules_metadata (rule_id, section_id, title, keywords, source_file) VALUES ('r1', 'sec1', 'R1', '', 'a.md')").run();
+    const detail = getRuleDetail('r1', undefined, emptyDb);
+    expect(detail).not.toBeNull();
+    expect(detail!.rule.keywords).toEqual([]);
+    emptyDb.close();
+  });
+
+  it('getRuleDetail falls back to section_id when no section title', () => {
+    db.prepare("DELETE FROM sections_metadata WHERE section_id = 'sec1'").run();
+    db.prepare("INSERT INTO rules_metadata (rule_id, section_id, title, keywords, source_file) VALUES ('r4', 'sec1', 'R4', '[]', 'a.md')").run();
+    const detail = getRuleDetail('r4', undefined, db);
+    expect(detail!.rule.section_title).toBe('sec1');
+  });
+
+  it('getAnalytics handles no active rules', () => {
+    const emptyDb = new Database(':memory:');
+    emptyDb.exec(SCHEMA_SQL);
+    emptyDb.prepare("INSERT INTO sections_metadata (section_id, title, source_file, rule_count) VALUES ('sec1', 'S1', 'a.md', 1)").run();
+    emptyDb.prepare("INSERT INTO rules_metadata (rule_id, section_id, title, keywords, source_file) VALUES ('r1', 'sec1', 'R1', '[]', 'a.md')").run();
+    const result = getAnalytics(undefined, emptyDb);
+    expect(result.avg_coverage).toBe(0);
+    expect(result.avg_depth).toBe(0);
+    expect(result.total_citations).toBe(0);
+    emptyDb.close();
+  });
 });

@@ -835,3 +835,92 @@ class TestBackfillMode:
         row = db.execute("SELECT model FROM sessions WHERE session_id=?", (sid,)).fetchone()
         assert row[0] is None
         db.close()
+
+    def test_backfill_all_flag_updates_null_summary(self, monkeypatch, tmp_path):
+        """--backfill --all should update sessions where task_summary is NULL."""
+        db = db_mod.get_db()
+        sid = "backfill-all-session"
+        db.execute("INSERT OR REPLACE INTO sessions (session_id, started_at, model) VALUES (?, datetime('now'), 'glm-test')", (sid,))
+        db.commit()
+        assert db.execute("SELECT task_summary FROM sessions WHERE session_id=?", (sid,)).fetchone()[0] is None
+
+        jsonl = tmp_path / "projects" / "proj" / f"{sid}.jsonl"
+        jsonl.parent.mkdir(parents=True)
+        jsonl.write_text(json.dumps({"type": "user", "message": {"content": "Update the summary"}}) + "\n", encoding="utf-8")
+
+        monkeypatch.setattr(sl, "CLAUDE_DIR", tmp_path)
+        monkeypatch.setattr(sys, "argv", ["session-logger.py", "--backfill", "--all"])
+
+        sl.main()
+
+        row = db.execute("SELECT task_summary FROM sessions WHERE session_id=?", (sid,)).fetchone()
+        assert row[0] == "Update the summary"
+        db.close()
+
+
+class TestExtractSessionMetadataEdgeCases:
+    """Tests for uncovered branches in extract_session_metadata."""
+
+    def test_content_as_list_of_blocks(self):
+        """Extract summary from user message with content as list of text blocks."""
+        f = Path("/tmp/test_meta_list.jsonl")
+        f.write_text(json.dumps({
+            "type": "user",
+            "message": {"content": [
+                {"type": "text", "text": "First part"},
+                {"type": "text", "text": "second part"},
+            ]}
+        }) + "\n", encoding="utf-8")
+        meta = extract_session_metadata(f)
+        assert "First part" in meta["summary"]
+        assert "second part" in meta["summary"]
+
+    def test_stops_at_50_lines(self):
+        """Only scans first 50 entries (idx 0-49); model on line 51 should not be found."""
+        f = Path("/tmp/test_meta_50.jsonl")
+        lines = [json.dumps({"type": "user", "message": {"content": "padding"}})] * 50
+        lines.append(json.dumps({"type": "assistant", "message": {"model": "hidden-model", "content": []}}))
+        f.write_text("\n".join(lines), encoding="utf-8")
+        meta = extract_session_metadata(f)
+        assert meta["model"] is None
+
+    def test_malformed_json_lines_skipped(self):
+        """JSONDecodeError lines are skipped without crashing."""
+        f = Path("/tmp/test_meta_malformed.jsonl")
+        f.write_text("\n".join([
+            "not valid json {{{",
+            json.dumps({"type": "assistant", "message": {"model": "glm-ok", "content": []}}),
+        ]), encoding="utf-8")
+        meta = extract_session_metadata(f)
+        assert meta["model"] == "glm-ok"
+
+
+class TestOverlapDeduplication:
+    """Tests for longest-match dedup in scan_session and scan_last_message."""
+
+    def _build_pm(self, keywords):
+        """Build pattern map with multiple keywords mapped to same rule."""
+        pairs = []
+        for kw in keywords:
+            pairs.append((kw.lower(), (_build_pattern(kw), [("r1", kw)])))
+        return dict(pairs)
+
+    def test_scan_session_prefers_longer_keyword(self):
+        """When short and long keywords overlap at same position, longer wins."""
+        pm = self._build_pm(["TDD", "TDD cycle"])
+        f = Path("/tmp/test_overlap_scan.jsonl")
+        _make_jsonl(f, [_assistant_msg("follow the TDD cycle approach")])
+        matches, _ = scan_session(f, pm)
+        # Both keywords match but at the same position range for "TDD"
+        # The longer "TDD cycle" should be kept, shorter "TDD" deduped
+        kw_set = {m["keyword"] for m in matches}
+        assert "TDD cycle" in kw_set
+
+    def test_scan_last_message_prefers_longer_keyword(self):
+        """Same dedup logic in scan_last_message."""
+        pm = self._build_pm(["TDD", "TDD cycle"])
+        f = Path("/tmp/test_overlap_stop.jsonl")
+        _make_jsonl(f, [_assistant_msg("follow the TDD cycle approach")])
+        matches = scan_last_message(f, pm)
+        kw_set = {m["keyword"] for m in matches}
+        assert "TDD cycle" in kw_set

@@ -50,6 +50,18 @@ describe('fetchJson', () => {
     expect(result).toEqual({});
   });
 
+  it('extracts error detail from JSON body', async () => {
+    globalThis.fetch = vi.fn(async () => new Response('{"error":"database locked"}', { status: 500 }));
+    const { fetchJson } = await import('../fetch');
+    await expect(fetchJson('http://test')).rejects.toThrow('HTTP 500: database locked');
+  });
+
+  it('ignores JSON body without error field', async () => {
+    globalThis.fetch = vi.fn(async () => new Response('{"msg":"ok"}', { status: 503 }));
+    const { fetchJson } = await import('../fetch');
+    await expect(fetchJson('http://test')).rejects.toThrow('HTTP 503');
+  });
+
   it('returns array for JSON array response', async () => {
     globalThis.fetch = vi.fn(async () => new Response('[1,2,3]', { status: 200 }));
     const { fetchJson } = await import('../fetch');
