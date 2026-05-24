@@ -217,7 +217,7 @@ def extract_session_metadata(jsonl_path: Path) -> dict:
                     if isinstance(msg, dict) and msg.get("model"):
                         model = msg["model"]
 
-                if not summary and entry.get("type") == "human":
+                if not summary and entry.get("type") in ("human", "user"):
                     msg = entry.get("message", {})
                     content = msg.get("content", "")
                     if isinstance(content, str):
@@ -382,8 +382,11 @@ def main():
 
     if "--backfill" in sys.argv:
         conn = get_db()
+        where = "WHERE model IS NULL"
+        if "--all" in sys.argv:
+            where = "WHERE model IS NULL OR task_summary IS NULL"
         rows = conn.execute(
-            "SELECT session_id FROM sessions WHERE model IS NULL"
+            f"SELECT session_id FROM sessions {where}"
         ).fetchall()
         updated = 0
         for (session_id,) in rows:
@@ -393,7 +396,7 @@ def main():
             meta = extract_session_metadata(jsonl_path)
             if meta["model"] or meta["summary"]:
                 conn.execute(
-                    "UPDATE sessions SET model = ?, task_summary = ? WHERE session_id = ? AND model IS NULL",
+                    f"UPDATE sessions SET model = ?, task_summary = ? WHERE session_id = ? AND (model IS NULL OR task_summary IS NULL)",
                     (meta["model"], meta["summary"], session_id),
                 )
                 updated += 1

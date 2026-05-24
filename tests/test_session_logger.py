@@ -791,6 +791,12 @@ class TestExtractSessionMetadata:
         meta = extract_session_metadata(f)
         assert len(meta["summary"]) == 200
 
+    def test_extracts_summary_from_user_type(self):
+        f = Path("/tmp/test_meta_user.jsonl")
+        f.write_text(json.dumps({"type": "user", "message": {"content": "Fix the bug"}}) + "\n", encoding="utf-8")
+        meta = extract_session_metadata(f)
+        assert meta["summary"] == "Fix the bug"
+
 
 class TestBackfillMode:
     def test_backfill_updates_null_sessions(self, monkeypatch, tmp_path):
