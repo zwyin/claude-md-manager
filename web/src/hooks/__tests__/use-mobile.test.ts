@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useIsMobile } from '../use-mobile';
 
 function mockMatchMedia(width: number) {
@@ -32,7 +32,7 @@ describe('useIsMobile', () => {
     mockMatchMedia(375);
     const { result } = renderHook(() => useIsMobile());
     // queueMicrotask fires asynchronously
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(result.current).toBe(true);
     });
   });
@@ -60,5 +60,24 @@ describe('useIsMobile', () => {
     });
 
     expect(result.current).toBe(true);
+  });
+
+  it('removes listener on unmount', () => {
+    const removeEventListener = vi.fn();
+    mockMatchMedia(1024);
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener,
+      dispatchEvent: vi.fn(),
+    }));
+
+    const { unmount } = renderHook(() => useIsMobile());
+    unmount();
+    expect(removeEventListener).toHaveBeenCalled();
   });
 });
