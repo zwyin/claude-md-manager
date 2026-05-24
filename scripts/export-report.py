@@ -25,6 +25,10 @@ def date_range(days: int | None):
 def export_report(days: int | None = None) -> str:
     db = get_db()
     cutoff = date_range(days)
+    p = (cutoff,) if cutoff else ()
+
+    time_join = f"AND r.timestamp >= ?" if cutoff else ""
+    time_where = f"WHERE r.timestamp >= ?" if cutoff else ""
 
     # Section stats
     sections = db.execute(f"""
@@ -33,10 +37,10 @@ def export_report(days: int | None = None) -> str:
         FROM sections_metadata s
         LEFT JOIN rules_metadata rm ON rm.section_id = s.section_id
         LEFT JOIN rule_references r ON r.rule_id = rm.rule_id
-        {"AND r.timestamp >= '" + cutoff + "'" if cutoff else ""}
+        {time_join}
         GROUP BY s.section_id
         ORDER BY refs DESC
-    """).fetchall()
+    """, p).fetchall()
 
     # Top rules
     top_rules = db.execute(f"""
@@ -45,11 +49,11 @@ def export_report(days: int | None = None) -> str:
                COUNT(DISTINCT r.session_id) as sessions
         FROM rules_metadata rm
         LEFT JOIN rule_references r ON r.rule_id = rm.rule_id
-        {"WHERE r.timestamp >= '" + cutoff + "'" if cutoff else ""}
+        {time_where}
         GROUP BY rm.rule_id
         ORDER BY refs DESC
         LIMIT 20
-    """).fetchall()
+    """, p).fetchall()
 
     # Cold rules (0 citations in period)
     cold_rules = db.execute(f"""
@@ -57,29 +61,29 @@ def export_report(days: int | None = None) -> str:
         FROM rules_metadata rm
         WHERE rm.rule_id NOT IN (
             SELECT DISTINCT rule_id FROM rule_references r
-            {"WHERE r.timestamp >= '" + cutoff + "'" if cutoff else ""}
+            {time_where}
         )
         ORDER BY rm.section_id, rm.title
-    """).fetchall()
+    """, p).fetchall()
 
     # Confidence breakdown
     confidence = db.execute(f"""
         SELECT confidence, source, COUNT(*) as cnt
         FROM rule_references r
-        {"WHERE r.timestamp >= '" + cutoff + "'" if cutoff else ""}
+        {time_where}
         GROUP BY confidence, source
         ORDER BY cnt DESC
-    """).fetchall()
+    """, p).fetchall()
 
     # Totals
     total_refs = db.execute(f"""
         SELECT COUNT(*) FROM rule_references r
-        {"WHERE r.timestamp >= '" + cutoff + "'" if cutoff else ""}
-    """).fetchone()[0]
+        {time_where}
+    """, p).fetchone()[0]
     total_sessions = db.execute(f"""
         SELECT COUNT(DISTINCT session_id) FROM rule_references r
-        {"WHERE r.timestamp >= '" + cutoff + "'" if cutoff else ""}
-    """).fetchone()[0]
+        {time_where}
+    """, p).fetchone()[0]
     total_rules = db.execute("SELECT COUNT(*) FROM rules_metadata").fetchone()[0]
 
     # Build report
