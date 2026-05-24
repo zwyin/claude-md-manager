@@ -894,6 +894,60 @@ class TestExtractSessionMetadataEdgeCases:
         meta = extract_session_metadata(f)
         assert meta["model"] == "glm-ok"
 
+    def test_content_is_non_string_non_list(self):
+        """Content as a number (non-string, non-list) produces no summary."""
+        f = Path("/tmp/test_meta_nonstr.jsonl")
+        f.write_text(json.dumps({
+            "type": "user",
+            "message": {"content": 42}
+        }) + "\n", encoding="utf-8")
+        meta = extract_session_metadata(f)
+        assert meta["summary"] is None
+
+    def test_content_is_none(self):
+        """Content as None produces no summary."""
+        f = Path("/tmp/test_meta_null.jsonl")
+        f.write_text(json.dumps({
+            "type": "user",
+            "message": {"content": None}
+        }) + "\n", encoding="utf-8")
+        meta = extract_session_metadata(f)
+        assert meta["summary"] is None
+
+
+class TestFindSessionJsonl:
+    """Tests for _find_session_jsonl."""
+
+    def test_skips_non_dir_entries(self, tmp_path, monkeypatch):
+        """Non-directory entries in projects_dir are skipped."""
+        projects = tmp_path / "projects"
+        projects.mkdir()
+        # Place a non-dir entry; _find_session_jsonl should skip it
+        (projects / "README.md").write_text("not a dir", encoding="utf-8")
+        proj = projects / "zzz_proj"
+        proj.mkdir()
+        (proj / "target-session.jsonl").write_text("data", encoding="utf-8")
+        monkeypatch.setattr(sl, "CLAUDE_DIR", tmp_path)
+        result = sl._find_session_jsonl("target-session")
+        assert result is not None
+        assert result.name == "target-session.jsonl"
+
+    def test_returns_none_when_no_match(self, tmp_path, monkeypatch):
+        """Returns None when session JSONL doesn't exist."""
+        projects = tmp_path / "projects"
+        proj = projects / "proj"
+        proj.mkdir(parents=True)
+        (proj / "other.jsonl").write_text("data", encoding="utf-8")
+        monkeypatch.setattr(sl, "CLAUDE_DIR", tmp_path)
+        result = sl._find_session_jsonl("nonexistent")
+        assert result is None
+
+    def test_returns_none_when_no_projects_dir(self, tmp_path, monkeypatch):
+        """Returns None when projects directory doesn't exist."""
+        monkeypatch.setattr(sl, "CLAUDE_DIR", tmp_path / "nope")
+        result = sl._find_session_jsonl("anything")
+        assert result is None
+
 
 class TestOverlapDeduplication:
     """Tests for longest-match dedup in scan_session and scan_last_message."""
