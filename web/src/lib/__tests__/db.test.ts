@@ -242,6 +242,16 @@ describe('getAnalytics', () => {
     expect(a.total_citations).toBe(4);
     expect(a.top_rules).toHaveLength(2);
   });
+
+  it('handles zero citations gracefully', () => {
+    // Delete all references to test aggStats fallback
+    db.prepare('DELETE FROM rule_references').run();
+    const a = getAnalytics(undefined, db);
+    expect(a.total_citations).toBe(0);
+    expect(a.avg_coverage).toBe(0);
+    expect(a.avg_depth).toBe(0);
+    expect(a.top_rules).toHaveLength(0);
+  });
 });
 
 describe('getTotalCitationCount', () => {
@@ -406,6 +416,19 @@ describe('getConfidenceDistribution', () => {
     const result = getConfidenceDistribution(7, db);
     expect(result.length).toBeGreaterThan(0);
   });
+
+  it('limits top_rules to 5 per confidence level', () => {
+    // Insert 6 distinct rules with the same confidence to trigger rn > 5 skip
+    for (let i = 1; i <= 6; i++) {
+      db.prepare(`INSERT INTO rules_metadata (rule_id, section_id, title, keywords, source_file) VALUES ('extra${i}', 'sec1', 'Extra ${i}', '[]', 'a.md')`).run();
+      db.prepare(`INSERT INTO rule_references (rule_id, session_id, matched_keyword, confidence) VALUES ('extra${i}', 's1', 'kw${i}', 'high')`).run();
+    }
+
+    const result = getConfidenceDistribution(undefined, db);
+    const high = result.find((r) => r.confidence === 'high');
+    expect(high).toBeDefined();
+    expect(high!.top_rules.length).toBe(5);
+  });
 });
 
 describe('getSessionDetail', () => {
@@ -519,6 +542,20 @@ describe('getFilteredSessions', () => {
     const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'time', dir: 'DESC', search: 'nonexistent_xyz' }, db);
     expect(result.total).toBe(0);
     expect(result.avg_citations).toBeNull();
+  });
+
+  it('filters by days', () => {
+    // Insert a recent session and an old one
+    db.prepare("INSERT INTO sessions (session_id, started_at) VALUES ('recent', datetime('now', '-1 day'))").run();
+    db.prepare("INSERT INTO sessions (session_id, started_at) VALUES ('old', datetime('now', '-10 days'))").run();
+    const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'time', dir: 'DESC', days: 7 }, db);
+    expect(result.sessions.some((s) => s.session_id === 'recent')).toBe(true);
+    expect(result.sessions.some((s) => s.session_id === 'old')).toBe(false);
+  });
+
+  it('falls back to time sort for unknown sort value', () => {
+    const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'unknown_sort' as 'time', dir: 'DESC' }, db);
+    expect(result.sessions.length).toBeGreaterThan(0);
   });
 });
 
