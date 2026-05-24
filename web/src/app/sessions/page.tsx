@@ -251,9 +251,13 @@ export default function SessionsPage() {
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span
+                      role="button"
+                      tabIndex={0}
                       className="text-xs font-mono text-muted-foreground shrink-0 hover:text-foreground transition-colors"
                       title={s.session_id}
+                      aria-label={t('session.copyId')}
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigator.clipboard.writeText(s.session_id); toast.success(t('ruleDetail.copied')); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigator.clipboard.writeText(s.session_id); toast.success(t('ruleDetail.copied')); } }}
                     >
                       {s.session_id.slice(0, 8)}
                     </span>

@@ -234,6 +234,7 @@ const zh = {
   'session.sort.duration': '时长',
   'session.sortBy': '排序：',
   'session.allConfidence': '全部置信度',
+  'session.copyId': '复制会话 ID',
 
   // Accessibility
   'accessibility.collapse': '收起',

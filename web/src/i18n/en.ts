@@ -213,6 +213,7 @@ const en: Dict = {
   'session.sort.duration': 'Duration',
   'session.sortBy': 'Sort:',
   'session.allConfidence': 'All Confidence',
+  'session.copyId': 'Copy session ID',
 
   // Accessibility
   'accessibility.collapse': 'Collapse',

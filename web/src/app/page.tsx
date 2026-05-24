@@ -101,7 +101,7 @@ export default function DashboardPage() {
               {t('dashboard.lastUpdated', { ago: relativeTime(new Date(fetchedAt).toISOString(), locale) })}
             </span>
           )}
-          <Button size="sm" variant="ghost" onClick={refresh} disabled={loading} className="h-7 px-2 text-xs" title={t('dashboard.refresh')}>
+          <Button size="sm" variant="ghost" onClick={refresh} disabled={loading} className="h-7 px-2 text-xs" title={t('dashboard.refresh')} aria-label={t('dashboard.refresh')}>
             <svg className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
@@ -212,7 +212,7 @@ export default function DashboardPage() {
               <CardTitle className="text-base">
                 {t('analytics.citationTrend')}
                 <span className="text-xs font-normal text-muted-foreground ml-2">
-                  ({t('analytics.avgPerDay')}: {Math.round(data.citation_trend.reduce((s, p) => s + p.count, 0) / data.citation_trend.length).toLocaleString()})
+                  ({t('analytics.avgPerDay')}: {Math.round(data.citation_trend.reduce((s, p) => s + p.count, 0) / (data.citation_trend.length || 1)).toLocaleString()})
                 </span>
               </CardTitle>
             </CardHeader>
@@ -245,7 +245,7 @@ export default function DashboardPage() {
               <CardTitle className="text-base">
                 {t('dashboard.sessionTrend')}
                 <span className="text-xs font-normal text-muted-foreground ml-2">
-                  ({t('analytics.avgPerDay')}: {Math.round(data.session_trend.reduce((s, p) => s + p.count, 0) / data.session_trend.length).toLocaleString()})
+                  ({t('analytics.avgPerDay')}: {Math.round(data.session_trend.reduce((s, p) => s + p.count, 0) / (data.session_trend.length || 1)).toLocaleString()})
                 </span>
               </CardTitle>
             </CardHeader>
