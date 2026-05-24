@@ -187,7 +187,7 @@ export default function AnalyticsPage() {
                       <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                     ))}
                   </Pie>
-                  <RechartsTooltip {...tooltipStyle} formatter={(value, _name, props) => [`${value} (${(props as { payload: { ruleCount: number } }).payload.ruleCount} rules)`, (props as { payload: { name: string } }).payload.name]} />
+                  <RechartsTooltip {...tooltipStyle} formatter={(value, _name, props) => [`${value} (${(props as { payload: { ruleCount: number } }).payload.ruleCount} ${t('table.rules')})`, (props as { payload: { name: string } }).payload.name]} />
                   <Legend formatter={(value: string) => <span className="text-xs text-muted-foreground">{value}</span>} />
                 </PieChart>
               </ResponsiveContainer>

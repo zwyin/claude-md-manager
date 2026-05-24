@@ -29,6 +29,7 @@ export function RuleRow({ rule, totalSessions, maxDepth }: RuleRowProps) {
       setLoading(true);
       try {
         const res = await fetch(`/api/rules/${encodeURIComponent(rule.rule_id)}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setBody(data.rule?.body ?? '');
       } catch {
@@ -47,7 +48,7 @@ export function RuleRow({ rule, totalSessions, maxDepth }: RuleRowProps) {
         <button
           onClick={toggleExpand}
           className="mr-2 text-muted-foreground hover:text-foreground transition-colors shrink-0"
-          aria-label={expanded ? 'Collapse' : 'Expand'}
+          aria-label={expanded ? t('accessibility.collapse') : t('accessibility.expand')}
         >
           <svg
             className={`w-3 h-3 transition-transform ${expanded ? 'rotate-90' : ''}`}

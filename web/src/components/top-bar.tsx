@@ -20,7 +20,7 @@ export function TopBar() {
           onClick={decrease}
           disabled={!canDecrease}
           className="h-6 w-6"
-          aria-label="Zoom out"
+          aria-label={t('accessibility.zoomOut')}
         >
           <Minus className="w-3 h-3" />
         </Button>
@@ -31,7 +31,7 @@ export function TopBar() {
           onClick={increase}
           disabled={!canIncrease}
           className="h-6 w-6"
-          aria-label="Zoom in"
+          aria-label={t('accessibility.zoomIn')}
         >
           <Plus className="w-3 h-3" />
         </Button>

@@ -109,11 +109,11 @@ export function RuleListPanel({ rules, selectedId, onSelect, onReorder }: RuleLi
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement) return;
       const idx = filteredRules.findIndex((r) => r.rule_id === selectedId);
-      if (e.key === 'ArrowDown' || e.key === 'j' && !e.metaKey && !e.ctrlKey) {
+      if (e.key === 'ArrowDown' || (e.key === 'j' && !e.metaKey && !e.ctrlKey)) {
         e.preventDefault();
         const next = idx < filteredRules.length - 1 ? idx + 1 : 0;
         onSelect(filteredRules[next].rule_id);
-      } else if (e.key === 'ArrowUp' || e.key === 'k' && !e.metaKey && !e.ctrlKey) {
+      } else if (e.key === 'ArrowUp' || (e.key === 'k' && !e.metaKey && !e.ctrlKey)) {
         e.preventDefault();
         const prev = idx > 0 ? idx - 1 : filteredRules.length - 1;
         onSelect(filteredRules[prev].rule_id);

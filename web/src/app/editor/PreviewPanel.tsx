@@ -7,7 +7,6 @@ import { useI18n } from "@/i18n";
 
 interface PreviewPanelProps {
   markdownBody: string;
-  title: string;
 }
 
 export const PreviewPanel = memo(function PreviewPanel({ markdownBody }: PreviewPanelProps) {

@@ -280,7 +280,7 @@ function EditorContent() {
             </div>
           ),
           preview: selectedRule ? (
-            <PreviewPanel markdownBody={body} title={selectedRule.title} />
+            <PreviewPanel markdownBody={body} />
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
               {t('editor.preview')}

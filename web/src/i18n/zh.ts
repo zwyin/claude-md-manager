@@ -235,6 +235,13 @@ const zh = {
   'session.sortBy': '排序：',
   'session.allConfidence': '全部置信度',
 
+  // Accessibility
+  'accessibility.collapse': '收起',
+  'accessibility.expand': '展开',
+  'accessibility.backToTop': '回到顶部',
+  'accessibility.zoomOut': '缩小',
+  'accessibility.zoomIn': '放大',
+
   // Shortcuts
   'shortcut.title': '键盘快捷键',
   'shortcut.search': '聚焦搜索框',

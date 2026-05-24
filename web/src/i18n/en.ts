@@ -214,6 +214,13 @@ const en: Dict = {
   'session.sortBy': 'Sort:',
   'session.allConfidence': 'All Confidence',
 
+  // Accessibility
+  'accessibility.collapse': 'Collapse',
+  'accessibility.expand': 'Expand',
+  'accessibility.backToTop': 'Back to top',
+  'accessibility.zoomOut': 'Zoom out',
+  'accessibility.zoomIn': 'Zoom in',
+
   // Shortcuts
   'shortcut.title': 'Keyboard Shortcuts',
   'shortcut.search': 'Focus search',
