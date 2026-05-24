@@ -9,8 +9,10 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
     const days = parseDays(searchParams.get('days'));
-    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') ?? '50'), 1), 200);
-    const offset = Math.max(parseInt(searchParams.get('offset') ?? '0'), 0);
+    const rawLimit = parseInt(searchParams.get('limit') ?? '50', 10);
+    const limit = Math.min(Math.max(Number.isFinite(rawLimit) ? rawLimit : 50, 1), 200);
+    const rawOffset = parseInt(searchParams.get('offset') ?? '0', 10);
+    const offset = Number.isFinite(rawOffset) ? Math.max(rawOffset, 0) : 0;
     const sort = searchParams.get('sort') ?? 'time';
     const dir = searchParams.get('dir') === 'asc' ? 'ASC' as const : 'DESC' as const;
 
