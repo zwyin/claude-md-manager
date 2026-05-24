@@ -14,7 +14,7 @@ interface CitationHeatmapProps {
 
 export function CitationHeatmap({ data, maxRules = 30 }: CitationHeatmapProps) {
   const { t } = useI18n();
-  const { rules, days, matrix, maxValue, sectionMap } = useMemo(() => {
+  const { rules, days, matrix, maxValue, sectionMap, ruleMeta } = useMemo(() => {
     const ruleCounts: Record<string, number> = {};
     for (const c of data) {
       ruleCounts[c.rule_id] = (ruleCounts[c.rule_id] || 0) + c.count;
@@ -74,9 +74,9 @@ export function CitationHeatmap({ data, maxRules = 30 }: CitationHeatmapProps) {
         </div>
         {/* Rows: one per rule */}
         {rules.map((ruleId) => {
-          const rule = data.find((c) => c.rule_id === ruleId);
-          const title = rule?.title ?? ruleId;
-          const sectionId = rule?.section_id ?? '';
+          const meta = ruleMeta[ruleId];
+          const title = meta?.title ?? ruleId;
+          const sectionId = meta?.section_id ?? '';
           const colorIdx = sectionMap[sectionId] ?? 0;
           const sectionColor = SECTION_COLORS[colorIdx % SECTION_COLORS.length];
 
