@@ -119,3 +119,9 @@ describe('standalone t()', () => {
     expect(text).toContain('3');
   });
 });
+
+describe('useI18n without provider', () => {
+  it('throws error when used outside I18nProvider', () => {
+    expect(() => renderHook(() => useI18n())).toThrow('useI18n must be used within I18nProvider');
+  });
+});
