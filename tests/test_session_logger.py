@@ -790,3 +790,42 @@ class TestExtractSessionMetadata:
         f.write_text(json.dumps({"type": "human", "message": {"content": long_text}}), encoding="utf-8")
         meta = extract_session_metadata(f)
         assert len(meta["summary"]) == 200
+
+
+class TestBackfillMode:
+    def test_backfill_updates_null_sessions(self, monkeypatch, tmp_path):
+        """--backfill should update sessions with NULL model."""
+        db = db_mod.get_db()
+        sid = "backfill-test-session"
+        db.execute("INSERT OR REPLACE INTO sessions (session_id, started_at) VALUES (?, datetime('now'))", (sid,))
+        db.commit()
+        assert db.execute("SELECT model FROM sessions WHERE session_id=?", (sid,)).fetchone()[0] is None
+
+        jsonl = tmp_path / "projects" / "proj" / f"{sid}.jsonl"
+        jsonl.parent.mkdir(parents=True)
+        jsonl.write_text(json.dumps({"type": "assistant", "message": {"model": "glm-test"}}) + "\n", encoding="utf-8")
+
+        monkeypatch.setattr(sl, "CLAUDE_DIR", tmp_path)
+        monkeypatch.setattr(sys, "argv", ["session-logger.py", "--backfill"])
+
+        sl.main()
+
+        row = db.execute("SELECT model FROM sessions WHERE session_id=?", (sid,)).fetchone()
+        assert row[0] == "glm-test"
+        db.close()
+
+    def test_backfill_skips_when_no_jsonl(self, monkeypatch, tmp_path):
+        """--backfill should skip sessions whose JSONL file doesn't exist."""
+        db = db_mod.get_db()
+        sid = "no-jsonl-session"
+        db.execute("INSERT OR REPLACE INTO sessions (session_id, started_at) VALUES (?, datetime('now'))", (sid,))
+        db.commit()
+
+        monkeypatch.setattr(sl, "CLAUDE_DIR", tmp_path)
+        monkeypatch.setattr(sys, "argv", ["session-logger.py", "--backfill"])
+
+        sl.main()
+
+        row = db.execute("SELECT model FROM sessions WHERE session_id=?", (sid,)).fetchone()
+        assert row[0] is None
+        db.close()

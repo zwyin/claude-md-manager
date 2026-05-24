@@ -165,6 +165,20 @@ def find_latest_session() -> Path | None:
     return best_path
 
 
+def _find_session_jsonl(session_id: str) -> Path | None:
+    """Find the JSONL file for a given session_id by searching all project dirs."""
+    projects_dir = CLAUDE_DIR / "projects"
+    if not projects_dir.exists():
+        return None
+    for project_dir in projects_dir.iterdir():
+        if not project_dir.is_dir():
+            continue
+        candidate = project_dir / f"{session_id}.jsonl"
+        if candidate.exists():
+            return candidate
+    return None
+
+
 def _classify_confidence(keyword: str) -> str:
     """Estimate match confidence based on keyword characteristics.
 
@@ -364,6 +378,28 @@ def main():
         sync_sections_metadata(conn, sections_data)
         print(f"Synced {len(rules_data)} rules, {len(sections_data)} sections")
         conn.close()
+        return
+
+    if "--backfill" in sys.argv:
+        conn = get_db()
+        rows = conn.execute(
+            "SELECT session_id FROM sessions WHERE model IS NULL"
+        ).fetchall()
+        updated = 0
+        for (session_id,) in rows:
+            jsonl_path = _find_session_jsonl(session_id)
+            if not jsonl_path:
+                continue
+            meta = extract_session_metadata(jsonl_path)
+            if meta["model"] or meta["summary"]:
+                conn.execute(
+                    "UPDATE sessions SET model = ?, task_summary = ? WHERE session_id = ? AND model IS NULL",
+                    (meta["model"], meta["summary"], session_id),
+                )
+                updated += 1
+        conn.commit()
+        conn.close()
+        print(f"Backfilled {updated}/{len(rows)} sessions")
         return
 
     event_mode = "posttool"
