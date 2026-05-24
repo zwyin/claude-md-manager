@@ -102,6 +102,25 @@ class TestUpsertSession:
         assert rows[0]["model"] == "claude-5"
         assert rows[0]["task_summary"] == "second"
 
+    def test_null_update_preserves_existing_metadata(self, conn):
+        """Calling upsert with None should not overwrite existing model/summary."""
+        upsert_session(conn, "s1", model="claude-4", summary="important task")
+        upsert_session(conn, "s1", model=None, summary=None)
+        row = conn.execute("SELECT model, task_summary FROM sessions WHERE session_id = 's1'").fetchone()
+        assert row["model"] == "claude-4"
+        assert row["task_summary"] == "important task"
+
+    def test_null_then_value_updates_correctly(self, conn):
+        """First call with None, then with value should set the value."""
+        upsert_session(conn, "s1", model=None, summary=None)
+        row = conn.execute("SELECT model, task_summary FROM sessions WHERE session_id = 's1'").fetchone()
+        assert row["model"] is None
+        assert row["task_summary"] is None
+        upsert_session(conn, "s1", model="glm-5.1", summary="new task")
+        row = conn.execute("SELECT model, task_summary FROM sessions WHERE session_id = 's1'").fetchone()
+        assert row["model"] == "glm-5.1"
+        assert row["task_summary"] == "new task"
+
 
 class TestSyncRulesMetadata:
     def test_insert_rules(self, conn):

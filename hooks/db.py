@@ -139,15 +139,19 @@ def record_references(conn: sqlite3.Connection, session_id: str, matches: list,
 
 
 def upsert_session(conn: sqlite3.Connection, session_id: str, model: str | None = None, summary: str | None = None):
-    """Insert or update a session record."""
+    """Insert or update a session record.
+
+    Only overwrites model/task_summary when non-None values are provided,
+    so incremental hook calls don't erase previously extracted metadata.
+    """
     conn.execute(
         """INSERT INTO sessions (session_id, started_at, ended_at, model, task_summary)
            VALUES (?, datetime('now'), datetime('now'), ?, ?)
            ON CONFLICT(session_id) DO UPDATE SET
                ended_at = datetime('now'),
-               model = excluded.model,
-               task_summary = excluded.task_summary""",
-        (session_id, model, summary)
+               model = COALESCE(?, sessions.model),
+               task_summary = COALESCE(?, sessions.task_summary)""",
+        (session_id, model, summary, model, summary)
     )
     conn.commit()
 
