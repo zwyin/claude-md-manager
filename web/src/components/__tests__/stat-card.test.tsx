@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import React from 'react';
 import { render, cleanup, screen, act } from '@testing-library/react';
 import { StatCard } from '../stat-card';
@@ -16,7 +16,13 @@ vi.mock('@/components/ui/card', () => ({
 }));
 
 describe('StatCard', () => {
-  afterEach(cleanup);
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    cleanup();
+  });
 
   it('renders label', () => {
     render(<StatCard label="Sessions" value={42} />);
@@ -61,5 +67,36 @@ describe('StatCard', () => {
     const { container } = render(<StatCard label="Test" value={5} />);
     const bar = container.querySelector('[style*="background-color"]');
     expect(bar).toBeTruthy();
+  });
+
+  it('animates to final integer value', () => {
+    render(<StatCard label="Count" value={42} />);
+    act(() => { vi.advanceTimersByTime(1000); });
+    expect(screen.getByText('42')).toBeTruthy();
+  });
+
+  it('animates to final percentage value', () => {
+    render(<StatCard label="Coverage" value={75.5} percentage />);
+    act(() => { vi.advanceTimersByTime(1000); });
+    expect(screen.getByText('76%')).toBeTruthy();
+  });
+
+  it('animates to final decimal value', () => {
+    render(<StatCard label="Score" value="3.14" />);
+    act(() => { vi.advanceTimersByTime(1000); });
+    expect(screen.getByText('3.14')).toBeTruthy();
+  });
+
+  it('renders percentage with color style', () => {
+    render(<StatCard label="Pct" value={80} percentage />);
+    act(() => { vi.advanceTimersByTime(1000); });
+    const valueEl = document.querySelector('.text-3xl');
+    expect(valueEl?.getAttribute('style')).toContain('color');
+  });
+
+  it('handles NaN target value', () => {
+    render(<StatCard label="Invalid" value="not-a-number" />);
+    const valueEl = document.querySelector('.text-3xl');
+    expect(valueEl?.textContent).toBe('0');
   });
 });
