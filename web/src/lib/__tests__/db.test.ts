@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import {
   getSectionsWithStats,
   getRulesWithStats,
@@ -568,7 +569,7 @@ describe('empty database edge cases', () => {
 });
 
 describe('own connection management (own=true path)', () => {
-  const tmp = path.join(require('os').tmpdir(), `db-test-${Date.now()}.db`);
+  const tmp = path.join(os.tmpdir(), `db-test-${Date.now()}.db`);
   let fileDb: Database.Database;
 
   beforeAll(() => {

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import type { Dict } from '@/i18n/zh';
 import { usePageTitle, useDynamicPageTitle } from '../use-page-title';
