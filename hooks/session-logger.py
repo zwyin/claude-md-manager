@@ -179,6 +179,50 @@ def _classify_confidence(keyword: str) -> str:
     return "low"
 
 
+def extract_session_metadata(jsonl_path: Path) -> dict:
+    """Extract model and task_summary from a session JSONL file.
+
+    Scans the first 50 entries looking for model (from assistant messages)
+    and task_summary (from first user message text).
+    """
+    model = None
+    summary = None
+
+    try:
+        with open(jsonl_path, "r", encoding="utf-8") as f:
+            for idx, line in enumerate(f):
+                if idx >= 50:
+                    break
+                try:
+                    entry = json.loads(line.strip())
+                except json.JSONDecodeError:
+                    continue
+
+                if not model and entry.get("type") == "assistant":
+                    msg = entry.get("message", {})
+                    if isinstance(msg, dict) and msg.get("model"):
+                        model = msg["model"]
+
+                if not summary and entry.get("type") == "human":
+                    msg = entry.get("message", {})
+                    content = msg.get("content", "")
+                    if isinstance(content, str):
+                        text = content.strip()
+                    elif isinstance(content, list):
+                        text = " ".join(
+                            b.get("text", "") for b in content
+                            if isinstance(b, dict) and b.get("type") == "text"
+                        ).strip()
+                    else:
+                        text = ""
+                    if text:
+                        summary = text[:200]
+    except (FileNotFoundError, OSError):
+        pass
+
+    return {"model": model, "summary": summary}
+
+
 def scan_session(jsonl_path: Path, pattern_map: dict, start_line: int = 0) -> tuple[list, int]:
     """Scan a session JSONL file for keyword matches in assistant messages.
 
@@ -360,7 +404,8 @@ def main():
     # Connect to DB
     conn = get_db()
     try:
-        upsert_session(conn, session_id)
+        meta = extract_session_metadata(session_path)
+        upsert_session(conn, session_id, model=meta["model"], summary=meta["summary"])
         sync_rules_metadata(conn, rules_data)
         sync_sections_metadata(conn, sections_data)
 

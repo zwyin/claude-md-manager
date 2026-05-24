@@ -14,6 +14,7 @@ parse_all_rules = sl.parse_all_rules
 scan_session = sl.scan_session
 scan_last_message = sl.scan_last_message
 find_latest_session = sl.find_latest_session
+extract_session_metadata = sl.extract_session_metadata
 _build_pattern = sl._build_pattern
 _classify_confidence = sl._classify_confidence
 main = sl.main
@@ -757,3 +758,35 @@ rules:
         main()
         captured = capsys.readouterr()
         assert "1 matches" in captured.out
+
+
+class TestExtractSessionMetadata:
+    """Tests for extract_session_metadata."""
+
+    def test_extracts_model_and_summary(self):
+        f = Path("/tmp/test_meta.jsonl")
+        f.write_text("\n".join([
+            json.dumps({"type": "human", "message": {"content": "Fix the login bug"}}),
+            json.dumps({"type": "assistant", "message": {"model": "glm-5.1", "content": [{"type": "text", "text": "I'll fix it"}]}}),
+        ]), encoding="utf-8")
+        meta = extract_session_metadata(f)
+        assert meta["model"] == "glm-5.1"
+        assert meta["summary"] == "Fix the login bug"
+
+    def test_no_model_returns_none(self):
+        f = Path("/tmp/test_meta_nomodel.jsonl")
+        f.write_text(_assistant_msg("hello"), encoding="utf-8")
+        meta = extract_session_metadata(f)
+        assert meta["model"] is None
+
+    def test_missing_file_returns_empty(self):
+        meta = extract_session_metadata(Path("/tmp/nonexistent_abc123.jsonl"))
+        assert meta["model"] is None
+        assert meta["summary"] is None
+
+    def test_summary_truncated_at_200(self):
+        f = Path("/tmp/test_meta_long.jsonl")
+        long_text = "x" * 300
+        f.write_text(json.dumps({"type": "human", "message": {"content": long_text}}), encoding="utf-8")
+        meta = extract_session_metadata(f)
+        assert len(meta["summary"]) == 200
