@@ -1,5 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import Database from 'better-sqlite3';
+import path from 'path';
+import fs from 'fs';
 import {
   getSectionsWithStats,
   getRulesWithStats,
@@ -17,6 +19,7 @@ import {
   getConfidenceDistribution,
   getSessionDetail,
   getFilteredSessions,
+  setDbPath,
 } from '../db';
 
 const SCHEMA_SQL = `
@@ -561,5 +564,108 @@ describe('empty database edge cases', () => {
     expect(result.avg_depth).toBe(0);
     expect(result.total_citations).toBe(0);
     emptyDb.close();
+  });
+});
+
+describe('own connection management (own=true path)', () => {
+  const tmp = path.join(require('os').tmpdir(), `db-test-${Date.now()}.db`);
+  let fileDb: Database.Database;
+
+  beforeAll(() => {
+    fileDb = new Database(tmp);
+    fileDb.exec(SCHEMA_SQL);
+    seedDataOn(fileDb);
+    fileDb.close();
+    setDbPath(tmp);
+  });
+
+  afterAll(() => {
+    setDbPath(path.join(process.cwd(), '..', 'data', 'usage.db'));
+    fs.unlinkSync(tmp);
+  });
+
+  function seedDataOn(d: Database.Database) {
+    d.prepare("INSERT INTO sections_metadata (section_id, title, source_file, rule_count) VALUES ('sec1', 'Section 1', 'a.md', 2)").run();
+    d.prepare("INSERT INTO sections_metadata (section_id, title, source_file, rule_count) VALUES ('sec2', 'Section 2', 'b.md', 1)").run();
+    d.prepare("INSERT INTO rules_metadata (rule_id, section_id, title, keywords, source_file) VALUES ('r1', 'sec1', 'Rule 1', '[\"kw1\"]', 'a.md')").run();
+    d.prepare("INSERT INTO rules_metadata (rule_id, section_id, title, keywords, source_file) VALUES ('r2', 'sec1', 'Rule 2', '[]', 'a.md')").run();
+    d.prepare("INSERT INTO rules_metadata (rule_id, section_id, title, keywords, source_file) VALUES ('r3', 'sec2', 'Rule 3', '[\"kw3\"]', 'b.md')").run();
+    d.prepare("INSERT INTO sessions (session_id, model, task_summary) VALUES ('s1', 'claude-4', 'task 1')").run();
+    d.prepare("INSERT INTO sessions (session_id, model, task_summary) VALUES ('s2', 'claude-5', 'task 2')").run();
+    d.prepare("INSERT INTO rule_references (rule_id, session_id, matched_keyword) VALUES ('r1', 's1', 'kw1')").run();
+    d.prepare("INSERT INTO rule_references (rule_id, session_id, matched_keyword) VALUES ('r1', 's2', 'kw1')").run();
+    d.prepare("INSERT INTO rule_references (rule_id, session_id, matched_keyword) VALUES ('r2', 's1', 'kw2')").run();
+  }
+
+  it('getSectionsWithStats opens and closes own connection', () => {
+    const result = getSectionsWithStats();
+    expect(result.length).toBeGreaterThan(0);
+    // Connection was auto-closed — calling again should work
+    const result2 = getSectionsWithStats();
+    expect(result2.length).toBe(result.length);
+  });
+
+  it('getRulesWithStats opens and closes own connection', () => {
+    const result = getRulesWithStats();
+    expect(result.length).toBeGreaterThan(0);
+    const result2 = getRulesWithStats();
+    expect(result2.length).toBe(result.length);
+  });
+
+  it('getTotalSessionCount opens and closes own connection', () => {
+    expect(getTotalSessionCount()).toBe(2);
+  });
+
+  it('getTotalCitationCount opens and closes own connection', () => {
+    expect(getTotalCitationCount()).toBe(3);
+  });
+
+  it('getCitations opens and closes own connection', () => {
+    const result = getCitations({});
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('getAnalytics opens and closes own connection', () => {
+    const a = getAnalytics();
+    expect(a.total_rules).toBe(3);
+  });
+
+  it('getRecentCitations opens and closes own connection', () => {
+    const result = getRecentCitations(10);
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('getHeatmapData opens and closes own connection', () => {
+    const result = getHeatmapData(undefined, 10);
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('getRecentBuilds opens and closes own connection', () => {
+    expect(getRecentBuilds(5)).toEqual([]);
+  });
+
+  it('getModelDistribution opens and closes own connection', () => {
+    const result = getModelDistribution(undefined);
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('getRecentSessions opens and closes own connection', () => {
+    const result = getRecentSessions(10, undefined);
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('getConfidenceDistribution opens and closes own connection', () => {
+    const result = getConfidenceDistribution(undefined);
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('getSessionDetail opens and closes own connection', () => {
+    const detail = getSessionDetail('s1');
+    expect(detail.session.session_id).toBe('s1');
+  });
+
+  it('getFilteredSessions opens and closes own connection', () => {
+    const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'time', dir: 'DESC' });
+    expect(result.sessions.length).toBeGreaterThan(0);
   });
 });

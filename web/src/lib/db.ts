@@ -23,10 +23,14 @@ import type {
   Session,
 } from './types';
 
-const DB_PATH = path.join(process.cwd(), '..', 'data', 'usage.db');
+let dbPath = path.join(process.cwd(), '..', 'data', 'usage.db');
+
+export function setDbPath(p: string) {
+  dbPath = p;
+}
 
 function getDb(): Database.Database {
-  return new Database(DB_PATH, { readonly: true });
+  return new Database(dbPath, { readonly: true });
 }
 
 // ── Sections ──
