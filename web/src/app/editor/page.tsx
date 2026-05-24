@@ -67,10 +67,11 @@ function EditorContent() {
     fetch("/api/editor/publish-history")
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data.history)) setPublishHistory(data.history); })
-      .catch(() => {});
+      .catch((err) => { console.warn('Failed to fetch publish history:', err); });
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     const preselected = searchParams.get('rule');
     fetch("/api/editor/rules")
       .then((r) => {
@@ -78,6 +79,7 @@ function EditorContent() {
         return r.json();
       })
       .then((data) => {
+        if (cancelled) return;
         setRules(data.rules);
         setLoaded(true);
         fetchPublishHistory();
@@ -90,7 +92,10 @@ function EditorContent() {
         }
         initialLoadDone.current = true;
       })
-      .catch(() => toast.error(t('editor.loadFailed')));
+      .catch((err) => {
+        if (!cancelled) toast.error(t('editor.loadFailed'));
+      });
+    return () => { cancelled = true; };
   }, [t, searchParams, fetchPublishHistory]);
 
   useEffect(() => {
@@ -214,7 +219,7 @@ function EditorContent() {
         const res = await fetch("/api/editor/rules");
         const refreshed = await res.json();
         if (Array.isArray(refreshed.rules)) setRules(refreshed.rules);
-      } catch { /* best-effort refresh */ }
+      } catch { /* best-effort: ignore failures after publish */ }
       setHasDraft(false);
     }
   }, [t]);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, memo } from 'react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { MiniSparkline, MiniCoverageBar, MiniDepthBar, InlineMetricBar } from '@/components/metric-visualizations';
@@ -16,7 +16,7 @@ interface RuleRowProps {
   maxDepth: number;
 }
 
-export function RuleRow({ rule, totalSessions, maxDepth }: RuleRowProps) {
+export const RuleRow = memo(function RuleRow({ rule, totalSessions, maxDepth }: RuleRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [body, setBody] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -105,4 +105,4 @@ export function RuleRow({ rule, totalSessions, maxDepth }: RuleRowProps) {
       )}
     </>
   );
-}
+});
