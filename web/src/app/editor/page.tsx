@@ -92,7 +92,7 @@ function EditorContent() {
         }
         initialLoadDone.current = true;
       })
-      .catch((err) => {
+      .catch(() => {
         if (!cancelled) toast.error(t('editor.loadFailed'));
       });
     return () => { cancelled = true; };
