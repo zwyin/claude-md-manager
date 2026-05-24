@@ -35,7 +35,8 @@ cd web && npm run build               # 生产构建
 ```
 rules/*.md        → YAML frontmatter + Markdown 正文
 build/assemble.py → 按 order 排序拼接 → ~/.claude/CLAUDE.md + 快照
-hooks/            → session-logger.py (PostToolUse) → SQLite 引用记录
+hooks/            → session-logger.py (PostToolUse + Stop) → SQLite 引用记录
+                     增量扫描（offset 追踪），提取 model/task_summary
 web/              → Next.js 16 + shadcn/ui 仪表盘
 data/usage.db     → SQLite (规则元数据 + 引用记录 + 会话信息)
 ```
@@ -53,6 +54,6 @@ data/usage.db     → SQLite (规则元数据 + 引用记录 + 会话信息)
 
 ## 已知限制
 
-- Hook 注册需手动在 `~/.claude/settings.json` 添加 PostToolUse 条目
-- session-logger.py 每次触发扫描整个 JSONL，大文件可能较慢
+- Hook 注册需手动在 `~/.claude/settings.json` 添加 PostToolUse 和 Stop 条目
 - 仪表盘 API 路由直接读 SQLite，无 ORM
+- 会话 model/task_summary 仅在新会话被 hook 处理时填充，历史会话需重新扫描
