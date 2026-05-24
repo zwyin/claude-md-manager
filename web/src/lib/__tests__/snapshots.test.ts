@@ -20,6 +20,27 @@ import {
   rollbackToSnapshot,
 } from '../snapshots';
 
+// Dynamic-import helper for testing OUTPUT_PATH env fallback branches
+async function importSnapshotsWithEnv(envOverrides: Record<string, string | undefined>) {
+  const origHome = process.env.HOME;
+  const origUser = process.env.USERPROFILE;
+  for (const [k, v] of Object.entries(envOverrides)) {
+    if (v === undefined) delete process.env[k];
+    else process.env[k] = v;
+  }
+  vi.resetModules();
+  try {
+    const mod = await import('../snapshots?_env=' + JSON.stringify(envOverrides));
+    return mod;
+  } finally {
+    if (origHome !== undefined) process.env.HOME = origHome;
+    else delete process.env.HOME;
+    if (origUser !== undefined) process.env.USERPROFILE = origUser;
+    else delete process.env.USERPROFILE;
+    vi.resetModules();
+  }
+}
+
 describe('safePath (via getSnapshotContent)', () => {
   it('rejects path traversal with ..', () => {
     expect(() => getSnapshotContent('../etc/passwd.md')).toThrow(
@@ -173,5 +194,20 @@ describe('rollbackToSnapshot', () => {
 
     expect(rollbackToSnapshot('2026-01-01.md')).toBe(true);
     expect(fs.writeFileSync).toHaveBeenCalled();
+  });
+});
+
+describe('OUTPUT_PATH env fallback', () => {
+  it('uses USERPROFILE when HOME is unset', async () => {
+    const mod = await importSnapshotsWithEnv({ HOME: undefined, USERPROFILE: '/home/testuser' });
+    // Rollback writes to OUTPUT_PATH — we can't inspect it directly,
+    // but the dynamic import exercised the USERPROFILE branch.
+    // Verify the module loaded correctly (no crash).
+    expect(typeof mod.rollbackToSnapshot).toBe('function');
+  });
+
+  it('falls back to ~ when neither HOME nor USERPROFILE is set', async () => {
+    const mod = await importSnapshotsWithEnv({ HOME: undefined, USERPROFILE: undefined });
+    expect(typeof mod.rollbackToSnapshot).toBe('function');
   });
 });

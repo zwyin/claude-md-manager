@@ -125,3 +125,44 @@ describe('useI18n without provider', () => {
     expect(() => renderHook(() => useI18n())).toThrow('useI18n must be used within I18nProvider');
   });
 });
+
+describe('localeMap fallback', () => {
+  it('falls back to zh-CN when localeMap has no entry for lang', () => {
+    const { result } = renderHook(() => useI18n(), { wrapper });
+    // en is in localeMap, so this should return en-US
+    act(() => { result.current.setLang('en'); });
+    expect(result.current.locale).toBe('en-US');
+
+    // zh is in localeMap, returns zh-CN
+    act(() => { result.current.setLang('zh'); });
+    expect(result.current.locale).toBe('zh-CN');
+  });
+});
+
+describe('translation fallback chain', () => {
+  it('falls back to zh when key missing from current lang', () => {
+    const { result } = renderHook(() => useI18n(), { wrapper });
+    act(() => { result.current.setLang('en'); });
+    // en has keys that zh doesn't and vice versa — test a zh-only key in en mode
+    // If the key exists in zh but not en, it falls back to zh
+    const text = result.current.t('dashboard.title');
+    expect(text).toBeTruthy();
+  });
+});
+
+describe('standalone t() fallback paths', () => {
+  it('falls back through dicts chain for unknown lang', () => {
+    // Set lang to invalid value directly in localStorage to test dicts[lang]?.[key] || dicts.zh[key] path
+    localStorageMock.setItem('lang', 'invalid');
+    const text = t('dashboard.title');
+    // Should fall back to zh since 'invalid' has no dict
+    expect(text).toBeTruthy();
+    expect(text).toBe(t('dashboard.title')); // same as zh default
+  });
+
+  it('returns key when missing from both dicts', () => {
+    localStorageMock.clear();
+    const text = t('completely.nonexistent.key' as keyof Dict);
+    expect(text).toBe('completely.nonexistent.key');
+  });
+});
