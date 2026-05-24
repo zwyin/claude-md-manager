@@ -67,6 +67,8 @@ CREATE INDEX IF NOT EXISTS idx_refs_time ON rule_references(timestamp);
 CREATE INDEX IF NOT EXISTS idx_refs_session ON rule_references(session_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_refs_dedup ON rule_references(rule_id, session_id, matched_keyword);
 CREATE INDEX IF NOT EXISTS idx_rules_section ON rules_metadata(section_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_started ON sessions(started_at);
+CREATE INDEX IF NOT EXISTS idx_sessions_model ON sessions(model);
 """
 
 # Migration: add columns to existing tables if they were created before this version
