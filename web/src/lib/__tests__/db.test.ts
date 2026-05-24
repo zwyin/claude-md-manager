@@ -473,4 +473,15 @@ describe('getFilteredSessions', () => {
     const result = getFilteredSessions({ limit: 10, offset: 0, sort: 'time', dir: 'DESC' }, db);
     expect(result.avg_duration).toBeNull();
   });
+
+  it('escapes SQL wildcards in search', () => {
+    db.prepare("INSERT OR REPLACE INTO sessions (session_id, task_summary) VALUES ('w1', 'progress: 100% complete')").run();
+    db.prepare("INSERT OR REPLACE INTO sessions (session_id, task_summary) VALUES ('w2', 'user_name check')").run();
+    const pct = getFilteredSessions({ limit: 10, offset: 0, sort: 'time', dir: 'DESC', search: '100%' }, db);
+    expect(pct.total).toBe(1);
+    expect(pct.sessions[0].session_id).toBe('w1');
+    const us = getFilteredSessions({ limit: 10, offset: 0, sort: 'time', dir: 'DESC', search: 'user_name' }, db);
+    expect(us.total).toBe(1);
+    expect(us.sessions[0].session_id).toBe('w2');
+  });
 });

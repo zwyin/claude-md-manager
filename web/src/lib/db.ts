@@ -701,10 +701,10 @@ export function getFilteredSessions(
     const orderExpr = orderExprs[opts.sort] ?? orderExprs.time;
 
     const timeFilter = days ? `AND s.started_at >= datetime('now', ? || ' days')` : '';
-    const searchFilter = search ? `AND (LOWER(s.session_id) LIKE ? OR LOWER(s.task_summary) LIKE ?)` : '';
+    const searchFilter = search ? `AND (LOWER(s.session_id) LIKE ? ESCAPE '\\' OR LOWER(s.task_summary) LIKE ? ESCAPE '\\')` : '';
     const modelFilter = model ? `AND s.model = ?` : '';
     const confidenceFilter = confidence ? `AND EXISTS (SELECT 1 FROM rule_references rr WHERE rr.session_id = s.session_id AND rr.confidence = ?)` : '';
-    const searchParam = search ? `%${search}%` : '';
+    const searchParam = search ? `%${search.replace(/[%_]/g, '\\$&')}%` : '';
     const baseParams = [
       ...(days ? [`-${days}`] : []),
       ...(search ? [searchParam, searchParam] : []),
@@ -737,7 +737,7 @@ export function getFilteredSessions(
         AVG((SELECT COUNT(*) FROM rule_references WHERE session_id = s.session_id)) AS avg_citations
       FROM sessions s WHERE 1=1
       ${days ? "AND s.started_at >= datetime('now', ? || ' days')" : ''}
-      ${search ? "AND (LOWER(s.session_id) LIKE ? OR LOWER(s.task_summary) LIKE ?)" : ''}
+      ${search ? "AND (LOWER(s.session_id) LIKE ? ESCAPE '\\' OR LOWER(s.task_summary) LIKE ? ESCAPE '\\')" : ''}
       ${model ? "AND s.model = ?" : ''}
       ${confidence ? "AND EXISTS (SELECT 1 FROM rule_references rr WHERE rr.session_id = s.session_id AND rr.confidence = ?)" : ''}
     `).bind(...baseParams).get() as { total: number; avg_duration: number | null; avg_citations: number | null };
