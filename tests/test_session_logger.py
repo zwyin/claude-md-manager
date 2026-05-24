@@ -691,3 +691,69 @@ rules:
         captured = capsys.readouterr()
         assert "[stop]" in captured.out
         assert "0 matches" in captured.out
+
+
+class TestEdgeCases:
+    """Tests for uncommon paths in session-logger."""
+
+    def test_scan_last_message_malformed_json(self):
+        """Malformed JSON lines are skipped (JSONDecodeError path)."""
+        pm = self._build_pm("hello")
+        f = Path("/tmp/test_malformed.jsonl")
+        f.write_text("\n".join([
+            "this is not json",
+            _assistant_msg("say hello"),
+        ]), encoding="utf-8")
+        matches = scan_last_message(f, pm)
+        assert len(matches) == 1
+        assert matches[0]["keyword"] == "hello"
+
+    @staticmethod
+    def _build_pm(*keywords):
+        pairs = []
+        for kw in keywords:
+            pairs.append((kw.lower(), (_build_pattern(kw), [("r1", kw)])))
+        return dict(pairs)
+
+    def test_scan_session_keyword_dedup_shorter_skipped(self, rules_dir, tmp_path, monkeypatch):
+        """When two keywords match at the same position, shorter is skipped."""
+        _write_rule(rules_dir, "test.md", """
+id: sec1
+rules:
+  - id: sec1.r1
+    title: Rule One
+    keywords:
+      - TDD
+      - TDD cycle
+""")
+        db_path = tmp_path / "test_dedup.db"
+        monkeypatch.setattr(db_mod, "DB_PATH", db_path)
+
+        session = tmp_path / "dedup.jsonl"
+        _make_jsonl(session, [_assistant_msg("follow the TDD cycle approach")])
+        monkeypatch.setattr(sys, "argv", ["session-logger.py", str(session)])
+
+        main()
+        # Both keywords match "TDD cycle", but the longer one should win
+
+    def test_main_skips_unknown_flag(self, rules_dir, tmp_path, monkeypatch, capsys):
+        """main() skips CLI args starting with '-' (line 342 path)."""
+        _write_rule(rules_dir, "test.md", """
+id: sec1
+rules:
+  - id: sec1.r1
+    title: Rule One
+    keywords:
+      - testword999
+""")
+        db_path = tmp_path / "test_flag_skip.db"
+        monkeypatch.setattr(db_mod, "DB_PATH", db_path)
+
+        session = tmp_path / "flag_skip.jsonl"
+        _make_jsonl(session, [_assistant_msg("use testword999 here")])
+        # --unknown-flag should be skipped, session path still found
+        monkeypatch.setattr(sys, "argv", ["session-logger.py", "--unknown-flag", str(session)])
+
+        main()
+        captured = capsys.readouterr()
+        assert "1 matches" in captured.out
