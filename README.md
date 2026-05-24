@@ -71,15 +71,25 @@ Add to `~/.claude/settings.json`:
         "type": "command",
         "command": "python3 /path/to/claude-md-manager/hooks/session-logger.py"
       }]
+    }],
+    "Stop": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "command",
+        "command": "python3 /path/to/claude-md-manager/hooks/session-logger.py --event stop"
+      }]
     }]
   }
 }
 ```
 
-Then sync rule metadata into the database:
+**PostToolUse** scans incrementally (low confidence). **Stop** scans the final assistant message (medium confidence). MCP tool calls provide high confidence.
+
+Then sync rule metadata and backfill historical sessions:
 
 ```bash
 python hooks/session-logger.py --sync-metadata
+python hooks/session-logger.py --backfill --all   # Populate model + summary for past sessions
 ```
 
 ## Rule File Format
@@ -131,17 +141,22 @@ data/history/     → Build snapshots for rollback
 
 | Page | Path | Description |
 |------|------|-------------|
-| Dashboard | `/` | Stats cards + Sections overview + Top 10 rules + Cold rules |
-| Rules | `/rules` | All rules grouped by section, collapsible |
-| Rule Detail | `/rules/[id]` | Single rule + keywords + citation records + sibling rules |
-| History | `/history` | Rule metadata grouped by update date |
-| Analytics | `/analytics` | Top 10 chart + category distribution |
+| Dashboard | `/` | Stats cards, section overview, top/cold rules, citation trend, model distribution |
+| Rules | `/rules` | All rules grouped by section, searchable, collapsible |
+| Rule Detail | `/rules/[id]` | Keywords, citation timeline, confidence breakdown, sibling rules |
+| Sessions | `/sessions` | Paginated session list with search, model filter, sort by citations/duration |
+| Session Detail | `/sessions/[id]` | Citation timeline, confidence badges, rule coverage per section |
+| Analytics | `/analytics` | Top rules chart, category pie, heatmap, confidence distribution, CSV export |
+| History | `/history` | Build snapshots with diff viewer and one-click rollback |
+| Editor | `/editor` | Rule editor with YAML frontmatter, live preview, draft/publish workflow |
 
 ### Dashboard Tech Stack
 
 - Next.js 16 + React 19 + Tailwind CSS v4
 - **shadcn/ui** (Radix UI primitives) — Card, Table, Badge, Sidebar, Collapsible
 - better-sqlite3 (server-side, read-only)
+- i18n support (Chinese + English)
+- Recharts for data visualization
 
 ## Design Docs
 
@@ -152,8 +167,14 @@ data/history/     → Build snapshots for rollback
 ## Development
 
 ```bash
-# Run tests
+# Run Python tests (183 tests, 98% coverage)
 python -m pytest tests/ -v
+
+# Run web tests (222 tests)
+cd web && npx vitest run
+
+# Run web tests with coverage
+cd web && npx vitest run --coverage
 
 # Build dashboard
 cd web && npm run build
@@ -180,8 +201,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 - **模块化规则** — 将 CLAUDE.md 拆分为独立文件，YAML frontmatter 声明子规则和关键词
 - **构建系统** — 一条命令按顺序拼接所有规则，写入 `~/.claude/CLAUDE.md` 并创建 git 快照
-- **引用追踪** — Claude Code Hook 扫描会话日志，记录哪些规则被实际引用
-- **可视化仪表盘** — Next.js Web 应用，展示章节聚合、热门规则、冷门规则、引用历史
+- **引用追踪** — Claude Code Hook 扫描会话日志，记录哪些规则被实际引用，三级置信度（low/medium/high）
+- **可视化仪表盘** — Next.js Web 应用，展示章节聚合、热门/冷门规则、引用趋势、置信度分布、热力图
 - **一键回滚** — 每次构建创建快照，可回滚到任意历史版本
 
 ## 快速开始
@@ -201,6 +222,9 @@ python build/assemble.py --rollback 2026-05-15T21-38-58  # 回滚
 
 # 启动仪表盘
 cd web && npm run dev                 # 开发模式 http://localhost:3456
+
+# 回填历史会话元数据
+python hooks/session-logger.py --backfill --all
 ```
 
 ## 架构
@@ -208,9 +232,9 @@ cd web && npm run dev                 # 开发模式 http://localhost:3456
 ```
 rules/*.md        → YAML frontmatter + Markdown 正文
 build/assemble.py → 按 order 排序拼接 → ~/.claude/CLAUDE.md + 快照
-hooks/            → session-logger.py (PostToolUse) → SQLite 引用记录
-web/              → Next.js 16 + shadcn/ui 仪表盘
-data/usage.db     → SQLite (规则元数据 + 引用记录 + 会话信息)
+hooks/            → session-logger.py (PostToolUse + Stop Hook) → SQLite 引用记录
+web/              → Next.js 16 + shadcn/ui 仪表盘（支持中英文）
+data/usage.db     → SQLite (规则元数据 + 引用记录 + 会话信息 + 置信度)
 data/history/     → 构建快照（用于回滚）
 ```
 
