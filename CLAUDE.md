@@ -52,6 +52,33 @@ data/usage.db     → SQLite (规则元数据 + 引用记录 + 会话信息)
 | `web/src/components/app-sidebar.tsx` | 侧边栏导航 |
 | `web/src/app/rules/[id]/page.tsx` | 规则详情页 |
 
+## 覆盖率门禁
+
+每次重大迭代完成后必须运行覆盖率统计并报告结果。新代码导致覆盖率低于目标线时，必须先补测试再继续开发。
+
+### 目标（2026-05-25 基线）
+
+| 层 | Stmts | Branch | 当前 Stmts | 当前 Branch |
+|----|-------|--------|------------|-------------|
+| Python (hooks, build, mcp_lib) | ≥ 95% | — | 99% | — |
+| Web — lib/ | ≥ 95% | ≥ 90% | 99.78% | 97.33% |
+| Web — i18n/ | ≥ 90% | ≥ 80% | 100% | 88.88% |
+| Web — hooks/ | ≥ 90% | ≥ 85% | 96.22% | 95.23% |
+| Web — components/ | ≥ 90% | ≥ 80% | 97% | 85.98% |
+| Web — app/api/ (API routes) | ≥ 80% | ≥ 70% | 75–95% | — |
+| Web — app/pages/ (页面组件) | ≥ 70% | ≥ 60% | 50–95% | — |
+| **Web 整体** | **≥ 85%** | **≥ 75%** | **87.1%** | **80.1%** |
+
+### 测试命令
+
+```bash
+# Python 覆盖率
+python -m pytest tests/ --cov=hooks --cov=build --cov=mcp_lib --cov-report=term-missing
+
+# Web 覆盖率
+cd web && PATH="/opt/homebrew/bin:$PATH" npx vitest run --coverage
+```
+
 ## 已知限制
 
 - Hook 注册需手动在 `~/.claude/settings.json` 添加 PostToolUse 和 Stop 条目

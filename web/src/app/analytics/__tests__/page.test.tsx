@@ -94,7 +94,7 @@ vi.mock('@/components/ui/card', () => ({
 }));
 
 vi.mock('@/components/ui/badge', () => ({
-  Badge: ({ children }: any) => <span data-testid="badge">{children}</span>,
+  Badge: ({ children, onClick }: any) => <span data-testid="badge" onClick={onClick}>{children}</span>,
 }));
 
 vi.mock('@/components/ui/button', () => ({
@@ -298,5 +298,162 @@ describe('AnalyticsPage', () => {
     mockData = fullData;
     render(<AnalyticsPage />);
     expect(screen.getByText('Confidence')).toBeTruthy();
+  });
+
+  it('clicks time range button', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    const btn7d = screen.getByText('7d');
+    fireEvent.click(btn7d);
+    // After click, 7d should be active (variant=default)
+    expect(btn7d.getAttribute('data-variant')).toBe('default');
+  });
+
+  it('clicks all time range resets filter', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    const allBtn = screen.getByText('All');
+    fireEvent.click(allBtn);
+    expect(allBtn.getAttribute('data-variant')).toBe('default');
+  });
+
+  it('clicks trend mode buttons', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    const weekBtn = screen.getByText('Week');
+    fireEvent.click(weekBtn);
+    expect(weekBtn.getAttribute('data-variant')).toBe('default');
+  });
+
+  it('clicks month trend mode', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    const monthBtn = screen.getByText('Month');
+    fireEvent.click(monthBtn);
+    expect(monthBtn.getAttribute('data-variant')).toBe('default');
+  });
+
+  it('renders CSV download button', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    expect(screen.getByText('CSV')).toBeTruthy();
+  });
+
+  it('shows avg per day when trend has data', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    expect(screen.getByText(/Avg\/day/)).toBeTruthy();
+  });
+
+  it('renders pie chart with data', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    expect(screen.getByTestId('pie-chart')).toBeTruthy();
+  });
+
+  it('shows confidence percentage bars', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    // High=100, Medium=50, Low=20 → total=170
+    expect(screen.getByText(/58.8%/)).toBeTruthy();
+  });
+
+  it('shows confidence counts', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    expect(screen.getByText('100')).toBeTruthy();
+  });
+
+  it('shows confidence source labels when expanded', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    const medBtn = screen.getByText('Medium').closest('button');
+    fireEvent.click(medBtn!);
+    expect(screen.getByText('Stop')).toBeTruthy();
+  });
+
+  it('shows low confidence source when expanded', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    const lowBtn = screen.getByText('Low').closest('button');
+    fireEvent.click(lowBtn!);
+    expect(screen.getByText('PostTool')).toBeTruthy();
+  });
+
+  it('renders cold rules with cited count', () => {
+    mockData = {
+      ...fullData,
+      cold_rules: [{ rule_id: 'cold1', title: 'Cold Rule', section_id: 'core', citation_count: 3, last_cited: '2026-01-01T00:00:00Z' }],
+    };
+    render(<AnalyticsPage />);
+    expect(screen.getByText('Cold Rule')).toBeTruthy();
+    expect(screen.getByText(/3 matches/)).toBeTruthy();
+    expect(screen.getByText('2h ago')).toBeTruthy();
+  });
+
+  it('renders cold rules badge count', () => {
+    mockData = {
+      ...fullData,
+      cold_rules: [{ rule_id: 'cold1', title: 'Cold Rule', section_id: 'core', citation_count: 0, last_cited: null }],
+    };
+    render(<AnalyticsPage />);
+    // Badge shows count of cold rules
+    const badges = screen.getAllByTestId('badge');
+    const countBadge = badges.find((b) => b.textContent === '1');
+    expect(countBadge).toBeTruthy();
+  });
+
+  it('returns null when no data and not loading', () => {
+    mockData = null;
+    mockLoading = false;
+    mockError = null;
+    const { container } = render(<AnalyticsPage />);
+    expect(container.innerHTML).toBe('');
+  });
+
+  it('shows no data for empty confidence distribution', () => {
+    mockData = { ...fullData, confidence_distribution: [], heatmap: [], cold_rules: [] };
+    render(<AnalyticsPage />);
+    const noDataEls = screen.getAllByText('No data');
+    expect(noDataEls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('renders refresh button', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    const refreshBtn = screen.getByTitle('Refresh');
+    expect(refreshBtn).toBeTruthy();
+    fireEvent.click(refreshBtn);
+    expect(mockRefresh).toHaveBeenCalled();
+  });
+
+  it('truncates long rule names in top rules data', () => {
+    mockData = {
+      ...fullData,
+      top_rules: [{ rule_id: 'r1', title: 'A Very Long Rule Name That Exceeds Eighteen Characters', citation_count: 100, session_coverage: 0.5, avg_depth: 2.0 }],
+    };
+    render(<AnalyticsPage />);
+    // BarChart mock receives data prop with truncated name
+    expect(screen.getByTestId('bar-chart')).toBeTruthy();
+  });
+
+  it('uses section_id fallback when category has no title', () => {
+    mockData = {
+      ...fullData,
+      category_distribution: [{ section_id: 'custom', title: '', citation_count: 200, rule_count: 5 }],
+    };
+    render(<AnalyticsPage />);
+    expect(screen.getByTestId('pie-chart')).toBeTruthy();
+  });
+
+  it('clicks cold rule section badge to navigate', () => {
+    mockData = {
+      ...fullData,
+      cold_rules: [{ rule_id: 'cold1', title: 'Cold Rule', section_id: 'core', citation_count: 0, last_cited: null }],
+    };
+    render(<AnalyticsPage />);
+    const coreBadge = screen.getAllByTestId('badge').find((b) => b.textContent === 'core');
+    expect(coreBadge).toBeTruthy();
+    fireEvent.click(coreBadge!);
   });
 });

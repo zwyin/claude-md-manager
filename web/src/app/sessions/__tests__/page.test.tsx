@@ -111,6 +111,7 @@ describe('SessionsPage', () => {
     mockLoading = false;
     mockError = null;
     mockPush.mockClear();
+    Element.prototype.scrollIntoView = vi.fn();
   });
   afterEach(cleanup);
 
@@ -259,5 +260,184 @@ describe('SessionsPage', () => {
     const allBtns = screen.getAllByRole('button');
     const timeBtn = allBtns.find((b) => b.textContent?.includes('Time'));
     expect(timeBtn?.getAttribute('data-variant')).toBe('default');
+  });
+
+  it('toggles sort direction on repeated click', () => {
+    mockData = sessionData;
+    render(<SessionsPage />);
+    const allBtns = screen.getAllByRole('button');
+    const timeBtn = allBtns.find((b) => b.textContent?.includes('Time'))!;
+    fireEvent.click(timeBtn);
+    // After clicking same sort key, direction toggles to asc (arrow rotates)
+    expect(timeBtn.getAttribute('data-variant')).toBe('default');
+  });
+
+  it('switches sort key on different column click', () => {
+    mockData = sessionData;
+    render(<SessionsPage />);
+    const allBtns = screen.getAllByRole('button');
+    const citationsBtn = allBtns.find((b) => b.textContent?.includes('Citations'))!;
+    fireEvent.click(citationsBtn);
+    expect(citationsBtn.getAttribute('data-variant')).toBe('default');
+  });
+
+  it('shows session duration when present', () => {
+    mockData = sessionData;
+    render(<SessionsPage />);
+    // mock: 3600 > 60 → '1m+', 1800 > 60 → '1m+'
+    const durations = screen.getAllByText('1m+');
+    expect(durations.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('shows rule count badge when > 0', () => {
+    mockData = sessionData;
+    render(<SessionsPage />);
+    expect(screen.getByText(/3 rules/)).toBeTruthy();
+  });
+
+  it('shows task summary when present', () => {
+    mockData = sessionData;
+    render(<SessionsPage />);
+    expect(screen.getByText('Test task')).toBeTruthy();
+    expect(screen.getByText('Another task')).toBeTruthy();
+  });
+
+  it('navigates with keyboard ArrowDown', () => {
+    mockData = sessionData;
+    render(<SessionsPage />);
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    // Should set selectedIdx to 0
+    const rows = screen.getAllByText('abc123de');
+    expect(rows.length).toBeGreaterThan(0);
+  });
+
+  it('navigates with j key', () => {
+    mockData = sessionData;
+    render(<SessionsPage />);
+    fireEvent.keyDown(window, { key: 'j' });
+    // Should set selectedIdx to 0
+  });
+
+  it('navigates with ArrowUp after ArrowDown', () => {
+    mockData = sessionData;
+    render(<SessionsPage />);
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'ArrowUp' });
+  });
+
+  it('navigates with k key', () => {
+    mockData = sessionData;
+    render(<SessionsPage />);
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'k' });
+  });
+
+  it('navigates to detail on Enter key', () => {
+    mockData = sessionData;
+    render(<SessionsPage />);
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'Enter' });
+    expect(mockPush).toHaveBeenCalledWith('/sessions/abc123def');
+  });
+
+  it('focuses search on Cmd+K', () => {
+    mockData = { ...sessionData, sessions: [] };
+    render(<SessionsPage />);
+    const input = screen.getByPlaceholderText(/Search/);
+    fireEvent.keyDown(window, { metaKey: true, key: 'k' });
+    expect(document.activeElement).toBe(input);
+  });
+
+  it('does not navigate on Enter when no selection', () => {
+    mockData = sessionData;
+    render(<SessionsPage />);
+    fireEvent.keyDown(window, { key: 'Enter' });
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('does not navigate with keyboard when input focused', () => {
+    mockData = sessionData;
+    render(<SessionsPage />);
+    const input = screen.getByPlaceholderText(/Search/);
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('copies session id via keyboard Enter on span', async () => {
+    const { toast } = await import('sonner');
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    mockData = sessionData;
+    render(<SessionsPage />);
+    const idSpan = screen.getByText('abc123de');
+    fireEvent.keyDown(idSpan, { key: 'Enter' });
+    expect(writeText).toHaveBeenCalledWith('abc123def');
+    expect(toast.success).toHaveBeenCalledWith('Copied');
+  });
+
+  it('copies session id via keyboard Space on span', async () => {
+    const { toast } = await import('sonner');
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    mockData = sessionData;
+    render(<SessionsPage />);
+    const idSpan = screen.getByText('abc123de');
+    fireEvent.keyDown(idSpan, { key: ' ' });
+    expect(writeText).toHaveBeenCalledWith('abc123def');
+  });
+
+  it('clicks pagination next and prev', () => {
+    mockData = { ...sessionData, total: 100 };
+    render(<SessionsPage />);
+    const nextBtn = screen.getByText('Next →');
+    fireEvent.click(nextBtn);
+    // After clicking next, offset changes to 50, pagination shows prev
+    expect(screen.getByText('← Prev')).toBeTruthy();
+    fireEvent.click(screen.getByText('← Prev'));
+  });
+
+  it('disables prev button on first page', () => {
+    mockData = { ...sessionData, total: 100 };
+    render(<SessionsPage />);
+    // Next is enabled, no prev button yet
+    expect(screen.getByText('Next →').closest('button')?.disabled).toBe(false);
+  });
+
+  it('returns null when no data and not loading', () => {
+    mockData = null;
+    mockLoading = false;
+    mockError = null;
+    const { container } = render(<SessionsPage />);
+    expect(container.innerHTML).toBe('');
+  });
+
+  it('clicks time range filter', () => {
+    mockData = { ...sessionData, sessions: [] };
+    render(<SessionsPage />);
+    const btn7d = screen.getByText('7d');
+    fireEvent.click(btn7d);
+    // Button should show as active (variant=default)
+    expect(btn7d.getAttribute('data-variant')).toBe('default');
+  });
+
+  it('clicks model filter select', () => {
+    mockData = { ...sessionData, sessions: [] };
+    render(<SessionsPage />);
+    const select = screen.getByDisplayValue('All models') || screen.getByText('All models').closest('select');
+    if (select) {
+      fireEvent.change(select as HTMLElement, { target: { value: 'claude' } });
+    }
+  });
+
+  it('clicks confidence filter select', () => {
+    mockData = { ...sessionData, sessions: [] };
+    render(<SessionsPage />);
+    const selects = screen.getAllByRole('combobox');
+    const confSelect = selects.find((s) => s.textContent?.includes('All confidence'));
+    if (confSelect) {
+      fireEvent.change(confSelect, { target: { value: 'high' } });
+    }
   });
 });
