@@ -353,4 +353,89 @@ describe('EditorPage', () => {
       expect(screen.getByText('Publish').closest('button')?.disabled).toBe(true);
     });
   });
+
+  it('saves draft via Cmd+S shortcut', async () => {
+    const { toast } = await import('sonner');
+    setupFetchMock({
+      draftResponse: () => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(null) }),
+    });
+    render(<EditorPage />);
+    await waitFor(() => {
+      expect(screen.getByTestId('editor-panel')).toBeTruthy();
+    });
+    fireEvent.keyDown(window, { metaKey: true, key: 's' });
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith('Saved');
+    });
+  });
+
+  it('saves draft via Ctrl+S shortcut', async () => {
+    const { toast } = await import('sonner');
+    setupFetchMock({
+      draftResponse: () => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(null) }),
+    });
+    render(<EditorPage />);
+    await waitFor(() => {
+      expect(screen.getByTestId('editor-panel')).toBeTruthy();
+    });
+    fireEvent.keyDown(window, { ctrlKey: true, key: 's' });
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith('Saved');
+    });
+  });
+
+  it('shows error toast on draft save failure', async () => {
+    const { toast } = await import('sonner');
+    mockFetch.mockImplementation((url: string, opts?: any) => {
+      if (url.includes('/api/editor/rules') && !url.includes('/draft') && (!opts || !opts.method)) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ rules: mockRules }) });
+      }
+      if (url.includes('/draft') && opts?.method === 'PUT') {
+        return Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({}) });
+      }
+      if (url.includes('/draft')) {
+        return Promise.resolve({ ok: true, status: 404, json: () => Promise.resolve(null) });
+      }
+      if (url.includes('/publish-history')) {
+        return Promise.resolve({ json: () => Promise.resolve({ history: [] }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+    render(<EditorPage />);
+    await waitFor(() => {
+      expect(screen.getByTestId('editor-panel')).toBeTruthy();
+    });
+    fireEvent.keyDown(window, { metaKey: true, key: 's' });
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Save failed');
+    });
+  });
+
+  it('loads rule body when no draft exists', async () => {
+    setupFetchMock({
+      draftResponse: () => Promise.resolve({ ok: true, status: 404, json: () => Promise.resolve(null) }),
+    });
+    render(<EditorPage />);
+    await waitFor(() => {
+      expect(screen.getByText('id: rule-a')).toBeTruthy();
+      expect(screen.getAllByText('Body A').length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  it('shows error toast on network error during publish', async () => {
+    const { toast } = await import('sonner');
+    setupFetchMock({
+      rulesResponse: mockRulesWithDraft,
+      publishResponse: () => Promise.reject(new Error('Network error')),
+    });
+    render(<EditorPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Publish')).toBeTruthy();
+    });
+    fireEvent.click(screen.getByText('Publish'));
+    fireEvent.click(screen.getByTestId('do-publish'));
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Failed: Network error');
+    });
+  });
 });

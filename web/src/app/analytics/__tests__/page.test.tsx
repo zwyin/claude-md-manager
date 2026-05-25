@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import React from 'react';
-import { render, cleanup, screen } from '@testing-library/react';
+import { render, cleanup, screen, fireEvent } from '@testing-library/react';
 import AnalyticsPage from '../page';
 
 let mockData: any = null;
@@ -145,6 +145,28 @@ vi.mock('@/lib/relative-time', () => ({
   relativeTime: () => '2h ago',
 }));
 
+const fullData = {
+  total_rules: 54,
+  total_sessions: 1700,
+  total_citations: 9600,
+  avg_coverage: 0.45,
+  avg_depth: 2.3,
+  top_rules: [
+    { rule_id: 'r1', title: 'Rule One', citation_count: 100, session_coverage: 0.5, avg_depth: 2.0 },
+  ],
+  category_distribution: [
+    { section_id: 'core', title: 'Core', citation_count: 500, rule_count: 10 },
+  ],
+  citation_trend: [{ period: '2026-01', count: 50 }],
+  confidence_distribution: [
+    { confidence: 'high', count: 100, source: 'posttool', top_rules: [{ rule_id: 'r1', title: 'Rule One', count: 50 }] },
+    { confidence: 'medium', count: 50, source: 'stop', top_rules: [] },
+    { confidence: 'low', count: 20, source: 'mcp', top_rules: [] },
+  ],
+  heatmap: [{ rule_id: 'r1', day: '2026-01-01', count: 5 }],
+  cold_rules: [],
+};
+
 describe('AnalyticsPage', () => {
   beforeEach(() => {
     mockData = null;
@@ -167,17 +189,9 @@ describe('AnalyticsPage', () => {
 
   it('renders analytics with data', () => {
     mockData = {
-      total_rules: 54,
-      total_sessions: 1700,
-      total_citations: 9600,
-      avg_coverage: 0.45,
-      avg_depth: 2.3,
-      top_rules: [
-        { rule_id: 'r1', title: 'Rule One', citation_count: 100, session_coverage: 0.5, avg_depth: 2.0 },
-      ],
-      category_distribution: [
-        { section_id: 'core', title: 'Core', citation_count: 500, rule_count: 10 },
-      ],
+      total_rules: 54, total_sessions: 1700, total_citations: 9600, avg_coverage: 0.45, avg_depth: 2.3,
+      top_rules: [{ rule_id: 'r1', title: 'Rule One', citation_count: 100, session_coverage: 0.5, avg_depth: 2.0 }],
+      category_distribution: [{ section_id: 'core', title: 'Core', citation_count: 500, rule_count: 10 }],
       citation_trend: [{ period: '2026-01', count: 50 }],
       confidence_distribution: [
         { confidence: 'high', count: 100, top_rules: [] },
@@ -192,38 +206,28 @@ describe('AnalyticsPage', () => {
   });
 
   it('shows time range buttons', () => {
-    mockData = {
-      total_rules: 0, total_sessions: 0, total_citations: 0, avg_coverage: 0, avg_depth: 0,
-      top_rules: [], category_distribution: [], citation_trend: [], confidence_distribution: [], heatmap: [], cold_rules: [],
-    };
+    mockData = { ...fullData, citation_trend: [], heatmap: [] };
     render(<AnalyticsPage />);
     expect(screen.getByText('All')).toBeTruthy();
     expect(screen.getByText('7d')).toBeTruthy();
   });
 
   it('shows no data for empty trend', () => {
-    mockData = {
-      total_rules: 0, total_sessions: 0, total_citations: 0, avg_coverage: 0, avg_depth: 0,
-      top_rules: [], category_distribution: [], citation_trend: [], confidence_distribution: [], heatmap: [], cold_rules: [],
-    };
+    mockData = { ...fullData, citation_trend: [], heatmap: [], confidence_distribution: [], cold_rules: [] };
     render(<AnalyticsPage />);
     const noDataEls = screen.getAllByText('No data');
     expect(noDataEls.length).toBeGreaterThan(0);
   });
 
   it('shows all rules active when no cold rules', () => {
-    mockData = {
-      total_rules: 1, total_sessions: 1, total_citations: 1, avg_coverage: 1, avg_depth: 1,
-      top_rules: [], category_distribution: [], citation_trend: [], confidence_distribution: [], heatmap: [], cold_rules: [],
-    };
+    mockData = { ...fullData, cold_rules: [], heatmap: [] };
     render(<AnalyticsPage />);
     expect(screen.getByText('All active')).toBeTruthy();
   });
 
   it('shows cold rules list', () => {
     mockData = {
-      total_rules: 2, total_sessions: 1, total_citations: 1, avg_coverage: 0.5, avg_depth: 1,
-      top_rules: [], category_distribution: [], citation_trend: [], confidence_distribution: [], heatmap: [],
+      ...fullData, heatmap: [],
       cold_rules: [{ rule_id: 'cold1', title: 'Cold Rule', section_id: 'core', citation_count: 0, last_cited: null }],
     };
     render(<AnalyticsPage />);
@@ -232,13 +236,67 @@ describe('AnalyticsPage', () => {
   });
 
   it('renders heatmap with data', () => {
-    mockData = {
-      total_rules: 1, total_sessions: 1, total_citations: 1, avg_coverage: 1, avg_depth: 1,
-      top_rules: [], category_distribution: [], citation_trend: [], confidence_distribution: [],
-      heatmap: [{ rule_id: 'r1', day: '2026-01-01', count: 5 }],
-      cold_rules: [],
-    };
+    mockData = fullData;
     render(<AnalyticsPage />);
     expect(screen.getByTestId('heatmap')).toBeTruthy();
+  });
+
+  // Interaction tests
+  it('shows confidence distribution counts', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    expect(screen.getByText('High')).toBeTruthy();
+    expect(screen.getByText('Medium')).toBeTruthy();
+    expect(screen.getByText('Low')).toBeTruthy();
+  });
+
+  it('expands confidence item on click', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    const highBtn = screen.getByText('High').closest('button');
+    expect(highBtn).toBeTruthy();
+    fireEvent.click(highBtn!);
+    expect(screen.getByText('High desc')).toBeTruthy();
+    expect(screen.getByText('MCP')).toBeTruthy();
+  });
+
+  it('collapses confidence item on second click', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    const highBtn = screen.getByText('High').closest('button');
+    fireEvent.click(highBtn!);
+    expect(screen.getByText('High desc')).toBeTruthy();
+    fireEvent.click(highBtn!);
+    expect(screen.queryByText('High desc')).toBeNull();
+  });
+
+  it('shows top rules in expanded confidence item', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    const highBtn = screen.getByText('High').closest('button');
+    fireEvent.click(highBtn!);
+    expect(screen.getAllByText('Top rules').length).toBeGreaterThan(1);
+    expect(screen.getAllByText('Rule One').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('50').length).toBeGreaterThan(0);
+  });
+
+  it('renders stat cards with values', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    const cards = screen.getAllByTestId('stat-card');
+    expect(cards.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('renders charts', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    expect(screen.getByTestId('bar-chart')).toBeTruthy();
+    expect(screen.getByTestId('area-chart')).toBeTruthy();
+  });
+
+  it('shows confidence section heading', () => {
+    mockData = fullData;
+    render(<AnalyticsPage />);
+    expect(screen.getByText('Confidence')).toBeTruthy();
   });
 });
