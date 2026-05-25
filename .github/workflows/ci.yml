@@ -26,6 +26,8 @@ jobs:
         with:
           node-version: "22"
       - run: cd web && npm install
+      - name: Init test database
+        run: python3 hooks/db.py
       - run: cd web && npm test
 
   build-dashboard:
