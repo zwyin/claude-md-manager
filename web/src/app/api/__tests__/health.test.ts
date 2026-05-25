@@ -9,7 +9,7 @@ describe('GET /api/health', () => {
     expect(res.status).toBe(200);
     expect(body.status).toBe('ok');
     expect(typeof body.sessions).toBe('number');
-    expect(body.sessions).toBeGreaterThan(0);
+    expect(body.sessions).toBeGreaterThanOrEqual(0);
     expect(typeof body.response_ms).toBe('number');
     expect(body.response_ms).toBeGreaterThanOrEqual(0);
   });

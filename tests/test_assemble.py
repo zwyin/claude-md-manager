@@ -385,7 +385,7 @@ class TestMainCLI:
         output = tmp_path / "CLAUDE.md"
         with mock.patch.object(assemble, "RULES_DIR", rules_dir), \
              mock.patch.object(assemble, "OUTPUT_PATH", output), \
-             mock.patch.object(assemble, "git_commit_if_changed", lambda c: None), \
+             mock.patch.object(assemble, "git_commit_if_changed", lambda c, **kw: None), \
              mock.patch.object(sys, "argv", ["assemble.py"]):
             assemble.main()
         captured = capsys.readouterr()
@@ -408,13 +408,12 @@ class TestGitCommit:
     def test_skips_when_no_changes(self, tmp_path, capsys):
         output = tmp_path / "CLAUDE.md"
         content = "# No change\n"
-        output.write_text(content, encoding="utf-8")
         with mock.patch.object(assemble, "OUTPUT_PATH", output), \
              mock.patch.object(assemble, "HISTORY_DIR", tmp_path / "hist"), \
              mock.patch.object(assemble, "PROJECT_DIR", tmp_path), \
              mock.patch("subprocess.run") as mock_run:
             mock_run.return_value = subprocess.CompletedProcess([], 0)
-            assemble.git_commit_if_changed(content)
+            assemble.git_commit_if_changed(content, old_content=content)
         captured = capsys.readouterr()
         assert "No changes detected" in captured.out
         # Only rev-parse called, no git add/commit
