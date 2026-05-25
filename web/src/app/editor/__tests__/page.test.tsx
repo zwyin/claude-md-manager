@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import React from 'react';
-import { render, cleanup, screen, waitFor } from '@testing-library/react';
+import { render, cleanup, screen, waitFor, fireEvent } from '@testing-library/react';
 import EditorPage from '../page';
 
 const mockFetch = vi.fn();
@@ -110,8 +110,8 @@ vi.mock('../PreviewPanel', () => ({
 vi.mock('../PublishDialog', () => ({
   PublishDialog: ({ rules, onPublish, onCancel }: any) => (
     <div data-testid="publish-dialog">
-      <button onClick={onPublish}>Do publish</button>
-      <button onClick={onCancel}>Cancel</button>
+      <button data-testid="do-publish" onClick={onPublish}>Do publish</button>
+      <button data-testid="cancel-publish" onClick={onCancel}>Cancel</button>
     </div>
   ),
 }));
@@ -121,21 +121,47 @@ const mockRules = [
   { rule_id: 'rule-b', title: 'Rule B', frontmatter_yaml: 'id: rule-b', markdown_body: 'Body B', has_draft: true, source_file: 'core.md', section_id: 'core', order: 10 },
 ];
 
+const mockRulesWithDraft = [
+  { ...mockRules[0], has_draft: true },
+  { ...mockRules[1], has_draft: true },
+];
+
+function setupFetchMock(overrides: Record<string, any> = {}) {
+  mockFetch.mockImplementation((url: string, opts?: any) => {
+    if (overrides[url]) return overrides[url]();
+    if (url.includes('/api/editor/rules') && !url.includes('/draft') && (!opts || opts.method === 'GET' || !opts.method)) {
+      const rules = overrides.rulesResponse ?? mockRules;
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ rules }) });
+    }
+    if (url.includes('/draft') && opts?.method === 'PUT') {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    }
+    if (url.includes('/draft') && opts?.method === 'DELETE') {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    }
+    if (url.includes('/draft') && (!opts || !opts.method || opts.method === 'GET')) {
+      if (overrides.draftResponse) return overrides.draftResponse();
+      return Promise.resolve({ ok: true, status: 404, json: () => Promise.resolve(null) });
+    }
+    if (url.includes('/publish-history')) {
+      const history = overrides.publishHistory ?? [];
+      return Promise.resolve({ json: () => Promise.resolve({ history }) });
+    }
+    if (url.includes('/api/editor/publish') && opts?.method === 'POST') {
+      if (overrides.publishResponse) return overrides.publishResponse();
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ rulesChanged: 2 }) });
+    }
+    if (url.includes('/api/editor/reorder')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+  });
+}
+
 describe('EditorPage', () => {
   beforeEach(() => {
     mockFetch.mockReset();
-    mockFetch.mockImplementation((url: string) => {
-      if (url.includes('/api/editor/rules') && !url.includes('/draft')) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ rules: mockRules }) });
-      }
-      if (url.includes('/draft')) {
-        return Promise.resolve({ ok: true, status: 404, json: () => Promise.resolve(null) });
-      }
-      if (url.includes('/publish-history')) {
-        return Promise.resolve({ json: () => Promise.resolve({ history: [] }) });
-      }
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
-    });
+    setupFetchMock();
   });
   afterEach(cleanup);
 
@@ -190,6 +216,141 @@ describe('EditorPage', () => {
     render(<EditorPage />);
     await waitFor(() => {
       expect(screen.getByText('Publish')).toBeTruthy();
+    });
+  });
+
+  // Interaction tests
+  it('selects a rule on click', async () => {
+    render(<EditorPage />);
+    await waitFor(() => {
+      expect(screen.getByText('rule-a')).toBeTruthy();
+    });
+    fireEvent.click(screen.getByText('rule-b'));
+    await waitFor(() => {
+      expect(screen.getByText('rule-b').getAttribute('data-selected')).toBe('true');
+    });
+  });
+
+  it('shows publish dialog on publish click', async () => {
+    render(<EditorPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Publish')).toBeTruthy();
+    });
+    fireEvent.click(screen.getByText('Publish'));
+    expect(screen.getByTestId('publish-dialog')).toBeTruthy();
+  });
+
+  it('closes publish dialog on cancel', async () => {
+    render(<EditorPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Publish')).toBeTruthy();
+    });
+    fireEvent.click(screen.getByText('Publish'));
+    expect(screen.getByTestId('publish-dialog')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('cancel-publish'));
+    await waitFor(() => {
+      expect(screen.queryByTestId('publish-dialog')).toBeNull();
+    });
+  });
+
+  it('publishes and shows success toast', async () => {
+    const { toast } = await import('sonner');
+    setupFetchMock({ rulesResponse: mockRulesWithDraft });
+    render(<EditorPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Publish')).toBeTruthy();
+    });
+    fireEvent.click(screen.getByText('Publish'));
+    fireEvent.click(screen.getByTestId('do-publish'));
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith('Published 2 rules');
+    });
+  });
+
+  it('shows error toast on publish failure', async () => {
+    const { toast } = await import('sonner');
+    setupFetchMock({
+      rulesResponse: mockRulesWithDraft,
+      publishResponse: () => Promise.resolve({ ok: true, json: () => Promise.resolve({ error: 'Build failed' }) }),
+    });
+    render(<EditorPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Publish')).toBeTruthy();
+    });
+    fireEvent.click(screen.getByText('Publish'));
+    fireEvent.click(screen.getByTestId('do-publish'));
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Failed: Build failed');
+    });
+  });
+
+  it('shows error toast on load failure', async () => {
+    const { toast } = await import('sonner');
+    mockFetch.mockImplementation((url: string) => {
+      if (url.includes('/api/editor/rules') && !url.includes('/draft')) {
+        return Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({}) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+    render(<EditorPage />);
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Load failed');
+    });
+  });
+
+  it('loads draft data when selecting a rule with draft', async () => {
+    setupFetchMock({
+      draftResponse: () => Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({
+          frontmatter_yaml: 'id: rule-a-draft',
+          markdown_body: 'Draft body',
+        }),
+      }),
+    });
+    render(<EditorPage />);
+    await waitFor(() => {
+      expect(screen.getByText('id: rule-a-draft')).toBeTruthy();
+      expect(screen.getAllByText('Draft body').length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  it('renders publish history entries', async () => {
+    setupFetchMock({
+      publishHistory: [
+        { id: 1, published_at: '2026-01-01T10:00:00Z', rules_changed: 3, status: 'success' },
+      ],
+    });
+    render(<EditorPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Success')).toBeTruthy();
+      expect(screen.getByText('Published 3 rules')).toBeTruthy();
+    });
+  });
+
+  it('renders failed publish in history', async () => {
+    setupFetchMock({
+      publishHistory: [
+        { id: 2, published_at: '2026-01-02T10:00:00Z', rules_changed: 0, status: 'failed' },
+      ],
+    });
+    render(<EditorPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Failed')).toBeTruthy();
+    });
+  });
+
+  it('disables publish button when no drafts', async () => {
+    setupFetchMock({
+      rulesResponse: [
+        { ...mockRules[0], has_draft: false },
+        { ...mockRules[1], has_draft: false },
+      ],
+    });
+    render(<EditorPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Publish').closest('button')?.disabled).toBe(true);
     });
   });
 });
