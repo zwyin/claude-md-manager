@@ -252,17 +252,25 @@ def publish_all_drafts() -> dict:
         except Exception as e:
             error_msg = str(e)
 
-        # Record publish event
-        db.execute(
+        # Record publish event with explicit transaction + verification
+        status = "failed" if error_msg else "success"
+        db.execute("BEGIN IMMEDIATE")
+        cursor = db.execute(
             "INSERT INTO publish_history (published_at, rules_changed, snapshot_name, status, error_message) VALUES (datetime('now'), ?, ?, ?, ?)",
-            (written, snapshot_name, "failed" if error_msg else "success", error_msg),
+            (written, snapshot_name, status, error_msg),
         )
+        row_id = cursor.lastrowid
 
         # Clear drafts on success
         if not error_msg:
             db.execute("DELETE FROM rule_drafts")
 
         db.commit()
+
+        # Verify the commit persisted
+        verify = db.execute("SELECT id FROM publish_history WHERE id = ?", (row_id,)).fetchone()
+        if not verify:
+            error_msg = error_msg or "publish_history commit verification failed"
 
         return {"rules_changed": written, "snapshot_name": snapshot_name, "error": error_msg}
     finally:

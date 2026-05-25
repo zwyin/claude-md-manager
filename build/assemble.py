@@ -142,7 +142,7 @@ def rollback(timestamp: str) -> bool:
     return True
 
 
-def git_commit_if_changed(content: str, changed_files: list[str] | None = None):
+def git_commit_if_changed(content: str, changed_files: list[str] | None = None, old_content: str = ""):
     """Auto git commit if content changed."""
     import subprocess
     try:
@@ -155,12 +155,8 @@ def git_commit_if_changed(content: str, changed_files: list[str] | None = None):
     except (subprocess.CalledProcessError, FileNotFoundError):
         return
 
-    # Check if output changed
-    existing = ""
-    if OUTPUT_PATH.exists():
-        existing = OUTPUT_PATH.read_text(encoding="utf-8")
-
-    if content == existing:
+    # Compare new content against old (passed from caller before write)
+    if content == old_content:
         print("No changes detected. Skipping commit.")
         return
 
@@ -169,7 +165,7 @@ def git_commit_if_changed(content: str, changed_files: list[str] | None = None):
 
     # Stage and commit
     try:
-        subprocess.run(["git", "add", "data/history/", "rules/"], cwd=PROJECT_DIR, check=True)
+        subprocess.run(["git", "add", "rules/"], cwd=PROJECT_DIR, check=True)
 
         ts = datetime.now().strftime("%Y-%m-%d %H:%M")
         msg = f"build: update CLAUDE.md at {ts}"
@@ -232,6 +228,9 @@ def main():
         print(content)
         return
 
+    # Capture old content BEFORE writing
+    old_content = OUTPUT_PATH.read_text(encoding="utf-8") if OUTPUT_PATH.exists() else ""
+
     # Write
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(content, encoding="utf-8")
@@ -239,8 +238,8 @@ def main():
     print(f"  Sections: {len(rules)}")
     print(f"  Total lines: {len(content.splitlines())}")
 
-    # Snapshot + git commit
-    git_commit_if_changed(content)
+    # Snapshot + git commit (compare against old content)
+    git_commit_if_changed(content, old_content=old_content)
 
 
 if __name__ == "__main__":

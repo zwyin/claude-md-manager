@@ -6,6 +6,8 @@ import type { RuleFile, RuleDraft, PublishEvent, ReorderItem } from "@/app/edito
 
 const DB_PATH = path.join(process.cwd(), "..", "data", "usage.db");
 const RULES_DIR = path.join(process.cwd(), "..", "rules");
+const HISTORY_DIR = path.join(process.cwd(), "..", "data", "history");
+const CLAUDE_MD_PATH = path.join(process.env.HOME || "~", ".claude", "CLAUDE.md");
 
 function getReadWriteDb(): Database.Database {
   return new Database(DB_PATH);
@@ -166,6 +168,24 @@ export function validateDrafts(drafts: Array<{ rule_id: string; frontmatter_yaml
 
 // ── Publish ──
 
+function forceSnapshot(): string | null {
+  // Save current CLAUDE.md before any changes, skip if identical to latest snapshot
+  if (!fs.existsSync(CLAUDE_MD_PATH)) return null;
+  const content = fs.readFileSync(CLAUDE_MD_PATH, "utf-8");
+  fs.mkdirSync(HISTORY_DIR, { recursive: true });
+
+  const files = fs.readdirSync(HISTORY_DIR).filter((f) => f.endsWith(".md")).sort();
+  if (files.length > 0) {
+    const latest = fs.readFileSync(path.join(HISTORY_DIR, files[files.length - 1]), "utf-8");
+    if (latest === content) return null;
+  }
+
+  const ts = new Date().toISOString().replace(/[:.]/g, "-");
+  const name = `${ts}.md`;
+  fs.writeFileSync(path.join(HISTORY_DIR, name), content, "utf-8");
+  return name;
+}
+
 export function publishDrafts(): { rulesChanged: number; snapshotName: string | null; error?: string } {
   const db = getReadWriteDb();
   try {
@@ -173,6 +193,9 @@ export function publishDrafts(): { rulesChanged: number; snapshotName: string | 
     if (drafts.length === 0) {
       return { rulesChanged: 0, snapshotName: null };
     }
+
+    // Force snapshot BEFORE writing any files
+    const preSnapshot = forceSnapshot();
 
     // Write each draft to its rule file
     const allRules = getAllRulesWithDraftStatus();
@@ -194,17 +217,14 @@ export function publishDrafts(): { rulesChanged: number; snapshotName: string | 
     }
 
     // Run assemble.py using execFileSync (no shell injection risk)
-    let snapshotName: string | null = null;
+    let snapshotName: string | null = preSnapshot;
     let errorMsg: string | null = null;
     try {
-      const output = execFileSync("python3", ["build/assemble.py"], {
+      execFileSync("python3", ["build/assemble.py"], {
         cwd: path.join(process.cwd(), ".."),
         encoding: "utf-8",
         timeout: 30000,
       });
-      if (output.includes("Built CLAUDE.md")) {
-        snapshotName = new Date().toISOString().replace(/[:.]/g, "-");
-      }
     } catch (err: unknown) {
       const e = err instanceof Error ? err : new Error(String(err));
       errorMsg = (e as Error & { stderr?: string }).stderr || e.message || "assemble.py failed";
