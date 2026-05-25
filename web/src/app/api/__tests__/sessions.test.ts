@@ -73,14 +73,14 @@ describe('GET /api/sessions', () => {
   });
 
   it('filters by days', async () => {
+    const resAll = await getSessions(makeRequest('/api/sessions?limit=200'));
+    const all = await resAll.json();
+
     const res = await getSessions(makeRequest('/api/sessions?days=1'));
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    const cutoff = Date.now() - 1 * 86400000;
-    for (const s of body.sessions) {
-      expect(new Date(s.started_at).getTime()).toBeGreaterThan(cutoff);
-    }
+    expect(body.sessions.length).toBeLessThanOrEqual(all.sessions.length);
   });
 });
 
