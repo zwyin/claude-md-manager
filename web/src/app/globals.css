@@ -168,6 +168,15 @@
   --color-chart-green: var(--chart-green);
   --color-chart-blue: var(--chart-blue);
   --color-chart-amber: var(--chart-amber);
+
+  /* Typography scale — align Tailwind utilities with design tokens */
+  --text-xs: 10px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-lg: 20px;
+  --text-xl: 25px;
+  --text-2xl: 32px;
+  --text-3xl: 52px;
 }
 
 * {
@@ -182,6 +191,11 @@ body {
   line-height: var(--leading-body);
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  text-wrap: balance;
 }
 
 /* Scrollbar styling */
