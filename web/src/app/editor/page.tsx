@@ -2,10 +2,6 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { RuleFile, PublishEvent } from "./types";
 import { EditorLayout } from "./EditorLayout";
 import { RuleListPanel } from "./RuleListPanel";
@@ -13,8 +9,6 @@ import { EditorPanel } from "./EditorPanel";
 import { PreviewPanel } from "./PreviewPanel";
 import { PublishDialog } from "./PublishDialog";
 import { useI18n } from "@/i18n";
-import Link from "next/link";
-import { ChevronRight, Home, Inbox } from "lucide-react";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { PageLoader } from "@/components/page-states";
 import { toast } from "sonner";
@@ -230,31 +224,28 @@ function EditorContent() {
 
   return (
     <div>
-      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-4">
-        <Link href="/" className="hover:text-foreground transition-colors"><Home className="w-3.5 h-3.5" /></Link>
-        <ChevronRight className="w-3 h-3" />
-        <span className="text-foreground">{t('editor.title')}</span>
-      </nav>
-
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-2xl font-bold">{t('editor.title')}</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-2xl)', fontWeight: 500 }}>
+            {t('editor.title')}
+          </h1>
+          <p style={{ color: 'var(--muted)', fontSize: 'var(--text-sm)' }}>
             {t('editor.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {draftCount > 0 && (
-            <span className="text-xs text-orange-400">
+            <span className="text-xs text-[var(--accent)] font-medium">
               {t('editor.unsavedDrafts', { count: draftCount })}
             </span>
           )}
-          <Button
+          <button
             onClick={() => setShowPublish(true)}
             disabled={draftCount === 0 || publishing}
+            className="bg-[var(--accent)] text-[var(--accent-on)] rounded-[var(--radius-sm)] py-1.5 px-3.5 text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {t('editor.publishAll')}
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -280,59 +271,68 @@ function EditorContent() {
               onDiscardDraft={handleDiscardDraft}
             />
           ) : (
-            <div className="flex-1 flex items-center justify-center text-muted-foreground">
+            <div className="flex-1 flex items-center justify-center text-[var(--muted)]">
               {t('editor.selectRule')}
             </div>
           ),
           preview: selectedRule ? (
             <PreviewPanel markdownBody={body} />
           ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+            <div className="flex items-center justify-center h-full text-[var(--muted)] text-sm">
               {t('editor.preview')}
             </div>
           ),
         }}
       </EditorLayout>
 
-      <Collapsible open={historyOpen} onOpenChange={setHistoryOpen} className="mt-4">
-        <Card className="rounded-xl border-border">
-          <CollapsibleTrigger className="w-full flex items-center justify-between px-6 py-3 hover:bg-accent/50 transition-colors text-left">
-            <div className="flex items-center gap-3">
-              <svg className={`w-4 h-4 text-muted-foreground transition-transform ${historyOpen ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-              <span className="text-sm font-semibold">{t('editor.publishHistory')}</span>
-            </div>
-            {publishHistory.length > 0 && <Badge variant="outline" className="text-xs">{publishHistory.length}</Badge>}
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            {publishHistory.length > 0 ? (
-              <div className="border-t border-border divide-y divide-border">
-                {publishHistory.map((ev) => (
-                  <div key={ev.id} className="flex items-center justify-between px-6 py-2.5">
-                    <div className="flex items-center gap-3">
-                      <Badge variant={ev.status === 'success' ? 'default' : 'destructive'} className="text-[10px]">
-                        {ev.status === 'success' ? t('dashboard.buildStatus.success') : t('dashboard.buildStatus.failed')}
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(ev.published_at).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">{t('editor.published', { count: ev.rules_changed })}</span>
-                    </div>
+      <div className="panel mt-4">
+        <button
+          onClick={() => setHistoryOpen((v) => !v)}
+          className="w-full flex items-center justify-between px-6 py-3 hover:bg-[var(--fg-soft)] transition-colors text-left rounded-[var(--radius-md)]"
+        >
+          <div className="flex items-center gap-3">
+            <svg className={`w-4 h-4 text-[var(--meta)] transition-transform ${historyOpen ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+            <span className="text-sm font-semibold text-[var(--fg)]">{t('editor.publishHistory')}</span>
+          </div>
+          {publishHistory.length > 0 && (
+            <span className="pill text-xs">{publishHistory.length}</span>
+          )}
+        </button>
+        {historyOpen && (
+          publishHistory.length > 0 ? (
+            <div className="border-t border-[var(--border)] divide-y divide-[var(--border)]">
+              {publishHistory.map((ev) => (
+                <div key={ev.id} className="flex items-center justify-between px-6 py-2.5">
+                  <div className="flex items-center gap-3">
+                    <span className={`inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-[var(--radius-pill)] ${
+                      ev.status === 'success'
+                        ? 'bg-[var(--success)]/10 text-[var(--success)]'
+                        : 'bg-[var(--danger)]/10 text-[var(--danger)]'
+                    }`}>
+                      {ev.status === 'success' ? t('dashboard.buildStatus.success') : t('dashboard.buildStatus.failed')}
+                    </span>
+                    <span className="text-sm text-[var(--meta)]">
+                      {new Date(ev.published_at).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                    </span>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="border-t border-border px-6 py-8 flex flex-col items-center gap-2 text-muted-foreground">
-                <Inbox className="w-6 h-6 opacity-40" />
-                <span className="text-sm">{t('editor.noPublishHistory')}</span>
-              </div>
-            )}
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-[var(--meta)]">{t('editor.published', { count: ev.rules_changed })}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="border-t border-[var(--border)] px-6 py-8 flex flex-col items-center gap-2 text-[var(--meta)]">
+              <svg className="w-6 h-6 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.012 1.243l.256.512a2.25 2.25 0 002.013 1.243h3.218a2.25 2.25 0 002.013-1.243l.256-.512a2.25 2.25 0 012.013-1.243h3.859m-17.5 0V6.75A2.25 2.25 0 014.5 4.5h15A2.25 2.25 0 0121.75 6.75v6.75m-17.5 0v4.5A2.25 2.25 0 006.75 21h10.5a2.25 2.25 0 002.25-2.25v-4.5" />
+              </svg>
+              <span className="text-sm">{t('editor.noPublishHistory')}</span>
+            </div>
+          )
+        )}
+      </div>
 
       {showPublish && (
         <PublishDialog

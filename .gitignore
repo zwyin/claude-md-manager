@@ -38,12 +38,15 @@ dashboard
 
 # Claude Code
 .claude/worktrees/
+.claude/settings.local.json
 
 # Walkthrough output (generated)
 project_study_*/
+*_project_study_*/
 .project-walkthrough/
 
 # CodeGraph (local index)
 .codegraph/
 node_modules/
 .mcp.json
+.playwright-mcp/

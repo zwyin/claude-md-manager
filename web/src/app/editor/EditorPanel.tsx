@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { markdown } from "@codemirror/lang-markdown";
-import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
 
 interface EditorPanelProps {
@@ -40,25 +39,34 @@ export function EditorPanel({
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex items-center gap-2 mb-2">
-        <Button size="sm" onClick={onSaveDraft} variant={dirty ? 'default' : 'outline'}>
+        <button
+          onClick={onSaveDraft}
+          className={dirty
+            ? "bg-[var(--accent)] text-[var(--accent-on)] rounded-[var(--radius-sm)] py-1.5 px-3.5 text-sm font-medium hover:opacity-90 transition-opacity"
+            : "border border-[var(--border)] bg-[var(--surface)] text-[var(--fg)] rounded-[var(--radius-sm)] py-1.5 px-3.5 text-sm hover:bg-[var(--fg-soft)] transition-colors"
+          }
+        >
           {t('editor.saveDraft')} <span className="text-[10px] opacity-60 ml-1">⌘S</span>
-        </Button>
+        </button>
         {hasDraft && (
-          <Button size="sm" variant="outline" onClick={onDiscardDraft}>
+          <button
+            onClick={onDiscardDraft}
+            className="border border-[var(--border)] bg-[var(--surface)] text-[var(--fg)] rounded-[var(--radius-sm)] py-1.5 px-3.5 text-sm hover:bg-[var(--fg-soft)] transition-colors"
+          >
             {t('editor.discardDraft')}
-          </Button>
+          </button>
         )}
         {dirty && (
-          <span className="text-xs text-orange-400 flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+          <span className="text-xs text-[var(--accent)] flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" />
             {t('editor.unsavedChanges')}
           </span>
         )}
       </div>
 
       <div className="flex-1 flex flex-col gap-2 min-h-0">
-        <div className="h-[40%] flex flex-col border border-border rounded-lg overflow-hidden">
-          <div className="shrink-0 px-2 py-1 text-[10px] font-semibold text-muted-foreground bg-muted/50 border-b border-border">
+        <div className="h-[40%] flex flex-col border border-[var(--border)] rounded-[var(--radius-md)] overflow-hidden bg-[var(--surface)]">
+          <div className="shrink-0 px-2 py-1 text-[10px] font-semibold text-[var(--meta)] bg-[var(--surface-warm)] border-b border-[var(--border)]">
             {t('editor.yamlFrontmatter')}
           </div>
           <div className="flex-1 min-h-0">
@@ -68,14 +76,14 @@ export function EditorPanel({
               extensions={[yaml()]}
               onChange={onFrontmatterChange}
               className="text-sm h-full"
-              theme="dark"
+              theme="light"
             />
           </div>
         </div>
-        <div className="flex-1 flex flex-col border border-border rounded-lg overflow-hidden min-h-0">
-          <div className="shrink-0 px-2 py-1 text-[10px] font-semibold text-muted-foreground bg-muted/50 border-b border-border flex items-center justify-between">
+        <div className="flex-1 flex flex-col border border-[var(--border)] rounded-[var(--radius-md)] overflow-hidden min-h-0 bg-[var(--surface)]">
+          <div className="shrink-0 px-2 py-1 text-[10px] font-semibold text-[var(--meta)] bg-[var(--surface-warm)] border-b border-[var(--border)] flex items-center justify-between">
             <span>{t('editor.markdownBody')}</span>
-            <span className="font-normal opacity-60">{stats.words} {t('editor.words')} · {stats.lines} {t('editor.lines')}</span>
+            <span className="font-mono text-[var(--meta)] text-xs font-normal opacity-60">{stats.words} {t('editor.words')} · {stats.lines} {t('editor.lines')}</span>
           </div>
           <div className="flex-1 min-h-0">
             <CodeMirror
@@ -84,7 +92,7 @@ export function EditorPanel({
               extensions={[markdown()]}
               onChange={onBodyChange}
               className="text-sm h-full"
-              theme="dark"
+              theme="light"
             />
           </div>
         </div>

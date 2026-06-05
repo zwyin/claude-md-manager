@@ -3,11 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useMemo } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Home } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useI18n } from '@/i18n';
 import { useFetch } from '@/hooks/use-fetch';
 import { useDynamicPageTitle } from '@/hooks/use-page-title';
@@ -64,8 +60,8 @@ export default function SessionDetailPage() {
   }
   const confBadge = (conf: string) => {
     const label = conf === 'high' ? t('analytics.confidence.high') : conf === 'medium' ? t('analytics.confidence.medium') : t('analytics.confidence.low');
-    const cls = conf === 'high' ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20' : conf === 'medium' ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/20' : 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/20';
-    return <Badge className={`text-[10px] border-0 ${cls}`}>{label}</Badge>;
+    const cls = conf === 'high' ? 'conf-high' : conf === 'medium' ? 'conf-medium' : 'conf-low';
+    return <span className={`conf ${cls}`}>{label}</span>;
   };
   const sectionColorMap: Record<string, string> = {};
   sections.forEach((s, i) => {
@@ -74,44 +70,36 @@ export default function SessionDetailPage() {
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link href="/" className="hover:text-foreground transition-colors"><Home className="w-3.5 h-3.5" /></Link>
-        <ChevronRight className="w-3 h-3" />
-        <Link href="/sessions" className="hover:text-foreground transition-colors">{t('session.listTitle')}</Link>
-        <ChevronRight className="w-3 h-3" />
-        <span className="text-foreground">{displayId.slice(0, 8)}</span>
-      </nav>
-
-      <Card className="rounded-xl border-border bg-card">
-        <CardHeader>
+      <div className="panel">
+        <div className="panel-header">
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle className="text-xl">{t('session.title')}</CardTitle>
+              <h2 className="panel-title" style={{ fontFamily: 'var(--font-display)' }}>{t('session.title')}</h2>
               <p
-                className="text-xs font-mono text-muted-foreground mt-1 cursor-pointer hover:text-foreground transition-colors"
+                className="mono text-[var(--meta)] mt-1 cursor-pointer hover:text-[var(--accent)] transition-colors"
                 title="Click to copy"
                 onClick={() => { navigator.clipboard.writeText(displayId); toast.success(t('ruleDetail.copied')); }}
               >{displayId}</p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Badge variant="secondary">{uniqueRules} {t('table.rules').toLowerCase()}</Badge>
-              <Badge variant="default">{citations.length} {t('table.matches').toLowerCase()}</Badge>
-              {session.model && <Badge variant="outline" className="text-[10px] font-mono">{session.model}</Badge>}
+              <span className="pill">{uniqueRules} {t('table.rules').toLowerCase()}</span>
+              <span className="pill" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>{citations.length} {t('table.matches').toLowerCase()}</span>
+              {session.model && <span className="tag mono">{session.model}</span>}
             </div>
           </div>
           {citations.length > 0 && (
             <div className="flex items-center gap-2 mt-3">
-              <span className="text-xs text-muted-foreground">{t('session.confidence')}:</span>
-              {confCounts.high > 0 && <Badge className="text-[10px] bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 border-0">{confCounts.high} {t('analytics.confidence.high')}</Badge>}
-              {confCounts.medium > 0 && <Badge className="text-[10px] bg-amber-500/20 text-amber-400 hover:bg-amber-500/20 border-0">{confCounts.medium} {t('analytics.confidence.medium')}</Badge>}
-              {confCounts.low > 0 && <Badge className="text-[10px] bg-rose-500/20 text-rose-400 hover:bg-rose-500/20 border-0">{confCounts.low} {t('analytics.confidence.low')}</Badge>}
+              <span className="text-xs text-[var(--muted)]">{t('session.confidence')}:</span>
+              {confCounts.high > 0 && <span className="conf conf-high">{confCounts.high} {t('analytics.confidence.high')}</span>}
+              {confCounts.medium > 0 && <span className="conf conf-medium">{confCounts.medium} {t('analytics.confidence.medium')}</span>}
+              {confCounts.low > 0 && <span className="conf conf-low">{confCounts.low} {t('analytics.confidence.low')}</span>}
             </div>
           )}
           {session.task_summary && (
-            <p className="text-sm text-muted-foreground mt-2">{session.task_summary}</p>
+            <p className="text-sm text-[var(--muted)] mt-2">{session.task_summary}</p>
           )}
           {session.started_at && (
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-[var(--muted)] mt-2">
               {new Date(session.started_at).toLocaleString(locale)}
               {session.ended_at && (
                 <>
@@ -119,43 +107,44 @@ export default function SessionDetailPage() {
                   {(() => {
                     const sec = Math.floor((new Date(session.ended_at!).getTime() - new Date(session.started_at!).getTime()) / 1000);
                     const dur = formatDuration(sec);
-                    return dur ? <span className="ml-2 font-mono">({dur})</span> : null;
+                    return dur ? <span className="ml-2 mono">({dur})</span> : null;
                   })()}
                 </>
               )}
             </p>
           )}
-        </CardHeader>
+        </div>
         {sections.length > 0 && (
-          <CardContent>
-            <div className="border-t border-border pt-4">
-              <p className="text-xs font-medium text-muted-foreground uppercase mb-2">{t('session.sectionsHit')}</p>
-              <div className="flex flex-wrap gap-2">
-                {sections.map((s) => (
-                  <Link key={s.section_id} href={`/rules?section=${s.section_id}`}>
-                  <Badge variant="outline" className="hover:bg-accent/50 cursor-pointer transition-colors" style={{ borderColor: sectionColorMap[s.section_id], color: sectionColorMap[s.section_id] }}>
+          <div className="border-t border-[var(--border)] pt-4 px-5 pb-5">
+            <p className="text-xs font-medium text-[var(--muted)] uppercase mb-2">{t('session.sectionsHit')}</p>
+            <div className="flex flex-wrap gap-2">
+              {sections.map((s) => (
+                <Link key={s.section_id} href={`/rules?section=${s.section_id}`}>
+                  <span
+                    className="border rounded-full text-xs px-2.5 py-0.5 cursor-pointer transition-colors hover:bg-[var(--accent-soft)]"
+                    style={{ borderColor: sectionColorMap[s.section_id], color: sectionColorMap[s.section_id] }}
+                  >
                     {s.section_title}
-                  </Badge>
+                  </span>
                 </Link>
-                ))}
-              </div>
+              ))}
             </div>
-          </CardContent>
+          </div>
         )}
-      </Card>
+      </div>
 
       {timeline && (
-        <Card className="rounded-xl border-border bg-card">
-          <CardContent className="pt-4">
+        <div className="panel">
+          <div className="px-5 py-4">
             <div className="relative h-6">
-              <div className="absolute inset-x-0 top-1/2 h-px bg-border" />
+              <div className="absolute inset-x-0 top-1/2 h-px bg-[var(--border)]" />
               {timeline.map((pt, i) => (
                 <Tooltip key={i}>
                   <TooltipTrigger
                     className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full transition-transform hover:scale-150"
                     style={{
                       left: `${pt.pct * 100}%`,
-                      backgroundColor: pt.confidence === 'high' ? '#34d399' : pt.confidence === 'medium' ? '#fbbf24' : '#fb7185',
+                      backgroundColor: pt.confidence === 'high' ? 'var(--success)' : pt.confidence === 'medium' ? 'var(--warn)' : 'var(--danger)',
                     }}
                   >
                     <Link href={`/rules/${pt.rule_id}`} className="block w-full h-full" />
@@ -163,98 +152,108 @@ export default function SessionDetailPage() {
                   <TooltipContent side="top" className="text-xs max-w-[200px]">
                     <span className="font-medium">{pt.title}</span>
                     <br />
-                    <span className="text-muted-foreground">
+                    <span className="text-[var(--muted)]">
                       {pt.confidence === 'high' ? t('analytics.confidence.high') : pt.confidence === 'medium' ? t('analytics.confidence.medium') : t('analytics.confidence.low')}
                     </span>
                   </TooltipContent>
                 </Tooltip>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
-      <Card className="rounded-xl border-border bg-card">
-        <CardHeader>
-          <CardTitle className="text-base">{t('session.citations')}</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {citations.length > 0 ? (
-            <>
-              {/* Mobile card layout */}
-              <div className="sm:hidden divide-y divide-border">
-                {citations.map((c, i) => (
-                  <div key={`${c.rule_id}-${i}`} className="px-4 py-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Link href={`/rules/${c.rule_id}`} className="text-sm hover:text-indigo-400 transition-colors truncate">
-                        {c.title}
-                      </Link>
-                      <span className="text-[10px] text-muted-foreground font-mono shrink-0 ml-2">{relativeTime(c.timestamp, locale)}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <Link href={`/rules?section=${c.section_id}`}>
-                      <Badge variant="secondary" className="text-[10px] hover:opacity-80 cursor-pointer transition-opacity" style={{ backgroundColor: sectionColorMap[c.section_id] + '20', color: sectionColorMap[c.section_id] }}>
-                        {c.section_id}
-                      </Badge>
-                      </Link>
-                      <Link href={`/rules?search=${encodeURIComponent(c.matched_keyword)}`}>
-                        <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px] hover:bg-indigo-500/10 cursor-pointer transition-colors">{c.matched_keyword}</Badge>
-                      </Link>
-                      {confBadge(c.confidence)}
-                    </div>
+      <div className="panel">
+        <div className="panel-header">
+          <h3 className="panel-title">{t('session.citations')}</h3>
+        </div>
+        {citations.length > 0 ? (
+          <>
+            {/* Mobile card layout */}
+            <div className="sm:hidden divide-y divide-[var(--border)]">
+              {citations.map((c, i) => (
+                <div key={`${c.rule_id}-${i}`} className="px-5 py-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Link href={`/rules/${c.rule_id}`} className="text-sm text-[var(--fg)] hover:text-[var(--accent)] transition-colors truncate">
+                      {c.title}
+                    </Link>
+                    <span className="mono text-[var(--meta)] text-[10px] shrink-0 ml-2">{relativeTime(c.timestamp, locale)}</span>
                   </div>
-                ))}
-              </div>
-              {/* Desktop table layout */}
-              <div className="hidden sm:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('table.time')}</TableHead>
-                      <TableHead>{t('rules.ruleName')}</TableHead>
-                      <TableHead>{t('table.keyword')}</TableHead>
-                      <TableHead>{t('session.confidence')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {citations.map((c, i) => (
-                      <TableRow key={`${c.rule_id}-${i}`} className="even:bg-muted/10">
-                        <TableCell className="text-xs font-mono whitespace-nowrap">
-                          {relativeTime(c.timestamp, locale)}
-                        </TableCell>
-                        <TableCell>
-                          <Link href={`/rules/${c.rule_id}`} className="text-sm hover:text-indigo-400 transition-colors">
-                            {c.title}
-                          </Link>
-                          <Link href={`/rules?section=${c.section_id}`}>
-                          <Badge
-                            variant="secondary"
-                            className="text-[10px] ml-2 hover:opacity-80 cursor-pointer transition-opacity"
-                            style={{ backgroundColor: sectionColorMap[c.section_id] + '20', color: sectionColorMap[c.section_id] }}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Link href={`/rules?section=${c.section_id}`}>
+                      <span
+                        className="border rounded-full text-[10px] px-2 py-0.5 cursor-pointer transition-colors hover:opacity-80"
+                        style={{ borderColor: sectionColorMap[c.section_id], color: sectionColorMap[c.section_id] }}
+                      >
+                        {c.section_id}
+                      </span>
+                    </Link>
+                    <Link href={`/rules?search=${encodeURIComponent(c.matched_keyword)}`}>
+                      <span
+                        className="border rounded-full text-[10px] px-2 py-0.5 cursor-pointer transition-colors hover:bg-[var(--accent-soft)]"
+                        style={{ borderColor: 'color-mix(in oklch, var(--accent) 30%, transparent)', color: 'var(--accent)' }}
+                      >
+                        {c.matched_keyword}
+                      </span>
+                    </Link>
+                    {confBadge(c.confidence)}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Desktop table layout */}
+            <div className="hidden sm:block">
+              <table className="records-table">
+                <thead>
+                  <tr>
+                    <th>{t('table.time')}</th>
+                    <th>{t('rules.ruleName')}</th>
+                    <th>{t('table.keyword')}</th>
+                    <th>{t('session.confidence')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {citations.map((c, i) => (
+                    <tr key={`${c.rule_id}-${i}`}>
+                      <td className="mono whitespace-nowrap">
+                        {relativeTime(c.timestamp, locale)}
+                      </td>
+                      <td>
+                        <Link href={`/rules/${c.rule_id}`} className="text-sm text-[var(--fg)] hover:text-[var(--accent)] transition-colors">
+                          {c.title}
+                        </Link>
+                        <Link href={`/rules?section=${c.section_id}`}>
+                          <span
+                            className="border rounded-full text-[10px] ml-2 px-2 py-0.5 cursor-pointer transition-colors hover:opacity-80"
+                            style={{ borderColor: sectionColorMap[c.section_id], color: sectionColorMap[c.section_id] }}
                           >
                             {c.section_id}
-                          </Badge>
-                          </Link>
-                        </TableCell>
-                        <TableCell>
-                          <Link href={`/rules?search=${encodeURIComponent(c.matched_keyword)}`}>
-                        <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px] hover:bg-indigo-500/10 cursor-pointer transition-colors">{c.matched_keyword}</Badge>
-                      </Link>
-                        </TableCell>
-                        <TableCell>
-                          {confBadge(c.confidence)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </>
-          ) : (
-            <div className="px-6 py-8 text-sm text-muted-foreground text-center">{t('ruleDetail.noCitations')}</div>
-          )}
-        </CardContent>
-      </Card>
+                          </span>
+                        </Link>
+                      </td>
+                      <td>
+                        <Link href={`/rules?search=${encodeURIComponent(c.matched_keyword)}`}>
+                          <span
+                            className="border rounded-full text-[10px] px-2 py-0.5 cursor-pointer transition-colors hover:bg-[var(--accent-soft)]"
+                            style={{ borderColor: 'color-mix(in oklch, var(--accent) 30%, transparent)', color: 'var(--accent)' }}
+                          >
+                            {c.matched_keyword}
+                          </span>
+                        </Link>
+                      </td>
+                      <td>
+                        {confBadge(c.confidence)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : (
+          <div className="px-6 py-8 text-sm text-[var(--muted)] text-center">{t('ruleDetail.noCitations')}</div>
+        )}
+      </div>
     </div>
   );
 }

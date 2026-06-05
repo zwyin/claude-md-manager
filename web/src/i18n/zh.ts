@@ -2,9 +2,10 @@ const zh = {
   // 全局
   'app.title': 'CLAUDE.md',
   'app.subtitle': '规则管理面板',
-  'app.version': 'v0.2.0',
+  'app.version': 'v1.2.0',
 
   // 导航
+  'nav.home': '首页',
   'nav.dashboard': '仪表盘',
   'nav.rules': '规则管理',
   'nav.editor': '编辑器',
@@ -45,6 +46,15 @@ const zh = {
   'table.keyword': '触发关键词',
   'table.sessionId': '会话 ID',
   'table.matches': '匹配数',
+  'table.rule': '规则',
+  'table.model': '模型',
+  'table.confidence': '置信度',
+  'table.section': '章节',
+  'table.citations': '引用数',
+  'table.lastCited': '最后引用',
+  'table.status': '状态',
+  'table.rulesChanged': '规则变更',
+  'table.task': '任务摘要',
 
   // Rules 列表
   'rules.title': '规则管理',
@@ -57,6 +67,11 @@ const zh = {
   'rules.ruleName': '规则名称',
   'rules.clearSearch': '清除搜索',
   'rules.viewDetail': '查看完整详情',
+  'rules.sort.default': '默认排序',
+  'rules.sort.matchCount': '匹配数',
+  'rules.sort.coverage': '覆盖率',
+  'rules.sort.depth': '深度',
+  'rules.sort.share': '引用占比',
 
   // Rules 详情
   'ruleDetail.editInEditor': '编辑',
@@ -235,6 +250,13 @@ const zh = {
   'session.sortBy': '排序：',
   'session.allConfidence': '全部置信度',
   'session.copyId': '复制会话 ID',
+
+  // Sidebar
+  'sidebar.openNav': '打开导航',
+  'sidebar.subtitle': '规则管理 · 会话追踪 · 数据分析',
+  'sidebar.buildStatus': '构建状态',
+  'sidebar.ok': '正常',
+  'sidebar.error': '异常',
 
   // Accessibility
   'accessibility.collapse': '收起',

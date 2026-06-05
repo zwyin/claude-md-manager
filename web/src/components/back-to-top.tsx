@@ -22,7 +22,7 @@ export function BackToTop() {
   return (
     <button
       onClick={() => mainRef.current?.scrollTo({ top: 0, behavior: "smooth" })}
-      className="fixed bottom-6 right-6 z-50 w-10 h-10 rounded-full bg-card border border-border shadow-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-indigo-500/30 transition-colors"
+      className="fixed bottom-6 right-6 z-50 w-10 h-10 rounded-full bg-[var(--surface)] border border-[var(--border)] shadow-lg flex items-center justify-center text-[var(--meta)] hover:text-[var(--fg)] hover:border-[var(--accent)] transition-colors"
       aria-label={t('accessibility.backToTop')}
     >
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

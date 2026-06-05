@@ -5,7 +5,6 @@ import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { RuleFile } from "./types";
-import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
 import { SECTION_COLORS } from "@/lib/chart-colors";
 
@@ -35,26 +34,24 @@ const SortableCard = memo(function SortableCard({ rule, isSelected, onSelect, co
       aria-label={rule.title}
       onClick={onSelect}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } }}
-      className={`px-3 py-2 cursor-pointer border-b border-border last:border-b-0 transition-colors ${
+      className={`px-3 py-2 cursor-pointer border-b border-[var(--border)] last:border-b-0 transition-colors ${
         isSelected
-          ? "bg-primary/10"
+          ? "bg-[var(--accent-soft)]"
           : rule.has_draft
-          ? "bg-orange-500/5 hover:bg-orange-500/10"
-          : "hover:bg-accent/50"
+          ? "bg-[var(--accent-soft)] hover:bg-[color-mix(in_oklch,var(--accent)_20%,transparent)]"
+          : "hover:bg-[var(--fg-soft)]"
       }`}
     >
       <div className="flex items-center gap-2">
-        <span className="text-xs text-muted-foreground w-6">{rule.order}</span>
-        <span className="text-sm font-medium truncate flex-1">{rule.title}</span>
+        <span className="text-xs text-[var(--meta)] w-6">{rule.order}</span>
+        <span className="text-sm font-medium truncate flex-1 text-[var(--fg)]">{rule.title}</span>
         {rule.has_draft && (
-          <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0" title={t('editor.draft')} />
+          <span className="w-2 h-2 rounded-full bg-[var(--accent)] shrink-0" title={t('editor.draft')} />
         )}
       </div>
       <div className="mt-1 pl-6 flex items-center gap-1.5">
-        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-          {rule.section_id}
-        </Badge>
-        <span className="text-[10px] text-muted-foreground truncate">{rule.source_file}</span>
+        <span className="tag text-[10px]">{rule.section_id}</span>
+        <span className="text-[10px] text-[var(--meta)] truncate">{rule.source_file}</span>
       </div>
     </div>
   );
@@ -126,14 +123,14 @@ export function RuleListPanel({ rules, selectedId, onSelect, onReorder }: RuleLi
   return (
     <div className="p-2">
       <div className="px-3 py-2 flex items-center justify-between">
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <span className="text-[var(--meta)] font-mono text-xs uppercase tracking-wider">
           {t('editor.rules')} ({filteredRules.length})
         </span>
         {sections.length > 1 && (
           <select
             value={sectionFilter}
             onChange={(e) => setSectionFilter(e.target.value)}
-            className="text-[10px] rounded border border-border bg-card text-foreground px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="text-[10px] rounded border border-[var(--border)] bg-[var(--surface)] text-[var(--fg)] px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
           >
             <option value="all">{t('rules.allSections')}</option>
             {sections.map(([file, { count }]) => (

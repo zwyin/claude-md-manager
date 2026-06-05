@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Geist } from "next/font/google";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppSidebar } from "@/components/app-sidebar";
 import { TopBar } from "@/components/top-bar";
@@ -14,11 +12,9 @@ import { ShortcutHelp } from "@/components/shortcut-help";
 import { GlobalShortcuts } from "@/components/global-shortcuts";
 import { ScrollRestorer } from "@/components/scroll-restorer";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
-
 export const metadata: Metadata = {
   title: {
-    default: "CLAUDE.md Manager v0.2.0",
+    default: "CLAUDE.md Manager v1.2.0",
     template: "%s | CLAUDE.md Manager",
   },
   description: "CLAUDE.md Rule Management Dashboard / 规则管理面板",
@@ -30,28 +26,26 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className={`${geist.variable} antialiased`}>
+    <html lang="zh-CN" className="antialiased">
       <body>
         <I18nProvider>
           <FontScaleProvider>
-          <TooltipProvider>
-            <SidebarProvider>
-              <AppSidebar />
-              <SidebarInset>
-                <TopBar />
-                <ScrollRestorer>
-                  <div className="max-w-[1400px] mx-auto">
+            <TooltipProvider>
+              <div className="app-layout">
+                <AppSidebar />
+                <div className="main-content">
+                  <TopBar />
+                  <ScrollRestorer>
                     <RoutedErrorBoundary>
                       {children}
                     </RoutedErrorBoundary>
-                  </div>
-                </ScrollRestorer>
-              </SidebarInset>
-            </SidebarProvider>
-            <BackToTop />
-            <GlobalShortcuts />
-            <ShortcutHelp />
-          </TooltipProvider>
+                  </ScrollRestorer>
+                </div>
+              </div>
+              <BackToTop />
+              <GlobalShortcuts />
+              <ShortcutHelp />
+            </TooltipProvider>
           </FontScaleProvider>
           <Toaster />
         </I18nProvider>

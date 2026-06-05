@@ -3,11 +3,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, Home, Users } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Users } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useFetch } from '@/hooks/use-fetch';
@@ -30,21 +26,21 @@ const PAGE_SIZE = 50;
 const TIME_RANGES = [7, 30, 90] as const;
 type SortKey = 'time' | 'citations' | 'rules' | 'duration';
 
-const MODEL_COLORS: Record<string, string> = {
-  'claude': 'bg-orange-500/15 text-orange-300',
-  'claude-opus': 'bg-orange-500/15 text-orange-300',
-  'claude-sonnet': 'bg-blue-500/15 text-blue-300',
-  'claude-haiku': 'bg-purple-500/15 text-purple-300',
-  'gpt-4': 'bg-emerald-500/15 text-emerald-300',
-  'gpt-4o': 'bg-emerald-500/15 text-emerald-300',
-  'gpt-3.5': 'bg-teal-500/15 text-teal-300',
-  'gemini': 'bg-blue-500/15 text-blue-300',
-  'glm': 'bg-indigo-500/15 text-indigo-300',
+const MODEL_STYLES: Record<string, { bg: string; color: string }> = {
+  'claude': { bg: 'var(--accent-soft)', color: 'var(--accent)' },
+  'claude-opus': { bg: 'var(--accent-soft)', color: 'var(--accent)' },
+  'claude-sonnet': { bg: 'color-mix(in oklch, var(--chart-blue) 14%, transparent)', color: 'var(--chart-blue)' },
+  'claude-haiku': { bg: 'color-mix(in oklch, var(--chart-3) 14%, transparent)', color: 'var(--chart-3)' },
+  'gpt-4': { bg: 'color-mix(in oklch, var(--chart-green) 14%, transparent)', color: 'var(--chart-green)' },
+  'gpt-4o': { bg: 'color-mix(in oklch, var(--chart-green) 14%, transparent)', color: 'var(--chart-green)' },
+  'gpt-3.5': { bg: 'color-mix(in oklch, var(--chart-green) 14%, transparent)', color: 'var(--chart-green)' },
+  'gemini': { bg: 'color-mix(in oklch, var(--chart-blue) 14%, transparent)', color: 'var(--chart-blue)' },
+  'glm': { bg: 'color-mix(in oklch, var(--chart-2) 14%, transparent)', color: 'var(--chart-2)' },
 };
 
-function modelBadgeClass(model: string): string {
-  const key = Object.keys(MODEL_COLORS).find((k) => model.toLowerCase().includes(k));
-  return key ? MODEL_COLORS[key] : '';
+function modelBadgeStyle(model: string): { bg: string; color: string } {
+  const key = Object.keys(MODEL_STYLES).find((k) => model.toLowerCase().includes(k));
+  return key ? MODEL_STYLES[key] : { bg: 'var(--accent-soft)', color: 'var(--accent)' };
 }
 
 export default function SessionsPage() {
@@ -138,58 +134,54 @@ export default function SessionsPage() {
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link href="/" className="hover:text-foreground transition-colors"><Home className="w-3.5 h-3.5" /></Link>
-        <ChevronRight className="w-3 h-3" />
-        <span className="text-foreground">{t('session.listTitle')}</span>
-      </nav>
-
       <div className="flex items-center gap-3">
         <div>
-          <h1 className="text-2xl font-bold">{t('session.listTitle')}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t('session.listSubtitle')}</p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-2xl)', fontWeight: 500, lineHeight: 'var(--leading-tight)' }}>{t('session.listTitle')}</h1>
+          <p style={{ color: 'var(--muted)', fontSize: 'var(--text-sm)', marginTop: 'var(--space-2)' }}>{t('session.listSubtitle')}</p>
         </div>
-        <Button size="sm" variant="ghost" onClick={refresh} disabled={loading} className="h-7 px-2 mt-1" title={t('dashboard.refresh')}>
+        <button
+          onClick={refresh}
+          disabled={loading}
+          className="text-[var(--muted)] hover:text-[var(--fg)] py-1.5 px-2.5 text-sm mt-1 disabled:opacity-50"
+          title={t('dashboard.refresh')}
+        >
           <svg className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-        </Button>
+        </button>
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-        <Input
+        <input
           ref={searchRef}
           placeholder={`${t('session.searchPlaceholder')} (⌘K)`}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full sm:w-64 h-8 text-sm"
+          className="w-full sm:w-64 h-8 text-sm border border-[var(--border)] rounded-[var(--radius-sm)] bg-[var(--surface)] px-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+          style={{ color: 'var(--fg)', fontSize: 'var(--text-sm)' }}
         />
-        <div className="flex items-center gap-1.5">
-          <Button
-            size="sm"
-            variant={days === null ? 'default' : 'outline'}
-            className="h-7 text-xs px-2.5"
+        <div className="time-filter">
+          <button
+            className={days === null ? 'active' : ''}
             onClick={() => handleFilterChange(null)}
           >
             {t('session.allTime')}
-          </Button>
+          </button>
           {TIME_RANGES.map((d) => (
-            <Button
+            <button
               key={d}
-              size="sm"
-              variant={days === d ? 'default' : 'outline'}
-              className="h-7 text-xs px-2.5"
+              className={days === d ? 'active' : ''}
               onClick={() => handleFilterChange(d)}
             >
               {t(`analytics.time.${d}d`)}
-            </Button>
+            </button>
           ))}
         </div>
         {data.models && data.models.length > 1 && (
           <select
             value={modelFilter}
             onChange={(e) => handleModelChange(e.target.value)}
-            className="h-7 text-xs rounded-md border border-border bg-card text-foreground px-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="h-7 text-xs rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] text-[var(--fg)] px-2 focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
           >
             <option value="">{t('session.allModels')}</option>
             {data.models.map((m) => (
@@ -200,7 +192,7 @@ export default function SessionsPage() {
         <select
           value={confidenceFilter}
           onChange={(e) => handleConfidenceChange(e.target.value)}
-          className="h-7 text-xs rounded-md border border-border bg-card text-foreground px-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="h-7 text-xs rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] text-[var(--fg)] px-2 focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
         >
           <option value="">{t('session.allConfidence')}</option>
           <option value="high">{t('analytics.confidence.high')}</option>
@@ -208,52 +200,54 @@ export default function SessionsPage() {
           <option value="low">{t('analytics.confidence.low')}</option>
         </select>
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Badge variant="outline" className="text-xs">{t('dashboard.totalSessions')}: {total}</Badge>
+          <span className="tag">{t('dashboard.totalSessions')}: {total}</span>
           {data.avg_duration != null && (
-            <Badge variant="outline" className="text-xs">{t('session.avgDuration')}: {formatDuration(data.avg_duration)}</Badge>
+            <span className="tag">{t('session.avgDuration')}: {formatDuration(data.avg_duration)}</span>
           )}
           {data.avg_citations != null && (
-            <Badge variant="outline" className="text-xs">{t('session.avgCitations')}: {data.avg_citations}</Badge>
+            <span className="tag">{t('session.avgCitations')}: {data.avg_citations}</span>
           )}
         </div>
       </div>
 
       <div className="flex items-center gap-1.5">
-        <span className="text-xs text-muted-foreground mr-1">{t('session.sortBy')}</span>
+        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)', marginRight: '4px' }}>{t('session.sortBy')}</span>
         {(['time', 'citations', 'rules', 'duration'] as const).map((key) => (
-          <Button
+          <button
             key={key}
-            size="sm"
-            variant={sortBy === key ? 'default' : 'ghost'}
-            className="text-xs h-7 px-2"
             onClick={() => handleSort(key)}
+            className={`py-1.5 px-2 text-sm transition-colors ${sortBy === key ? 'text-[var(--fg)] font-medium' : 'text-[var(--muted)] hover:text-[var(--fg)]'}`}
+            style={{ fontSize: 'var(--text-xs)' }}
           >
             {t(`session.sort.${key}`)}
             {sortBy === key && (
-              <svg className={`w-3 h-3 ml-0.5 transition-transform ${sortDir === 'asc' ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className={`w-3 h-3 ml-0.5 inline-block transition-transform ${sortDir === 'asc' ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             )}
-          </Button>
+          </button>
         ))}
       </div>
 
       {filteredSessions.length > 0 ? (
-        <Card className="rounded-xl border-border">
-          <CardContent className="p-0">
-            <div className="divide-y divide-border">
-              {filteredSessions.map((s, idx) => (
+        <div className="panel" style={{ padding: 0 }}>
+          <div>
+            {filteredSessions.map((s, idx) => {
+              const ms = s.model ? modelBadgeStyle(s.model) : null;
+              return (
                 <Link
                   key={s.session_id}
                   href={`/sessions/${encodeURIComponent(s.session_id)}`}
                   ref={selectedIdx === idx ? (el) => el?.scrollIntoView({ block: 'nearest' }) : undefined}
-                  className={`flex items-center justify-between px-6 py-3 hover:bg-accent/30 transition-colors ${selectedIdx === idx ? 'bg-accent/40 ring-1 ring-inset ring-indigo-500/20' : ''}`}
+                  className={`flex items-center justify-between px-6 py-3 hover:bg-[var(--fg-soft)] transition-colors ${selectedIdx === idx ? 'bg-[var(--accent-soft)] ring-1 ring-inset' : ''}`}
+                  style={selectedIdx === idx ? { '--tw-ring-color': 'color-mix(in oklch, var(--accent) 20%, transparent)' } as React.CSSProperties : undefined}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span
                       role="button"
                       tabIndex={0}
-                      className="text-xs font-mono text-muted-foreground shrink-0 hover:text-foreground transition-colors"
+                      className="shrink-0 hover:text-[var(--fg)] transition-colors mono"
+                      style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)' }}
                       title={s.session_id}
                       aria-label={t('session.copyId')}
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigator.clipboard.writeText(s.session_id); toast.success(t('ruleDetail.copied')); }}
@@ -263,7 +257,7 @@ export default function SessionsPage() {
                     </span>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm text-muted-foreground">
+                        <span style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)' }}>
                           {s.started_at
                             ? new Date(s.started_at).toLocaleString(locale, {
                                 month: '2-digit',
@@ -273,67 +267,74 @@ export default function SessionsPage() {
                               })
                             : '—'}
                         </span>
-                        {s.model && (
-                          <Badge variant="secondary" className={"text-[10px] px-1.5 py-0 border-0 " + modelBadgeClass(s.model)}>
+                        {s.model && ms && (
+                          <span
+                            style={{
+                              fontSize: '10px',
+                              padding: '1px 6px',
+                              borderRadius: 'var(--radius-pill)',
+                              background: ms.bg,
+                              color: ms.color,
+                              fontFamily: 'var(--font-mono)',
+                            }}
+                          >
                             {s.model}
-                          </Badge>
+                          </span>
                         )}
                         {formatDuration(s.duration_sec) && (
-                          <span className="text-[10px] text-muted-foreground">
+                          <span style={{ fontSize: '10px', color: 'var(--muted)' }}>
                             {formatDuration(s.duration_sec)}
                           </span>
                         )}
                       </div>
                       {s.task_summary && (
-                        <p className="text-xs text-muted-foreground/70 truncate mt-0.5 max-w-[400px]">{s.task_summary}</p>
+                        <p className="truncate mt-0.5 max-w-[400px]" style={{ fontSize: 'var(--text-xs)', color: 'color-mix(in oklch, var(--muted) 70%, transparent)' }}>{s.task_summary}</p>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     {s.rule_count > 0 && (
-                      <Badge variant="default" className="text-[10px]">
+                      <span className="pill">
                         {s.rule_count} {t('table.rules').toLowerCase()}
-                      </Badge>
+                      </span>
                     )}
-                    <span className="text-xs text-muted-foreground font-mono">
+                    <span className="mono" style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
                       {s.citation_count} {t('table.matches').toLowerCase()}
                     </span>
                   </div>
                 </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              );
+            })}
+          </div>
+        </div>
       ) : (
         <div className="text-center py-16">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-border flex items-center justify-center">
-            <Users className="w-8 h-8 text-muted-foreground" />
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--surface-warm)] flex items-center justify-center">
+            <Users className="w-8 h-8" style={{ color: 'var(--muted)' }} />
           </div>
-          <p className="text-muted-foreground">{t('session.noSessions')}</p>
+          <p style={{ color: 'var(--muted)' }}>{t('session.noSessions')}</p>
         </div>
       )}
 
       {(hasPrev || hasMore) && (
         <div className="flex items-center justify-center gap-3">
-          <Button
-            size="sm"
-            variant="outline"
+          <button
             disabled={!hasPrev}
             onClick={() => { setOffset(Math.max(0, offset - PAGE_SIZE)); setSelectedIdx(null); document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" }); }}
+            className="border border-[var(--border)] bg-[var(--surface)] text-[var(--fg)] py-1.5 px-3 text-sm rounded-[var(--radius-sm)] hover:border-[var(--fg)] transition-colors disabled:opacity-50"
           >
             ← {t('pagination.prev')}
-          </Button>
-          <span className="text-xs text-muted-foreground">
+          </button>
+          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
             {offset + 1}–{Math.min(offset + PAGE_SIZE, total)} / {total}
           </span>
-          <Button
-            size="sm"
-            variant="outline"
+          <button
             disabled={!hasMore}
             onClick={() => { setOffset(offset + PAGE_SIZE); setSelectedIdx(null); document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" }); }}
+            className="border border-[var(--border)] bg-[var(--surface)] text-[var(--fg)] py-1.5 px-3 text-sm rounded-[var(--radius-sm)] hover:border-[var(--fg)] transition-colors disabled:opacity-50"
           >
             {t('pagination.next')} →
-          </Button>
+          </button>
         </div>
       )}
     </div>

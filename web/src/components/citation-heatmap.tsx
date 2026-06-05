@@ -53,12 +53,12 @@ export function CitationHeatmap({ data, maxRules = 30 }: CitationHeatmapProps) {
   if (data.length === 0 || days.length === 0) return null;
 
   const getColor = (count: number) => {
-    if (count === 0) return 'bg-muted/30';
+    if (count === 0) return 'bg-[var(--border-soft)]';
     const intensity = count / maxValue;
-    if (intensity > 0.75) return 'bg-indigo-500';
-    if (intensity > 0.5) return 'bg-indigo-500/70';
-    if (intensity > 0.25) return 'bg-indigo-500/45';
-    return 'bg-indigo-500/25';
+    if (intensity > 0.75) return 'bg-[var(--accent)]';
+    if (intensity > 0.5) return 'bg-[var(--accent-soft)]';
+    if (intensity > 0.25) return 'bg-[color-mix(in_oklch,var(--accent)_20%,transparent)]';
+    return 'bg-[color-mix(in_oklch,var(--accent)_8%,transparent)]';
   };
 
   return (
@@ -68,7 +68,7 @@ export function CitationHeatmap({ data, maxRules = 30 }: CitationHeatmapProps) {
         <div className="flex items-end gap-[2px] mb-1 pl-[180px]">
           {days.map((day) => (
             <div key={day} className="w-[28px] text-center">
-              <span className="text-[9px] text-muted-foreground font-mono">{day.slice(5)}</span>
+              <span className="text-[9px] text-[var(--meta)] font-mono">{day.slice(5)}</span>
             </div>
           ))}
         </div>
@@ -84,7 +84,7 @@ export function CitationHeatmap({ data, maxRules = 30 }: CitationHeatmapProps) {
             <div key={ruleId} className="flex items-center gap-[2px] mb-[2px] group">
               <div className="w-[180px] shrink-0 flex items-center gap-1.5 pr-2 truncate">
                 <div className="w-1 h-3 rounded-full shrink-0" style={{ backgroundColor: sectionColor }} />
-                <Link href={`/rules/${ruleId}`} className="text-[11px] text-muted-foreground hover:text-foreground truncate transition-colors">
+                <Link href={`/rules/${ruleId}`} className="text-[11px] text-[var(--meta)] hover:text-[var(--fg)] truncate transition-colors">
                   {title}
                 </Link>
               </div>
@@ -92,7 +92,7 @@ export function CitationHeatmap({ data, maxRules = 30 }: CitationHeatmapProps) {
                 const count = matrix[`${ruleId}::${day}`] ?? 0;
                 return (
                   <Tooltip key={day}>
-                    <TooltipTrigger className={`w-[28px] h-[20px] rounded-sm ${getColor(count)} transition-colors hover:ring-1 hover:ring-indigo-400/50`} role="img" aria-label={`${title}: ${day} ${count} ${t('table.matches').toLowerCase()}`}>
+                    <TooltipTrigger className={`w-[28px] h-[20px] rounded-sm ${getColor(count)} transition-colors hover:ring-1 hover:ring-[var(--accent)]/30`} role="img" aria-label={`${title}: ${day} ${count} ${t('table.matches').toLowerCase()}`}>
                       <Link href={`/rules/${ruleId}`} className="block w-full h-full" aria-label={title} />
                     </TooltipTrigger>
                     <TooltipContent side="top" className="text-xs">

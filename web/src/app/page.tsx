@@ -3,11 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Button } from '@/components/ui/button';
-import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, AreaChart, Area } from 'recharts';
+import { XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { StatCard } from '@/components/stat-card';
 import { PageError, DashboardSkeleton } from '@/components/page-states';
 import { ChartErrorBoundary } from '@/components/chart-error-boundary';
@@ -17,8 +13,8 @@ import { useChartTheme } from '@/hooks/use-chart-theme';
 import { useFetch } from '@/hooks/use-fetch';
 import { useTooltipStyle } from '@/hooks/use-chart-tooltip';
 import { usePageTitle } from '@/hooks/use-page-title';
-import { CHART_COLORS, STAT_COLORS, PRIMARY } from '@/lib/chart-colors';
-import { relativeTime, formatDuration } from '@/lib/relative-time';
+import { CHART_COLORS, STAT_COLORS } from '@/lib/chart-colors';
+import { relativeTime } from '@/lib/relative-time';
 import type { RuleWithStats, SectionWithStats, CitationTimePoint, RecentCitation, RecentSession } from '@/lib/types';
 
 type SessionEntry = RecentSession;
@@ -71,73 +67,75 @@ export default function DashboardPage() {
   const avgCoverage = data.avg_coverage ?? 0;
   const avgDepth = data.avg_depth ?? 0;
 
-  const sectionChartData = sections.map((s) => ({
-    name: s.title.length > 12 ? s.title.slice(0, 12) + '…' : s.title,
-    fullName: s.title,
-    citations: s.total_citations,
-    ruleCount: s.rule_count,
-    section_id: s.section_id,
-  }));
-
-  const topRulesChartData = topRules.map((r) => ({
-    name: r.title.length > 20 ? r.title.slice(0, 20) + '…' : r.title,
-    fullName: r.title,
-    citations: r.match_count,
-    coverage: `${(r.session_coverage * 100).toFixed(0)}%`,
-    depth: r.avg_depth.toFixed(1),
-    rule_id: r.rule_id,
-  }));
+  // CSS bar chart helpers
+  const maxSectionCitations = Math.max(...sections.map((s) => s.total_citations), 1);
+  const maxTopRuleCitations = Math.max(...topRules.map((r) => r.match_count), 1);
+  const maxModelCount = data.model_distribution ? Math.max(...data.model_distribution.map((m) => m.count), 1) : 1;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      {/* ─── Page Header ─────────────────────────────────────────── */}
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 'var(--space-8)' }}>
         <div>
-          <h1 className="text-2xl font-bold">{t('dashboard.title')}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t('dashboard.subtitle')}</p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-2xl)', fontWeight: 500, lineHeight: 'var(--leading-tight)' }}>
+            {t('dashboard.title')}
+          </h1>
+          <p style={{ color: 'var(--muted)', marginTop: 'var(--space-2)' }}>{t('dashboard.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
           {fetchedAt && (
-            <span className="text-[10px] text-muted-foreground/50">
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)', color: 'var(--meta)' }}>
               {t('dashboard.lastUpdated', { ago: relativeTime(new Date(fetchedAt).toISOString(), locale) })}
             </span>
           )}
-          <Button size="sm" variant="ghost" onClick={refresh} disabled={loading} className="h-7 px-2 text-xs" title={t('dashboard.refresh')} aria-label={t('dashboard.refresh')}>
-            <svg className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          <button
+            onClick={refresh}
+            disabled={loading}
+            style={{
+              width: 36, height: 36, display: 'grid', placeItems: 'center',
+              borderRadius: 'var(--radius-sm)', color: 'var(--muted)',
+              border: 'none', background: 'none', cursor: loading ? 'default' : 'pointer',
+              transition: 'background var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard)',
+            }}
+            title={t('dashboard.refresh')}
+            aria-label={t('dashboard.refresh')}
+          >
+            <svg className={loading ? 'animate-spin' : ''} style={{ width: 18, height: 18 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M23 4v6h-6M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
             </svg>
-          </Button>
-          <div className="flex items-center gap-1">
+          </button>
+          <div className="time-filter">
             {([
               { value: undefined, key: 'all' },
               { value: 7, key: '7d' },
               { value: 30, key: '30d' },
               { value: 90, key: '90d' },
             ] as const).map(({ value, key }) => (
-              <Button
+              <button
                 key={key}
-                size="sm"
-                variant={timeRange === value ? 'default' : 'ghost'}
+                className={timeRange === value ? 'active' : ''}
                 onClick={() => setTimeRange(value)}
-                className="text-xs h-7 px-2"
               >
                 {t(`analytics.time.${key}`)}
-              </Button>
+              </button>
             ))}
           </div>
           {data.recent_citations && data.recent_citations.length > 0 && (
-            <span className="text-xs text-muted-foreground whitespace-nowrap">
+            <span style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
               {t('dashboard.lastActivity', { time: relativeTime(data.recent_citations[0].timestamp, locale) })}
             </span>
           )}
           {data.recent_builds && data.recent_builds.length > 0 && (
-            <Badge variant="outline" className="text-[10px] font-mono shrink-0">
+            <div className="build-status">
+              <span className="status-dot"></span>
               {t('dashboard.recentBuilds')}: {relativeTime(data.recent_builds[0].published_at, locale)}
-            </Badge>
+            </div>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      {/* ─── Stat Cards ─────────────────────────────────────────── */}
+      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-8)' }}>
         <StatCard
           label={t('dashboard.totalRules')}
           value={data.total_rules}
@@ -177,318 +175,342 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {data.model_distribution && data.model_distribution.length > 0 && (
-          <Card className="rounded-xl border-border bg-card">
-            <CardHeader>
-              <CardTitle className="text-base">{t('dashboard.modelDistribution')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {(() => {
-                  const models = data.model_distribution;
-                  const maxCount = Math.max(...models.map((m) => m.count), 1);
-                  return models.map((m, mi) => (
-                    <div key={m.model} className="flex items-center gap-3">
-                      <span className="text-xs font-mono text-muted-foreground w-24 shrink-0 truncate" title={m.model}>{m.model}</span>
-                      <div className="flex-1 h-5 bg-muted/30 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{ width: `${(m.count / maxCount) * 100}%`, backgroundColor: CHART_COLORS[mi % CHART_COLORS.length] }}
-                        />
-                      </div>
-                      <span className="text-xs font-mono text-muted-foreground w-12 text-right">{m.count}</span>
-                    </div>
-                  ));
-                })()}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
+      {/* ─── Citation Trend + Session Trend ──────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-6)', marginBottom: 'var(--space-6)' }}>
         {data.citation_trend && data.citation_trend.length > 1 && (
-          <Card className="rounded-xl border-border bg-card">
-            <CardHeader>
-              <CardTitle className="text-base">
+          <div className="panel">
+            <div className="panel-header">
+              <h3 className="panel-title">
                 {t('analytics.citationTrend')}
-                <span className="text-xs font-normal text-muted-foreground ml-2">
+                <span style={{ fontSize: 'var(--text-sm)', color: 'var(--meta)', marginLeft: 'var(--space-2)', fontFamily: 'var(--font-mono)' }}>
                   ({t('analytics.avgPerDay')}: {Math.round(data.citation_trend.reduce((s, p) => s + p.count, 0) / (data.citation_trend.length || 1)).toLocaleString()})
                 </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[180px]">
-                <ChartErrorBoundary>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data.citation_trend} margin={{ left: 0, right: 20 }}>
+              </h3>
+            </div>
+            <div style={{ height: 180 }}>
+              <ChartErrorBoundary>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={data.citation_trend} margin={{ left: 0, right: 20 }}>
                     <defs>
                       <linearGradient id="dashTrendGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={PRIMARY} stopOpacity={0.3} />
-                        <stop offset="100%" stopColor={PRIMARY} stopOpacity={0} />
+                        <stop offset="0%" stopColor="#c96442" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#c96442" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <XAxis dataKey="period" tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
                     <YAxis tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
                     <RechartsTooltip {...tooltipStyle} />
-                    <Area type="monotone" dataKey="count" stroke={PRIMARY} fill="url(#dashTrendGrad)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="count" stroke="#c96442" fill="url(#dashTrendGrad)" strokeWidth={2} />
                   </AreaChart>
-                  </ResponsiveContainer>
-                </ChartErrorBoundary>
-              </div>
-            </CardContent>
-          </Card>
+                </ResponsiveContainer>
+              </ChartErrorBoundary>
+            </div>
+          </div>
         )}
 
         {data.session_trend && data.session_trend.length > 1 && (
-          <Card className="rounded-xl border-border bg-card">
-            <CardHeader>
-              <CardTitle className="text-base">
+          <div className="panel">
+            <div className="panel-header">
+              <h3 className="panel-title">
                 {t('dashboard.sessionTrend')}
-                <span className="text-xs font-normal text-muted-foreground ml-2">
+                <span style={{ fontSize: 'var(--text-sm)', color: 'var(--meta)', marginLeft: 'var(--space-2)', fontFamily: 'var(--font-mono)' }}>
                   ({t('analytics.avgPerDay')}: {Math.round(data.session_trend.reduce((s, p) => s + p.count, 0) / (data.session_trend.length || 1)).toLocaleString()})
                 </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[180px]">
-                <ChartErrorBoundary>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data.session_trend} margin={{ left: 0, right: 20 }}>
+              </h3>
+            </div>
+            <div style={{ height: 180 }}>
+              <ChartErrorBoundary>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={data.session_trend} margin={{ left: 0, right: 20 }}>
                     <defs>
                       <linearGradient id="sessionTrendGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
+                        <stop offset="0%" stopColor="#5e5d59" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#5e5d59" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <XAxis dataKey="period" tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
                     <YAxis tick={{ fill: chartTheme.mutedForeground, fontSize: 11 }} />
                     <RechartsTooltip {...tooltipStyle} />
-                    <Area type="monotone" dataKey="count" stroke="#8b5cf6" fill="url(#sessionTrendGrad)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="count" stroke="#5e5d59" fill="url(#sessionTrendGrad)" strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>
-            </ChartErrorBoundary>
-              </div>
-            </CardContent>
-          </Card>
+              </ChartErrorBoundary>
+            </div>
+          </div>
         )}
       </div>
 
-      <Card className="rounded-xl border-border bg-card">
-        <CardHeader>
-          <CardTitle className="text-base">{t('dashboard.sections')}</CardTitle>
-          <p className="text-xs text-muted-foreground">{t('dashboard.sections.subtitle')}</p>
-        </CardHeader>
-        <CardContent>
-          <div style={{ height: `${Math.max(300, sections.length * 32)}px` }}>
-            <ChartErrorBoundary>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={sectionChartData} layout="vertical" margin={{ left: 10, right: 20 }}>
-                <XAxis type="number" hide />
-                <YAxis type="category" dataKey="name" width={160} tick={{ fill: chartTheme.mutedForeground, fontSize: 12 }} />
-                <RechartsTooltip
-                  {...tooltipStyle}
-                  formatter={(value, _name, props) => [`${value} (${(props as { payload: { ruleCount: number } }).payload.ruleCount} ${t('table.rules').toLowerCase()})`, (props as { payload: { fullName: string } }).payload.fullName]}
-                />
-                <Bar dataKey="citations" radius={[0, 4, 4, 0]} maxBarSize={24} style={{ cursor: 'pointer' }}>
-                  {sectionChartData.map((entry, i) => (
-                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} onClick={() => router.push(`/rules?section=${entry.section_id}`)} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-            </ChartErrorBoundary>
+      {/* ─── Section Overview + Top Rules (CSS bar charts) ──────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-6)', marginBottom: 'var(--space-6)' }}>
+        {/* Section Overview */}
+        <div className="panel">
+          <div className="panel-header">
+            <h3 className="panel-title">{t('dashboard.sections')}</h3>
+            <Link href="/rules" className="panel-link">{t('dashboard.viewAll')} &rarr;</Link>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card className="rounded-xl border-border bg-card">
-        <CardHeader>
-          <CardTitle className="text-base">{t('dashboard.topRules')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ChartErrorBoundary>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topRulesChartData} layout="vertical" margin={{ left: 10, right: 20 }}>
-                <XAxis type="number" hide />
-                <YAxis type="category" dataKey="name" width={180} tick={{ fill: chartTheme.mutedForeground, fontSize: 12 }} />
-                <RechartsTooltip
-                  {...tooltipStyle}
-                  formatter={(value, _name, props) => {
-                    const p = (props as { payload: { fullName: string; coverage: string; depth: string } }).payload;
-                    return [`${value} ${t('table.matches')} · ${p.coverage} ${t('metric.coverage')} · ${p.depth} ${t('metric.depth')}`, p.fullName];
-                  }}
-                />
-                <Bar dataKey="citations" fill={PRIMARY} radius={[0, 4, 4, 0]} maxBarSize={20} style={{ cursor: 'pointer' }}>
-                  {topRulesChartData.map((entry, i) => (
-                    <Cell key={i} fill={PRIMARY} onClick={() => router.push(`/rules/${entry.rule_id}`)} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-            </ChartErrorBoundary>
+          <div className="bar-list">
+            {sections.map((s) => (
+              <div
+                key={s.section_id}
+                className="bar-item clickable"
+                onClick={() => router.push(`/rules?section=${s.section_id}`)}
+              >
+                <span className="bar-label">{s.title}</span>
+                <div className="bar-track">
+                  <div className="bar-fill" style={{ width: `${(s.total_citations / maxSectionCitations) * 100}%` }}></div>
+                </div>
+                <span className="bar-count">{s.total_citations}</span>
+              </div>
+            ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {data.recent_citations && data.recent_citations.length > 0 && (
-          <Card className="rounded-xl border-border bg-card">
-            <CardHeader>
-              <CardTitle className="text-base">{t('dashboard.recentCitations')}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="divide-y divide-border">
-                {data.recent_citations.slice(0, 8).map((c, i) => (
-                  <div key={`${c.rule_id}-${c.timestamp}-${i}`}
-                    className="flex items-center justify-between px-6 py-2.5 hover:bg-accent/30 transition-colors">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Link href={`/rules?search=${encodeURIComponent(c.matched_keyword)}`}>
-                      <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 text-[10px] shrink-0 hover:bg-indigo-500/10 cursor-pointer transition-colors">{c.matched_keyword}</Badge>
-                    </Link>
-                      <Link href={`/rules?section=${c.section_id}`}>
-                        <Badge variant="secondary" className="text-[10px] shrink-0 hover:opacity-80 cursor-pointer transition-opacity">{c.section_id}</Badge>
-                      </Link>
-                      <Link href={`/rules/${c.rule_id}`} className="text-sm truncate hover:text-indigo-400 transition-colors">{c.title}</Link>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0 ml-3">
-                      <Link href={`/sessions/${encodeURIComponent(c.session_id)}`} className="text-[10px] font-mono text-muted-foreground hover:text-foreground transition-colors" title={c.session_id}>
-                        {c.session_id.slice(0, 6)}
-                      </Link>
-                      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.confidence === 'high' ? 'bg-emerald-400' : c.confidence === 'medium' ? 'bg-amber-400' : 'bg-rose-400'}`} title={c.confidence} />
-                      {c.model && <Badge variant="secondary" className="text-[10px] font-mono px-1 py-0">{c.model}</Badge>}
-                      <span className="text-xs text-muted-foreground whitespace-nowrap" title={new Date(c.timestamp).toLocaleString(locale)}>
-                        {relativeTime(c.timestamp, locale)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+        {/* Top 10 Rules */}
+        <div className="panel">
+          <div className="panel-header">
+            <h3 className="panel-title">{t('dashboard.topRules')}</h3>
+            <Link href="/analytics" className="panel-link">{t('dashboard.viewAll')} &rarr;</Link>
+          </div>
+          <div className="bar-list">
+            {topRules.map((r) => (
+              <div
+                key={r.rule_id}
+                className="bar-item clickable"
+                onClick={() => router.push(`/rules/${r.rule_id}`)}
+              >
+                <span className="bar-label">{r.title}</span>
+                <div className="bar-track">
+                  <div className="bar-fill" style={{ width: `${(r.match_count / maxTopRuleCitations) * 100}%` }}></div>
+                </div>
+                <span className="bar-count">{r.match_count}</span>
               </div>
-              <div className="border-t border-border px-6 py-2 text-center">
-                <Link href="/analytics" className="text-xs text-muted-foreground hover:text-foreground transition-colors">{t('dashboard.viewAll')} →</Link>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {recentSessions.length > 0 && (
-          <Card className="rounded-xl border-border bg-card">
-            <CardHeader>
-              <CardTitle className="text-base">{t('dashboard.recentSessions')}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="divide-y divide-border">
-                {recentSessions.map((s) => (
-                  <Link
-                    key={s.session_id}
-                    href={`/sessions/${encodeURIComponent(s.session_id)}`}
-                    className="flex items-center justify-between px-6 py-2.5 hover:bg-accent/30 transition-colors"
-                  >
-                    <div className="flex flex-col min-w-0">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-mono text-muted-foreground shrink-0">
-                          {s.session_id.slice(0, 8)}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {s.started_at
-                            ? new Date(s.started_at).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
-                            : '—'}
-                        </span>
-                        {formatDuration(s.duration_sec) && (
-                          <span className="text-[10px] text-muted-foreground font-mono">{formatDuration(s.duration_sec)}</span>
-                        )}
-                        {s.model && (
-                          <Badge variant="secondary" className="text-[10px] font-mono px-1 py-0">{s.model}</Badge>
-                        )}
-                      </div>
-                      {s.task_summary && (
-                        <p className="text-xs text-muted-foreground/70 truncate mt-0.5" title={s.task_summary}>{s.task_summary}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0 ml-3">
-                      {s.rule_count > 0 && (
-                        <Badge variant="outline" className="text-[10px]">{s.rule_count} {t('table.rules').toLowerCase()}</Badge>
-                      )}
-                      {s.citation_count > 0 && (
-                        <Badge variant="secondary" className="text-[10px]" title={`${s.citation_count} ${t('table.matches')}`}>{s.citation_count}</Badge>
-                      )}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-              <div className="border-t border-border px-6 py-2 text-center">
-                <Link href="/sessions" className="text-xs text-muted-foreground hover:text-foreground transition-colors">{t('dashboard.viewAll')} →</Link>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+            ))}
+          </div>
+        </div>
       </div>
 
-      {data.recent_builds && data.recent_builds.length > 0 && (
-        <Card className="rounded-xl border-border bg-card">
-          <CardHeader>
-            <CardTitle className="text-base">{t('dashboard.recentBuilds')}</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-border">
-              {data.recent_builds.map((build) => (
-                <Link key={build.id} href="/history"
-                  className="flex items-center justify-between px-6 py-2.5 hover:bg-accent/30 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <Badge variant={build.status === 'success' ? 'default' : 'destructive'} className="text-[10px]">
-                      {build.status === 'success' ? t('dashboard.buildStatus.success') : t('dashboard.buildStatus.failed')}
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">
-                      {build.rules_changed} {t('table.rules').toLowerCase()}
-                    </span>
+      {/* ─── Model Distribution + Recent Citations ──────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-6)', marginBottom: 'var(--space-6)' }}>
+        {/* Model Distribution */}
+        {data.model_distribution && data.model_distribution.length > 0 && (
+          <div className="panel">
+            <div className="panel-header">
+              <h3 className="panel-title">{t('dashboard.modelDistribution')}</h3>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+              {data.model_distribution.map((m, mi) => (
+                <div key={m.model} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-sm)', width: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={m.model}>{m.model}</span>
+                  <div style={{ flex: 1, height: 6, background: 'var(--border-soft)', borderRadius: 'var(--radius-pill)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', borderRadius: 'var(--radius-pill)', width: `${(m.count / maxModelCount) * 100}%`, background: CHART_COLORS[mi % CHART_COLORS.length], transition: 'width 0.4s var(--ease-standard)' }} />
                   </div>
-                  <span className="text-xs text-muted-foreground" title={new Date(build.published_at).toLocaleString(locale)}>
-                    {relativeTime(build.published_at, locale)}
-                  </span>
-                </Link>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-sm)', color: 'var(--muted)', width: 36, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{m.count}</span>
+                </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
 
-      {coldRules.length > 0 && (
-        <Collapsible open={coldOpen} onOpenChange={setColdOpen}>
-          <Card className="rounded-xl border-border bg-card">
-            <CollapsibleTrigger className="w-full flex items-center justify-between px-6 py-4 hover:bg-accent/50 transition-colors text-left">
-              <div className="flex items-center gap-3">
-                <svg className={`w-4 h-4 text-muted-foreground transition-transform ${coldOpen ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-                <span className="text-base font-semibold">
-                  <TermTooltip term={t('term.coldRule')} explanation={t('term.coldRule.desc')} />
-                </span>
-              </div>
-              <Badge variant="outline" className="text-amber-500">{t('dashboard.coldRules.count', { count: coldRules.length })}</Badge>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="border-t border-border divide-y divide-border">
-                {coldRules.map((rule) => (
-                  <Link key={rule.rule_id} href={`/rules/${rule.rule_id}`}
-                    className="flex items-center justify-between px-6 py-3 hover:bg-accent/30 transition-colors">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Badge variant="secondary" className="text-[10px] shrink-0 hover:bg-primary/20 cursor-pointer"
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/rules?section=${rule.section_id}`); }}
-                      >{rule.section_id}</Badge>
-                      <span className="text-sm truncate">{rule.title}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground shrink-0 font-mono">
-                      {rule.match_count > 0
-                        ? `${rule.match_count} ${t('table.matches')}`
-                        : t('analytics.neverCited')}
-                      {rule.last_cited && <span className="ml-2 text-[10px]">{relativeTime(rule.last_cited, locale)}</span>}
-                    </span>
-                  </Link>
+        {/* Recent Citations */}
+        {data.recent_citations && data.recent_citations.length > 0 && (
+          <div className="panel">
+            <div className="panel-header">
+              <h3 className="panel-title">{t('dashboard.recentCitations')}</h3>
+              <Link href="/analytics" className="panel-link">{t('dashboard.viewAll')} &rarr;</Link>
+            </div>
+            <table className="records-table">
+              <thead>
+                <tr>
+                  <th>{t('table.keyword')}</th>
+                  <th>{t('table.rule')}</th>
+                  <th>{t('table.model')}</th>
+                  <th>{t('table.confidence')}</th>
+                  <th>{t('table.time')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.recent_citations.slice(0, 8).map((c, i) => (
+                  <tr key={`${c.rule_id}-${c.timestamp}-${i}`}>
+                    <td>
+                      <Link href={`/rules?search=${encodeURIComponent(c.matched_keyword)}`}>
+                        <span className="pill">{c.matched_keyword}</span>
+                      </Link>
+                    </td>
+                    <td>
+                      <Link href={`/rules/${c.rule_id}`} style={{ color: 'var(--fg-2)', transition: 'color var(--motion-fast)' }}>
+                        {c.title}
+                      </Link>
+                    </td>
+                    <td className="mono">{c.model || '—'}</td>
+                    <td>
+                      <span className={`conf conf-${c.confidence}`}>
+                        <span className="conf-dot"></span>
+                        {c.confidence}
+                      </span>
+                    </td>
+                    <td className="mono" style={{ color: 'var(--meta)' }}>
+                      <Link href={`/sessions/${encodeURIComponent(c.session_id)}`} style={{ color: 'var(--meta)' }} title={new Date(c.timestamp).toLocaleString(locale)}>
+                        {relativeTime(c.timestamp, locale)}
+                      </Link>
+                    </td>
+                  </tr>
                 ))}
-              </div>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* ─── Recent Sessions + Recent Builds ──────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-6)', marginBottom: 'var(--space-6)' }}>
+        {/* Recent Sessions */}
+        {recentSessions.length > 0 && (
+          <div className="panel">
+            <div className="panel-header">
+              <h3 className="panel-title">{t('dashboard.recentSessions')}</h3>
+              <Link href="/sessions" className="panel-link">{t('dashboard.viewAll')} &rarr;</Link>
+            </div>
+            <table className="records-table">
+              <thead>
+                <tr>
+                  <th>{t('table.sessionId')}</th>
+                  <th>{t('table.time')}</th>
+                  <th>{t('table.model')}</th>
+                  <th>{t('table.rules')}</th>
+                  <th>{t('table.task')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentSessions.map((s) => (
+                  <tr
+                    key={s.session_id}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => router.push(`/sessions/${encodeURIComponent(s.session_id)}`)}
+                  >
+                    <td className="mono" style={{ color: 'var(--accent)' }}>{s.session_id.slice(0, 8)}</td>
+                    <td className="mono" style={{ color: 'var(--meta)' }}>
+                      {s.started_at
+                        ? new Date(s.started_at).toLocaleString(locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+                        : '—'}
+                    </td>
+                    <td>
+                      {s.model ? <span className="tag">{s.model}</span> : '—'}
+                    </td>
+                    <td className="mono">{s.rule_count > 0 ? s.rule_count : '—'}</td>
+                    <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {s.task_summary || '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Recent Builds */}
+        {data.recent_builds && data.recent_builds.length > 0 && (
+          <div className="panel">
+            <div className="panel-header">
+              <h3 className="panel-title">{t('dashboard.recentBuilds')}</h3>
+              <Link href="/history" className="panel-link">{t('dashboard.viewAll')} &rarr;</Link>
+            </div>
+            <table className="records-table">
+              <thead>
+                <tr>
+                  <th>{t('table.status')}</th>
+                  <th>{t('table.time')}</th>
+                  <th>{t('table.rulesChanged')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.recent_builds.map((build) => (
+                  <tr
+                    key={build.id}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => router.push('/history')}
+                  >
+                    <td>
+                      <span className={`conf ${build.status === 'success' ? 'conf-high' : 'conf-medium'}`}>
+                        <span className="conf-dot"></span>
+                        {build.status === 'success' ? t('dashboard.buildStatus.success') : t('dashboard.buildStatus.failed')}
+                      </span>
+                    </td>
+                    <td className="mono" style={{ color: 'var(--meta)' }}>
+                      {relativeTime(build.published_at, locale)}
+                    </td>
+                    <td className="mono">{build.rules_changed} {t('table.rules').toLowerCase()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* ─── Cold Rules (Collapsible) ──────────────────────────────── */}
+      {coldRules.length > 0 && (
+        <div style={{ marginBottom: 'var(--space-6)' }}>
+          <div className="panel">
+            <button
+              className={`collapse-toggle${coldOpen ? ' open' : ''}`}
+              onClick={() => setColdOpen(!coldOpen)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
+                fontSize: 'var(--text-sm)', color: 'var(--muted)', cursor: 'pointer',
+                padding: 'var(--space-2) 0', border: 'none', background: 'none', width: '100%', font: 'inherit',
+              }}
+            >
+              <svg
+                style={{ width: 14, height: 14, transition: 'transform var(--motion-fast) var(--ease-standard)', transform: coldOpen ? 'rotate(90deg)' : 'none' }}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
+              </svg>
+              <TermTooltip term={t('term.coldRule')} explanation={t('term.coldRule.desc')} />
+              <span style={{ marginLeft: 'auto', fontSize: 'var(--text-xs)', color: 'var(--warn)' }}>
+                {t('dashboard.coldRules.count', { count: coldRules.length })}
+              </span>
+            </button>
+            <div className={`collapse-body${coldOpen ? ' open' : ''}`}>
+              <table className="records-table" style={{ marginTop: 'var(--space-4)' }}>
+                <thead>
+                  <tr>
+                    <th>{t('table.rule')}</th>
+                    <th>{t('table.section')}</th>
+                    <th>{t('table.citations')}</th>
+                    <th>{t('table.lastCited')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {coldRules.map((rule) => (
+                    <tr
+                      key={rule.rule_id}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => router.push(`/rules/${rule.rule_id}`)}
+                    >
+                      <td>{rule.title}</td>
+                      <td style={{ color: 'var(--muted)' }}>
+                        <span
+                          className="tag"
+                          onClick={(e) => { e.stopPropagation(); router.push(`/rules?section=${rule.section_id}`); }}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          {rule.section_id}
+                        </span>
+                      </td>
+                      <td className="mono" style={{ color: 'var(--meta)' }}>
+                        {rule.match_count > 0 ? rule.match_count : '0'}
+                      </td>
+                      <td className="mono" style={{ color: 'var(--meta)' }}>
+                        {rule.last_cited ? relativeTime(rule.last_cited, locale) : t('analytics.neverCited')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

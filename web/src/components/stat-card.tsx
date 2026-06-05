@@ -3,7 +3,6 @@
 import { memo, useEffect, useRef, useState, useId, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
-import { Card, CardContent } from '@/components/ui/card';
 import { PRIMARY } from '@/lib/chart-colors';
 
 interface StatCardProps {
@@ -48,49 +47,100 @@ function StatCardInner({ label, value, sublabel, trend, color = PRIMARY, percent
       ? displayValue.toFixed(decimals)
       : displayValue.toLocaleString();
 
+  const trendDirection = trend && trend.length >= 2
+    ? trend[trend.length - 1].count - trend[trend.length - 2].count
+    : 0;
+  const trendColor = trendDirection > 0 ? 'var(--success)' : trendDirection < 0 ? 'var(--danger)' : 'var(--meta)';
+
   const inner = (
-    <div className="flex">
-      <div className="w-1 shrink-0 rounded-l-xl" style={{ backgroundColor: color }} />
-      <CardContent className="p-5 pl-4 flex-1 min-w-0">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
-          {label}
+    <div
+      className="p-5"
+      style={{
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-md)',
+        transition: href ? 'box-shadow var(--motion-base) var(--ease-standard)' : undefined,
+      }}
+    >
+      <p
+        className="mb-1"
+        style={{
+          color: 'var(--meta)',
+          fontSize: 'var(--text-sm)',
+          lineHeight: 1,
+        }}
+      >
+        {label}
+      </p>
+      <div
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 'var(--text-2xl)',
+          fontWeight: 500,
+          color: percentage ? color : 'var(--fg)',
+          lineHeight: 'var(--leading-tight)',
+        }}
+      >
+        {formattedValue}
+      </div>
+      {sublabel && (
+        <p
+          className="mt-1"
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 'var(--text-xs)',
+            color: trendDirection !== 0 ? trendColor : 'var(--meta)',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          {trendDirection > 0 && '↑ '}
+          {trendDirection < 0 && '↓ '}
+          {sublabel}
         </p>
-        <div className="text-3xl font-bold text-foreground" style={percentage ? { color } : undefined}>
-          {formattedValue}
+      )}
+      {trend && trend.length > 1 && (
+        <div className="mt-3 h-8">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={trend}>
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area
+                type="monotone"
+                dataKey="count"
+                stroke="var(--accent)"
+                fill={`url(#${gradientId})`}
+                strokeWidth={1.5}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
-        {sublabel && (
-          <p className="text-xs text-muted-foreground mt-1">{sublabel}</p>
-        )}
-        {trend && trend.length > 1 && (
-          <div className="mt-3 h-8">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trend}>
-                <defs>
-                  <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={color} stopOpacity={0.3} />
-                    <stop offset="100%" stopColor={color} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <Area
-                  type="monotone"
-                  dataKey="count"
-                  stroke={color}
-                  fill={`url(#${gradientId})`}
-                  strokeWidth={1.5}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </CardContent>
+      )}
     </div>
   );
 
-  return (
-    <Card className={`rounded-xl border-border bg-card overflow-hidden ${href ? 'hover:bg-accent/30 transition-colors cursor-pointer' : ''}`}>
-      {href ? <Link href={href}>{inner}</Link> : inner}
-    </Card>
-  );
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="block"
+        style={{ cursor: 'pointer' }}
+        onMouseEnter={(e) => {
+          (e.currentTarget.firstElementChild as HTMLElement).style.boxShadow = 'var(--elev-raised)';
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget.firstElementChild as HTMLElement).style.boxShadow = 'none';
+        }}
+      >
+        {inner}
+      </Link>
+    );
+  }
+
+  return inner;
 }
 
 export const StatCard = memo(StatCardInner);
