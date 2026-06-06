@@ -59,7 +59,7 @@ export const RuleRow = memo(function RuleRow({ rule, maxDepth }: RuleRowProps) {
         </button>
         <Link href={`/rules/${rule.rule_id}`} className="flex items-center gap-3 min-w-0 flex-1">
           <span className="text-xs font-mono text-[var(--meta)] shrink-0">{rule.rule_id}</span>
-          <span className="text-sm truncate hover:text-[var(--accent)] transition-colors">{rule.title}</span>
+          <span className="truncate hover:text-[var(--accent)] transition-colors" style={{ fontSize: 14, fontWeight: 500 }}>{rule.title}</span>
         </Link>
         <div className="flex items-center justify-center shrink-0 gap-1.5 sm:w-[80px]">
           <MiniSparkline session={rule.session_count} matches={rule.match_count} />

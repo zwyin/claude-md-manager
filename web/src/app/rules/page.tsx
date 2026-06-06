@@ -186,7 +186,8 @@ function RulesContent() {
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); syncUrl(sectionFilter, sortBy, sortDir, e.target.value); }}
             placeholder={`${t('rules.searchPlaceholder')}…`}
-            className="w-full py-2.5 pl-10 pr-14 border border-[var(--border)] rounded-lg bg-[var(--surface)] text-sm text-[var(--fg)] placeholder:text-[var(--meta)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+            className="w-full py-2.5 pl-10 pr-14 border border-[var(--border)] rounded-[var(--radius-sm)] bg-[var(--surface)] text-[var(--fg)] placeholder:text-[var(--meta)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+            style={{ fontSize: 14 }}
           />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[11px] text-[var(--meta)] bg-[var(--bg)] px-1.5 py-0.5 border border-[var(--border)] rounded">⌘K</span>
           {searchQuery && (

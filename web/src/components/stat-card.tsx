@@ -75,7 +75,7 @@ function StatCardInner({ label, value, sublabel, trend, color = PRIMARY, percent
       <div
         style={{
           fontFamily: 'var(--font-display)',
-          fontSize: 'var(--text-2xl)',
+          fontSize: '28px',
           fontWeight: 500,
           color: percentage ? color : 'var(--fg)',
           lineHeight: 'var(--leading-tight)',

@@ -235,7 +235,7 @@ function EditorContent() {
         </div>
         <div className="flex items-center gap-2">
           {draftCount > 0 && (
-            <span className="text-xs text-[var(--accent)] font-medium">
+            <span className="text-[10px] text-[var(--accent)] font-medium">
               {t('editor.unsavedDrafts', { count: draftCount })}
             </span>
           )}

@@ -41,7 +41,7 @@ export function AppSidebar() {
     <aside className="app-sidebar">
       <div className="app-sidebar-header">
         <h1 className="text-lg font-semibold" style={{ fontFamily: 'var(--font-display)' }}>{t('app.title')}</h1>
-        <p className="text-[11px]" style={{ color: 'var(--border)' }}>{t('sidebar.subtitle')}</p>
+        <p style={{ color: 'var(--meta)', fontSize: 'var(--text-sm)' }}>{t('sidebar.subtitle')}</p>
       </div>
 
       <nav className="app-sidebar-nav">
@@ -56,10 +56,10 @@ export function AppSidebar() {
               <item.Icon className="w-4 h-4 shrink-0" />
               <span className="flex-1 truncate">{t(item.labelKey)}</span>
               {item.href === '/editor' && draftCount > 0 && (
-                <span className="pill" style={{ background: 'var(--accent)', color: 'var(--accent-on)' }}>{draftCount}</span>
+                <span style={{ marginLeft: 'auto', background: 'var(--accent)', color: 'var(--accent-on)', fontSize: 10, fontFamily: 'var(--font-mono)', padding: '2px 7px', borderRadius: 'var(--radius-pill)', fontWeight: 600 }}>{draftCount}</span>
               )}
               {item.href === '/sessions' && todaySessions > 0 && (
-                <span className="pill" style={{ background: 'var(--surface-warm)', color: 'var(--meta)' }}>{todaySessions}</span>
+                <span style={{ marginLeft: 'auto', background: 'color-mix(in oklch, var(--surface) 12%, transparent)', color: 'var(--meta)', fontSize: 10, fontFamily: 'var(--font-mono)', padding: '2px 7px', borderRadius: 'var(--radius-pill)' }}>{todaySessions}</span>
               )}
             </Link>
           );

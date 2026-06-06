@@ -247,7 +247,7 @@ export default function SessionsPage() {
                       role="button"
                       tabIndex={0}
                       className="shrink-0 hover:text-[var(--fg)] transition-colors mono"
-                      style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)' }}
+                      style={{ fontSize: 'var(--text-sm)', color: 'var(--accent)' }}
                       title={s.session_id}
                       aria-label={t('session.copyId')}
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigator.clipboard.writeText(s.session_id); toast.success(t('ruleDetail.copied')); }}
@@ -270,8 +270,8 @@ export default function SessionsPage() {
                         {s.model && ms && (
                           <span
                             style={{
-                              fontSize: '10px',
-                              padding: '1px 6px',
+                              fontSize: '11px',
+                              padding: '3px 8px',
                               borderRadius: 'var(--radius-pill)',
                               background: ms.bg,
                               color: ms.color,
@@ -282,13 +282,13 @@ export default function SessionsPage() {
                           </span>
                         )}
                         {formatDuration(s.duration_sec) && (
-                          <span style={{ fontSize: '10px', color: 'var(--muted)' }}>
+                          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
                             {formatDuration(s.duration_sec)}
                           </span>
                         )}
                       </div>
                       {s.task_summary && (
-                        <p className="truncate mt-0.5 max-w-[400px]" style={{ fontSize: 'var(--text-xs)', color: 'color-mix(in oklch, var(--muted) 70%, transparent)' }}>{s.task_summary}</p>
+                        <p className="truncate mt-0.5 max-w-[400px]" style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)' }}>{s.task_summary}</p>
                       )}
                     </div>
                   </div>

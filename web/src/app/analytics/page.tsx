@@ -139,7 +139,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="panel">
           <div className="panel-header">
-            <h3 className="panel-title" style={{ fontSize: 'var(--text-base)' }}>{t('analytics.topRules')}</h3>
+            <h3 className="panel-title" style={{ fontSize: 'var(--text-lg)' }}>{t('analytics.topRules')}</h3>
           </div>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -162,7 +162,7 @@ export default function AnalyticsPage() {
 
         <div className="panel">
           <div className="panel-header">
-            <h3 className="panel-title" style={{ fontSize: 'var(--text-base)' }}>{t('analytics.sectionDist')}</h3>
+            <h3 className="panel-title" style={{ fontSize: 'var(--text-lg)' }}>{t('analytics.sectionDist')}</h3>
           </div>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -192,7 +192,7 @@ export default function AnalyticsPage() {
       <div className="panel">
         <div className="panel-header">
           <div>
-            <h3 className="panel-title" style={{ fontSize: 'var(--text-base)' }}>
+            <h3 className="panel-title" style={{ fontSize: 'var(--text-lg)' }}>
               {t('analytics.citationTrend')}
               {data.citation_trend && data.citation_trend.length > 0 && (
                 <span style={{ fontSize: 'var(--text-xs)', fontWeight: 400, color: 'var(--muted)', marginLeft: '8px' }}>
@@ -240,7 +240,7 @@ export default function AnalyticsPage() {
       <div className="panel">
         <div className="panel-header">
           <div>
-            <h3 className="panel-title" style={{ fontSize: 'var(--text-base)' }}>{t('analytics.confidence')}</h3>
+            <h3 className="panel-title" style={{ fontSize: 'var(--text-lg)' }}>{t('analytics.confidence')}</h3>
             <p style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)', marginTop: '4px' }}>{t('analytics.confidence.subtitle')}</p>
           </div>
         </div>
@@ -333,7 +333,7 @@ export default function AnalyticsPage() {
       <div className="panel">
         <div className="panel-header">
           <div>
-            <h3 className="panel-title" style={{ fontSize: 'var(--text-base)' }}>{t('analytics.heatmap')}</h3>
+            <h3 className="panel-title" style={{ fontSize: 'var(--text-lg)' }}>{t('analytics.heatmap')}</h3>
             <p style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)', marginTop: '4px' }}>{t('analytics.heatmap.subtitle')}</p>
           </div>
         </div>
@@ -346,7 +346,7 @@ export default function AnalyticsPage() {
 
       <div className="panel">
         <div className="panel-header">
-          <h3 className="panel-title" style={{ fontSize: 'var(--text-base)' }}>
+          <h3 className="panel-title" style={{ fontSize: 'var(--text-lg)' }}>
             <TermTooltip term={t('term.coldRule')} explanation={t('term.coldRule.desc')} />
           </h3>
           {data.cold_rules && data.cold_rules.length > 0 && (
