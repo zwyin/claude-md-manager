@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
-import React from 'react';
 import { render, cleanup, screen } from '@testing-library/react';
 import DashboardPage from '../page';
 
@@ -243,7 +242,9 @@ describe('DashboardPage', () => {
     mockData = baseData;
     render(<DashboardPage />);
     expect(screen.getByText('Cold rules')).toBeTruthy();
-    expect(screen.getByText('Rule Two')).toBeTruthy();
+    // 'Rule Two' may appear in both the Top Rules bar list and the Cold Rules table.
+    // Use getAllByText since the data set is small (2 rules).
+    expect(screen.getAllByText('Rule Two').length).toBeGreaterThan(0);
   });
 
   it('renders sections chart', () => {

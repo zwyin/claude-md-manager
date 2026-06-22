@@ -301,36 +301,40 @@ describe('AnalyticsPage', () => {
   });
 
   it('clicks time range button', () => {
+    // Time-range buttons migrated from Button variant to plain buttons with
+    // `className="active"` when selected (c612946).
     mockData = fullData;
     render(<AnalyticsPage />);
     const btn7d = screen.getByText('7d');
     fireEvent.click(btn7d);
-    // After click, 7d should be active (variant=default)
-    expect(btn7d.getAttribute('data-variant')).toBe('default');
+    expect(btn7d.className).toContain('active');
   });
 
   it('clicks all time range resets filter', () => {
+    // Active state now tracked via className "active" (c612946).
     mockData = fullData;
     render(<AnalyticsPage />);
     const allBtn = screen.getByText('All');
     fireEvent.click(allBtn);
-    expect(allBtn.getAttribute('data-variant')).toBe('default');
+    expect(allBtn.className).toContain('active');
   });
 
   it('clicks trend mode buttons', () => {
+    // Trend mode buttons use className "active" when selected (c612946).
     mockData = fullData;
     render(<AnalyticsPage />);
     const weekBtn = screen.getByText('Week');
     fireEvent.click(weekBtn);
-    expect(weekBtn.getAttribute('data-variant')).toBe('default');
+    expect(weekBtn.className).toContain('active');
   });
 
   it('clicks month trend mode', () => {
+    // Trend mode buttons use className "active" when selected (c612946).
     mockData = fullData;
     render(<AnalyticsPage />);
     const monthBtn = screen.getByText('Month');
     fireEvent.click(monthBtn);
-    expect(monthBtn.getAttribute('data-variant')).toBe('default');
+    expect(monthBtn.className).toContain('active');
   });
 
   it('renders CSV download button', () => {
@@ -392,15 +396,15 @@ describe('AnalyticsPage', () => {
   });
 
   it('renders cold rules badge count', () => {
+    // Cold rules count migrated from Badge component to a `<span class="tag">` (c612946).
     mockData = {
       ...fullData,
       cold_rules: [{ rule_id: 'cold1', title: 'Cold Rule', section_id: 'core', citation_count: 0, last_cited: null }],
     };
     render(<AnalyticsPage />);
-    // Badge shows count of cold rules
-    const badges = screen.getAllByTestId('badge');
-    const countBadge = badges.find((b) => b.textContent === '1');
-    expect(countBadge).toBeTruthy();
+    // The header right-side tag shows the cold-rule count.
+    const countTag = screen.getByText('1');
+    expect(countTag.className).toContain('tag');
   });
 
   it('returns null when no data and not loading', () => {
@@ -447,13 +451,14 @@ describe('AnalyticsPage', () => {
   });
 
   it('clicks cold rule section badge to navigate', () => {
+    // Section badge migrated from Badge component to a `<span class="pill">` (c612946).
     mockData = {
       ...fullData,
       cold_rules: [{ rule_id: 'cold1', title: 'Cold Rule', section_id: 'core', citation_count: 0, last_cited: null }],
     };
     render(<AnalyticsPage />);
-    const coreBadge = screen.getAllByTestId('badge').find((b) => b.textContent === 'core');
-    expect(coreBadge).toBeTruthy();
-    fireEvent.click(coreBadge!);
+    const coreBadge = screen.getByText('core');
+    expect(coreBadge.className).toContain('pill');
+    fireEvent.click(coreBadge);
   });
 });

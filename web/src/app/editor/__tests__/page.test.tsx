@@ -108,7 +108,7 @@ vi.mock('../PreviewPanel', () => ({
 }));
 
 vi.mock('../PublishDialog', () => ({
-  PublishDialog: ({ rules, onPublish, onCancel }: any) => (
+  PublishDialog: ({ onPublish, onCancel }: any) => (
     <div data-testid="publish-dialog">
       <button data-testid="do-publish" onClick={onPublish}>Do publish</button>
       <button data-testid="cancel-publish" onClick={onCancel}>Cancel</button>
@@ -206,7 +206,10 @@ describe('EditorPage', () => {
   });
 
   it('shows no publish history when empty', async () => {
+    // Publish-history panel starts collapsed (commit c612946); expand it first.
     render(<EditorPage />);
+    const toggle = await screen.findByText('Publish history');
+    fireEvent.click(toggle);
     await waitFor(() => {
       expect(screen.getByText('No history')).toBeTruthy();
     });
@@ -317,12 +320,15 @@ describe('EditorPage', () => {
   });
 
   it('renders publish history entries', async () => {
+    // Publish-history panel starts collapsed (commit c612946); expand it first.
     setupFetchMock({
       publishHistory: [
         { id: 1, published_at: '2026-01-01T10:00:00Z', rules_changed: 3, status: 'success' },
       ],
     });
     render(<EditorPage />);
+    const toggle = await screen.findByText('Publish history');
+    fireEvent.click(toggle);
     await waitFor(() => {
       expect(screen.getByText('Success')).toBeTruthy();
       expect(screen.getByText('Published 3 rules')).toBeTruthy();
@@ -330,12 +336,15 @@ describe('EditorPage', () => {
   });
 
   it('renders failed publish in history', async () => {
+    // Publish-history panel starts collapsed (commit c612946); expand it first.
     setupFetchMock({
       publishHistory: [
         { id: 2, published_at: '2026-01-02T10:00:00Z', rules_changed: 0, status: 'failed' },
       ],
     });
     render(<EditorPage />);
+    const toggle = await screen.findByText('Publish history');
+    fireEvent.click(toggle);
     await waitFor(() => {
       expect(screen.getByText('Failed')).toBeTruthy();
     });

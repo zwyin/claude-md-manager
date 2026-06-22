@@ -57,15 +57,17 @@ describe('StatCard', () => {
 
   it('animates from 0 to target value', () => {
     render(<StatCard label="Count" value={42} />);
-    // Initial render shows animated value starting from 0
-    const valueEl = document.querySelector('.text-3xl');
+    // Initial render shows animated value starting from 0.
+    // Component uses inline style `fontFamily: var(--font-display)` (was `.text-3xl` class, c612946)
+    const valueEl = document.querySelector('[style*="--font-display"]');
     expect(valueEl).toBeTruthy();
     expect(valueEl?.textContent).toBe('0');
   });
 
   it('renders color bar indicator', () => {
     const { container } = render(<StatCard label="Test" value={5} />);
-    const bar = container.querySelector('[style*="background-color"]');
+    // Component uses CSS-variable `background` shorthand on the card surface (was `background-color`, c612946)
+    const bar = container.querySelector('[style*="background"]');
     expect(bar).toBeTruthy();
   });
 
@@ -90,13 +92,14 @@ describe('StatCard', () => {
   it('renders percentage with color style', () => {
     render(<StatCard label="Pct" value={80} percentage />);
     act(() => { vi.advanceTimersByTime(1000); });
-    const valueEl = document.querySelector('.text-3xl');
+    // Component sets `color: color` inline when `percentage` is true (was `.text-3xl` class, c612946)
+    const valueEl = document.querySelector('[style*="--font-display"]');
     expect(valueEl?.getAttribute('style')).toContain('color');
   });
 
   it('handles NaN target value', () => {
     render(<StatCard label="Invalid" value="not-a-number" />);
-    const valueEl = document.querySelector('.text-3xl');
+    const valueEl = document.querySelector('[style*="--font-display"]');
     expect(valueEl?.textContent).toBe('0');
   });
 });

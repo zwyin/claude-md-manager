@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import React from 'react';
+import type { ReactNode } from 'react';
 import { render, cleanup, screen, act, fireEvent } from '@testing-library/react';
 import { RuleRow } from '../rule-row';
 
@@ -23,7 +23,7 @@ vi.mock('@/i18n', () => ({
 }));
 
 vi.mock('@/components/ui/badge', () => ({
-  Badge: ({ children }: { children: React.ReactNode }) => <span data-testid="badge">{children}</span>,
+  Badge: ({ children }: { children: ReactNode }) => <span data-testid="badge">{children}</span>,
 }));
 
 vi.mock('@/components/metric-visualizations', () => ({
@@ -60,15 +60,17 @@ describe('RuleRow', () => {
   });
 
   it('renders rule title and id', () => {
-    render(<RuleRow rule={mockRule as any} totalSessions={20} maxDepth={10} />);
+    render(<RuleRow rule={mockRule as any} maxDepth={10} />);
     expect(screen.getByText('Test Rule Title')).toBeTruthy();
     expect(screen.getByText('test-rule')).toBeTruthy();
   });
 
   it('renders match count badge', () => {
-    render(<RuleRow rule={mockRule as any} totalSessions={20} maxDepth={10} />);
-    const badges = screen.getAllByTestId('badge');
-    expect(badges.some((b) => b.textContent === '5')).toBe(true);
+    render(<RuleRow rule={mockRule as any} maxDepth={10} />);
+    // Component migrated from Badge to plain span next to MiniSparkline (commit c612946).
+    // The match count is rendered as a tabular-nums font-mono span next to the sparkline.
+    const matchSpans = document.querySelectorAll('.tabular-nums.text-sm.font-mono');
+    expect(Array.from(matchSpans).some((s) => s.textContent === '5')).toBe(true);
   });
 
   it('expands and fetches rule body on click', async () => {
@@ -77,7 +79,7 @@ describe('RuleRow', () => {
       json: () => Promise.resolve({ rule: { body: '# Hello World' } }),
     } as Response);
 
-    render(<RuleRow rule={mockRule as any} totalSessions={20} maxDepth={10} />);
+    render(<RuleRow rule={mockRule as any} maxDepth={10} />);
     const expandBtn = screen.getByLabelText('Expand');
     await act(async () => expandBtn.click());
 
@@ -89,7 +91,7 @@ describe('RuleRow', () => {
   it('handles fetch error gracefully', async () => {
     vi.spyOn(global, 'fetch').mockRejectedValue(new Error('Network error'));
 
-    render(<RuleRow rule={mockRule as any} totalSessions={20} maxDepth={10} />);
+    render(<RuleRow rule={mockRule as any} maxDepth={10} />);
     const expandBtn = screen.getByLabelText('Expand');
     await act(async () => { fireEvent.click(expandBtn); });
 
@@ -102,7 +104,7 @@ describe('RuleRow', () => {
       json: () => Promise.resolve({ rule: { body: 'content' } }),
     } as Response);
 
-    render(<RuleRow rule={mockRule as any} totalSessions={20} maxDepth={10} />);
+    render(<RuleRow rule={mockRule as any} maxDepth={10} />);
     const expandBtn = screen.getByLabelText('Expand');
     await act(async () => { expandBtn.click(); });
     await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
@@ -114,7 +116,7 @@ describe('RuleRow', () => {
   });
 
   it('renders link to rule detail page', () => {
-    render(<RuleRow rule={mockRule as any} totalSessions={20} maxDepth={10} />);
+    render(<RuleRow rule={mockRule as any} maxDepth={10} />);
     const link = document.querySelector('a[href="/rules/test-rule"]');
     expect(link).toBeTruthy();
   });

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
-import React from 'react';
+import { forwardRef } from 'react';
 import { render, cleanup, screen, fireEvent } from '@testing-library/react';
 import SessionsPage from '../page';
 
@@ -78,7 +78,7 @@ vi.mock('@/components/ui/button', () => ({
 }));
 
 vi.mock('@/components/ui/input', () => ({
-  Input: React.forwardRef((props: any, ref: any) => <input ref={ref} {...props} />),
+  Input: forwardRef((props: any, ref: any) => <input ref={ref} {...props} />),
 }));
 
 vi.mock('@/components/page-states', () => ({
@@ -255,30 +255,36 @@ describe('SessionsPage', () => {
   });
 
   it('shows sort direction indicator on active sort', () => {
+    // Sort buttons migrated from Badge/Button with data-variant to plain buttons with
+    // className "text-[var(--fg)] font-medium" when active (commit c612946).
+    // Default sort is "time" — its button should carry the active class signature.
     mockData = sessionData;
     render(<SessionsPage />);
     const allBtns = screen.getAllByRole('button');
     const timeBtn = allBtns.find((b) => b.textContent?.includes('Time'));
-    expect(timeBtn?.getAttribute('data-variant')).toBe('default');
+    expect(timeBtn?.className).toContain('font-medium');
   });
 
   it('toggles sort direction on repeated click', () => {
+    // Active sort is now reflected via className `font-medium` and the inline arrow SVG,
+    // not via data-variant attribute (c612946). Verify the active class persists after
+    // toggling direction.
     mockData = sessionData;
     render(<SessionsPage />);
     const allBtns = screen.getAllByRole('button');
     const timeBtn = allBtns.find((b) => b.textContent?.includes('Time'))!;
     fireEvent.click(timeBtn);
-    // After clicking same sort key, direction toggles to asc (arrow rotates)
-    expect(timeBtn.getAttribute('data-variant')).toBe('default');
+    expect(timeBtn.className).toContain('font-medium');
   });
 
   it('switches sort key on different column click', () => {
+    // Active sort key reflected via className `font-medium` (c612946).
     mockData = sessionData;
     render(<SessionsPage />);
     const allBtns = screen.getAllByRole('button');
     const citationsBtn = allBtns.find((b) => b.textContent?.includes('Citations'))!;
     fireEvent.click(citationsBtn);
-    expect(citationsBtn.getAttribute('data-variant')).toBe('default');
+    expect(citationsBtn.className).toContain('font-medium');
   });
 
   it('shows session duration when present', () => {
@@ -378,7 +384,6 @@ describe('SessionsPage', () => {
   });
 
   it('copies session id via keyboard Space on span', async () => {
-    const { toast } = await import('sonner');
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.assign(navigator, { clipboard: { writeText } });
     mockData = sessionData;
@@ -414,12 +419,13 @@ describe('SessionsPage', () => {
   });
 
   it('clicks time range filter', () => {
+    // Time-range buttons migrated from Button variant to plain buttons with
+    // `className="active"` when selected (c612946).
     mockData = { ...sessionData, sessions: [] };
     render(<SessionsPage />);
     const btn7d = screen.getByText('7d');
     fireEvent.click(btn7d);
-    // Button should show as active (variant=default)
-    expect(btn7d.getAttribute('data-variant')).toBe('default');
+    expect(btn7d.className).toContain('active');
   });
 
   it('clicks model filter select', () => {

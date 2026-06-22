@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from 'vitest';
-import React from 'react';
 import { render, cleanup, screen } from '@testing-library/react';
 import {
   PageLoader,
@@ -20,7 +19,8 @@ describe('PageLoader', () => {
 
   it('renders spinner', () => {
     const { container } = render(<PageLoader />);
-    expect(container.querySelector('.animate-spin')).toBeTruthy();
+    // Component migrated from `.animate-spin` to `.spinner` class (commit c612946)
+    expect(container.querySelector('.spinner')).toBeTruthy();
   });
 
   it('renders message when provided', () => {
@@ -66,7 +66,8 @@ describe('DashboardSkeleton', () => {
 
   it('renders 6 skeleton cards', () => {
     const { container } = render(<DashboardSkeleton />);
-    const cards = container.querySelectorAll('.rounded-xl.border');
+    // Card wrapper migrated from `.rounded-xl.border` to `.stat-card` class (commit c612946)
+    const cards = container.querySelectorAll('.stat-card');
     expect(cards.length).toBe(6);
   });
 });

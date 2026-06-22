@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
-import React from 'react';
+import { forwardRef } from 'react';
 import { render, cleanup, screen, fireEvent } from '@testing-library/react';
 import RulesPage from '../page';
 
@@ -67,7 +67,7 @@ vi.mock('@/components/ui/button', () => ({
 }));
 
 vi.mock('@/components/ui/input', () => ({
-  Input: React.forwardRef((props: any, ref: any) => <input ref={ref} {...props} />),
+  Input: forwardRef((props: any, ref: any) => <input ref={ref} {...props} />),
 }));
 
 vi.mock('@/components/ui/collapsible', () => ({
@@ -154,11 +154,11 @@ describe('RulesPage', () => {
   });
 
   it('shows stats badges', () => {
+    // Stats badges (matches / coverage / depth summary) removed in commit c612946.
+    // The subtitle still surfaces total counts; assert against that instead.
     mockData = rulesData;
     render(<RulesPage />);
-    expect(screen.getByText('18 matches')).toBeTruthy();
-    expect(screen.getByText(/Coverage.*30%/)).toBeTruthy();
-    expect(screen.getByText(/Depth.*1.5/)).toBeTruthy();
+    expect(screen.getByText(/3 rules in 2 sections/)).toBeTruthy();
   });
 
   it('shows subtitle with counts', () => {
@@ -173,7 +173,8 @@ describe('RulesPage', () => {
     const input = screen.getByPlaceholderText(/Search rules/);
     fireEvent.change(input, { target: { value: 'Rule A' } });
     expect(screen.getAllByTestId('rule-row').length).toBe(1);
-    expect(screen.getByText(/Showing 1 of 3/)).toBeTruthy();
+    // "Showing X of Y" summary text was removed in commit c612946; filtered row count
+    // is now the only externally observable signal for filtering.
   });
 
   it('shows no results for unmatched search', () => {
@@ -181,7 +182,9 @@ describe('RulesPage', () => {
     render(<RulesPage />);
     const input = screen.getByPlaceholderText(/Search rules/);
     fireEvent.change(input, { target: { value: 'nonexistent' } });
-    expect(screen.getByText('No results')).toBeTruthy();
+    // "No results" empty-state text was removed in commit c612946; the section list
+    // simply renders no rule rows now.
+    expect(screen.queryAllByTestId('rule-row').length).toBe(0);
   });
 
   it('shows toggle all button', () => {
@@ -199,9 +202,14 @@ describe('RulesPage', () => {
   });
 
   it('shows sort column headers', () => {
+    // Sort column headers were replaced by a `<select>` dropdown in commit c612946.
+    // Assert the sort options exist instead. The mock i18n returns the key string
+    // for unmapped keys, so option labels look like "rules.sort.matchCount".
     mockData = rulesData;
     render(<RulesPage />);
-    expect(screen.getAllByText('matches').length).toBeGreaterThan(0);
+    const sortSelect = screen.getByRole('combobox');
+    expect(sortSelect).toBeTruthy();
+    expect((sortSelect as HTMLSelectElement).textContent).toContain('matchCount');
   });
 
   it('filters by section on section button click', () => {
