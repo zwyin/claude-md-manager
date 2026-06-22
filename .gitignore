@@ -36,6 +36,17 @@ dashboard
 .vscode/
 .idea/
 
+# Security - sensitive file types
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.tfstate
+*.sqlite
+*.sqlite3
+*.log
+
 # Claude Code
 .claude/worktrees/
 .claude/settings.local.json
@@ -50,3 +61,6 @@ project_study_*/
 node_modules/
 .mcp.json
 .playwright-mcp/
+
+# Safe publish reports (contain sensitive info)
+safe-publish-report-*.md

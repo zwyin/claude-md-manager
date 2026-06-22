@@ -371,7 +371,7 @@ export function useI18n(): I18nContextValue {
 - [ ] **Step 4: Commit**
 
 ```bash
-cd /Users/zhiweiyin/repo_ds1600/claude-md-manager
+cd .
 git add web/src/i18n/
 git commit -m "feat(i18n): add i18n infrastructure with zh/en dictionaries"
 ```
@@ -535,7 +535,7 @@ export function TopBar() {
 - [ ] **Step 4: Commit**
 
 ```bash
-cd /Users/zhiweiyin/repo_ds1600/claude-md-manager
+cd .
 git add web/src/components/term-tooltip.tsx web/src/components/stat-card.tsx web/src/components/top-bar.tsx
 git commit -m "feat(ui): add TermTooltip, StatCard with sparkline, and TopBar components"
 ```
@@ -675,7 +675,7 @@ export function AppSidebar() {
 - [ ] **Step 3: 安装 lucide-react（如未安装）并 Commit**
 
 ```bash
-cd /Users/zhiweiyin/repo_ds1600/claude-md-manager/web
+cd ./web
 npm ls lucide-react 2>/dev/null | head -3
 # 如果没有则: npm install lucide-react
 
@@ -715,7 +715,7 @@ return Response.json({ ...data, citation_trend });
 - [ ] **Step 3: Commit**
 
 ```bash
-cd /Users/zhiweiyin/repo_ds1600/claude-md-manager
+cd .
 git add web/src/app/api/analytics/route.ts
 git commit -m "feat(api): add citation_trend to analytics endpoint"
 ```
@@ -927,7 +927,7 @@ interface StatCardProps {
 - [ ] **Step 2: Commit**
 
 ```bash
-cd /Users/zhiweiyin/repo_ds1600/claude-md-manager
+cd .
 git add web/src/app/page.tsx web/src/components/stat-card.tsx
 git commit -m "feat(dashboard): rewrite with recharts, StatCards, TermTooltips, and i18n"
 ```
@@ -1111,7 +1111,7 @@ function RulesContent() {
 - [ ] **Step 2: Commit**
 
 ```bash
-cd /Users/zhiweiyin/repo_ds1600/claude-md-manager
+cd .
 git add web/src/app/rules/page.tsx
 git commit -m "feat(rules): rewrite rules list with colored section bars, sparklines, and i18n"
 ```
@@ -1331,7 +1331,7 @@ export default function RuleDetailPage() {
 - [ ] **Step 2: Commit**
 
 ```bash
-cd /Users/zhiweiyin/repo_ds1600/claude-md-manager
+cd .
 git add web/src/app/rules/[id]/page.tsx
 git commit -m "feat(rule-detail): rewrite with breadcrumbs, sibling cards, citation table, and i18n"
 ```
@@ -1586,7 +1586,7 @@ export async function GET(request: Request) {
 - [ ] **Step 3: Commit**
 
 ```bash
-cd /Users/zhiweiyin/repo_ds1600/claude-md-manager
+cd .
 git add web/src/app/analytics/page.tsx web/src/app/api/analytics/route.ts
 git commit -m "feat(analytics): rewrite with recharts Bar/Pie/Area charts, trend switching, and i18n"
 ```
@@ -1676,7 +1676,7 @@ export default function HistoryPage() {
 - [ ] **Step 2: Commit**
 
 ```bash
-cd /Users/zhiweiyin/repo_ds1600/claude-md-manager
+cd .
 git add web/src/app/history/page.tsx
 git commit -m "feat(history): rewrite with timeline view, empty state, and i18n"
 ```
@@ -1739,7 +1739,7 @@ git commit -m "feat(history): rewrite with timeline view, empty state, and i18n"
 - [ ] **Step 6: Commit**
 
 ```bash
-cd /Users/zhiweiyin/repo_ds1600/claude-md-manager
+cd .
 git add web/src/app/editor/
 git commit -m "feat(editor): internationalize all editor labels to use i18n"
 ```
@@ -1754,7 +1754,7 @@ git commit -m "feat(editor): internationalize all editor labels to use i18n"
 - [ ] **Step 1: 运行 Next.js 构建**
 
 ```bash
-cd /Users/zhiweiyin/repo_ds1600/claude-md-manager/web && npx next build 2>&1 | tail -40
+cd ./web && npx next build 2>&1 | tail -40
 ```
 
 Expected: Build succeeds, all pages compile.
@@ -1766,7 +1766,7 @@ Expected: Build succeeds, all pages compile.
 - [ ] **Step 3: Commit 修复**
 
 ```bash
-cd /Users/zhiweiyin/repo_ds1600/claude-md-manager
+cd .
 git add -A
 git commit -m "fix: resolve build errors from UI redesign"
 ```
@@ -1778,7 +1778,7 @@ git commit -m "fix: resolve build errors from UI redesign"
 - [ ] **Step 1: 构建生产版本**
 
 ```bash
-cd /Users/zhiweiyin/repo_ds1600/claude-md-manager/web && npx next build
+cd ./web && npx next build
 ```
 
 - [ ] **Step 2: 重启生产服务器**
@@ -1786,7 +1786,7 @@ cd /Users/zhiweiyin/repo_ds1600/claude-md-manager/web && npx next build
 ```bash
 lsof -ti:3456 | xargs kill 2>/dev/null
 sleep 1
-cd /Users/zhiweiyin/repo_ds1600/claude-md-manager/web && nohup npx next start -H 0.0.0.0 -p 3456 > /tmp/claude-md-manager.log 2>&1 &
+cd ./web && nohup npx next start -H 0.0.0.0 -p 3456 > /tmp/claude-md-manager.log 2>&1 &
 ```
 
 - [ ] **Step 3: 浏览器验证所有页面**

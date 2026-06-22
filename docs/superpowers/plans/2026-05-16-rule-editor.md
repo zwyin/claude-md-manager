@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS publish_history (
 
 - [ ] **Step 2: Verify schema loads**
 
-Run: `cd /Users/zhiweiyin/repo_ds1600/claude-md-manager/.claude/worktrees/editor-design && python -c "from hooks.db import get_db; conn = get_db(); tables = [r[0] for r in conn.execute('SELECT name FROM sqlite_master WHERE type=\"table\"').fetchall()]; print(tables); conn.close()"`
+Run: `cd ./.claude/worktrees/editor-design && python -c "from hooks.db import get_db; conn = get_db(); tables = [r[0] for r in conn.execute('SELECT name FROM sqlite_master WHERE type=\"table\"').fetchall()]; print(tables); conn.close()"`
 Expected: `['rule_references', 'sessions', 'rules_metadata', 'sections_metadata', 'rule_drafts', 'publish_history']`
 
 - [ ] **Step 3: Commit**
@@ -91,11 +91,11 @@ git commit -m "feat(db): add rule_drafts and publish_history tables for editor"
 
 - [ ] **Step 1: Install dnd-kit and codemirror packages**
 
-Run: `cd /Users/zhiweiyin/repo_ds1600/claude-md-manager/.claude/worktrees/editor-design/web && npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities @uiw/react-codemirror @codemirror/lang-yaml @codemirror/lang-markdown`
+Run: `cd ./.claude/worktrees/editor-design/web && npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities @uiw/react-codemirror @codemirror/lang-yaml @codemirror/lang-markdown`
 
 - [ ] **Step 2: Verify install**
 
-Run: `cd /Users/zhiweiyin/repo_ds1600/claude-md-manager/.claude/worktrees/editor-design/web && node -e "require('@dnd-kit/core'); require('@uiw/react-codemirror'); console.log('OK')"`
+Run: `cd ./.claude/worktrees/editor-design/web && node -e "require('@dnd-kit/core'); require('@uiw/react-codemirror'); console.log('OK')"`
 Expected: `OK`
 
 - [ ] **Step 3: Commit**
@@ -585,7 +585,7 @@ export async function POST(request: NextRequest) {
 
 - [ ] **Step 7: Verify build**
 
-Run: `cd /Users/zhiweiyin/repo_ds1600/claude-md-manager/.claude/worktrees/editor-design/web && npx next build`
+Run: `cd ./.claude/worktrees/editor-design/web && npx next build`
 Expected: Build succeeds with no errors.
 
 - [ ] **Step 8: Commit**
@@ -1197,7 +1197,7 @@ export default function EditorPage() {
 
 - [ ] **Step 2: Verify build**
 
-Run: `cd /Users/zhiweiyin/repo_ds1600/claude-md-manager/.claude/worktrees/editor-design/web && npx next build`
+Run: `cd ./.claude/worktrees/editor-design/web && npx next build`
 Expected: Build succeeds.
 
 - [ ] **Step 3: Commit**
@@ -1215,17 +1215,17 @@ git commit -m "feat(editor): add main editor page with draft/publish workflow"
 
 - [ ] **Step 1: Full build check**
 
-Run: `cd /Users/zhiweiyin/repo_ds1600/claude-md-manager/.claude/worktrees/editor-design/web && npx next build`
+Run: `cd ./.claude/worktrees/editor-design/web && npx next build`
 Expected: Build succeeds with no type errors.
 
 - [ ] **Step 2: Python tests still pass**
 
-Run: `cd /Users/zhiweiyin/repo_ds1600/claude-md-manager/.claude/worktrees/editor-design && python -m pytest tests/ -v`
+Run: `cd ./.claude/worktrees/editor-design && python -m pytest tests/ -v`
 Expected: All existing tests pass.
 
 - [ ] **Step 3: Verify SQLite tables created**
 
-Run: `cd /Users/zhiweiyin/repo_ds1600/claude-md-manager/.claude/worktrees/editor-design && python -c "from hooks.db import get_db; conn = get_db(); tables = [r[0] for r in conn.execute('SELECT name FROM sqlite_master WHERE type=\"table\"').fetchall()]; assert 'rule_drafts' in tables; assert 'publish_history' in tables; print('OK:', tables); conn.close()"`
+Run: `cd ./.claude/worktrees/editor-design && python -c "from hooks.db import get_db; conn = get_db(); tables = [r[0] for r in conn.execute('SELECT name FROM sqlite_master WHERE type=\"table\"').fetchall()]; assert 'rule_drafts' in tables; assert 'publish_history' in tables; print('OK:', tables); conn.close()"`
 Expected: `OK: [...]` containing both new tables.
 
 - [ ] **Step 4: Final commit (if any fixes needed)**
