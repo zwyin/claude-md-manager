@@ -205,14 +205,29 @@ class TestPublish:
         mcp_lib.publish_all_drafts()
         assert mcp_lib.get_draft_from_db("core") is None
 
-    def test_skips_orphan_drafts(self, db_with_drafts, rules_dir, monkeypatch):
-        mcp_lib.save_draft_to_db("nonexistent", "id: nonexistent", "body")
-
+    def test_creates_new_rule_file_for_unknown_id(self, db_with_drafts, rules_dir, monkeypatch):
+        """Regression: drafts for new rule_ids used to be silently skipped (rules_changed=0).
+        Fix: create rules/<NN>_<sanitized_title>.md from the draft instead of dropping.
+        """
+        mcp_lib.save_draft_to_db(
+            "anti-rationalization",
+            "id: anti-rationalization\ntitle: 反合理化对照表\norder: 65",
+            "rule body",
+        )
         import subprocess
-        monkeypatch.setattr(subprocess, "run", lambda *a, **kw: subprocess.CompletedProcess([], 0, "Built CLAUDE.md\n", ""))
+        monkeypatch.setattr(
+            subprocess, "run",
+            lambda *a, **kw: subprocess.CompletedProcess([], 0, "Built CLAUDE.md\n", ""),
+        )
 
         result = mcp_lib.publish_all_drafts()
-        assert result["rules_changed"] == 0
+        assert result["rules_changed"] == 1
+
+        new_file = rules_dir / "65_反合理化对照表.md"
+        assert new_file.exists()
+        rule = mcp_lib.read_rule_file("anti-rationalization")
+        assert rule is not None
+        assert rule["order"] == 65
 
     def test_order_override_applied(self, db_with_drafts, rules_dir, monkeypatch):
         history_dir = rules_dir.parent / "data" / "history"
@@ -227,6 +242,108 @@ class TestPublish:
         mcp_lib.publish_all_drafts()
         rule = mcp_lib.read_rule_file("core")
         assert rule["order"] == 5
+
+
+class TestPublishNewRule:
+    """Cover edge cases for draft-with-new-rule_id → file creation in publish_all_drafts.
+
+    See TestPublish.test_creates_new_rule_file_for_unknown_id for the core fix.
+    """
+
+    def test_filename_sanitizes_special_chars(self, db_with_drafts, rules_dir, monkeypatch):
+        mcp_lib.save_draft_to_db(
+            "engineering-principles",
+            "id: engineering-principles\ntitle: 工程原则速查（Google）\norder: 70",
+            "body",
+        )
+        import subprocess
+        monkeypatch.setattr(
+            subprocess, "run",
+            lambda *a, **kw: subprocess.CompletedProcess([], 0, "Built CLAUDE.md\n", ""),
+        )
+
+        mcp_lib.publish_all_drafts()
+
+        candidates = list(rules_dir.glob("70_*"))
+        assert len(candidates) == 1
+        name = candidates[0].name
+        # Parens and other non-word/CJK chars sanitized to hyphens, then stripped
+        assert "（" not in name
+        assert "）" not in name
+        assert name.endswith("Google.md")
+
+    def test_filename_collision_appends_suffix(self, db_with_drafts, rules_dir, monkeypatch):
+        # Pre-existing file with same order + title; new draft for same order+title triggers collision
+        (rules_dir / "65_Anti-Rationalization.md").write_text(
+            "---\nid: existing\ntitle: Anti-Rationalization\norder: 65\n---\nold body\n",
+            encoding="utf-8",
+        )
+        mcp_lib.save_draft_to_db(
+            "new-rule",
+            "id: new-rule\ntitle: Anti-Rationalization\norder: 65",
+            "body",
+        )
+        import subprocess
+        monkeypatch.setattr(
+            subprocess, "run",
+            lambda *a, **kw: subprocess.CompletedProcess([], 0, "Built CLAUDE.md\n", ""),
+        )
+
+        mcp_lib.publish_all_drafts()
+
+        # Old file with different rule_id is untouched
+        assert (rules_dir / "65_Anti-Rationalization.md").exists()
+        # New file gets -2 suffix (collision)
+        assert (rules_dir / "65_Anti-Rationalization-2.md").exists()
+
+    def test_new_rule_respects_order_override(self, db_with_drafts, rules_dir, monkeypatch):
+        mcp_lib.save_draft_to_db(
+            "new-thing",
+            "id: new-thing\ntitle: New Thing\norder: 70",
+            "body",
+            order_override=68,
+        )
+        import subprocess
+        monkeypatch.setattr(
+            subprocess, "run",
+            lambda *a, **kw: subprocess.CompletedProcess([], 0, "Built CLAUDE.md\n", ""),
+        )
+
+        mcp_lib.publish_all_drafts()
+
+        assert (rules_dir / "68_New-Thing.md").exists()
+        rule = mcp_lib.read_rule_file("new-thing")
+        assert rule["order"] == 68
+
+    def test_publish_handles_mixed_existing_and_new_rules(
+        self, db_with_drafts, rules_dir, monkeypatch
+    ):
+        # Existing rule gets updated in place
+        mcp_lib.save_draft_to_db(
+            "intro",
+            "id: intro\ntitle: Updated Intro\norder: 0",
+            "new body",
+        )
+        # New rule gets created from scratch
+        mcp_lib.save_draft_to_db(
+            "extra-rule",
+            "id: extra-rule\ntitle: Extra Rule\norder: 50",
+            "extra body",
+        )
+        import subprocess
+        monkeypatch.setattr(
+            subprocess, "run",
+            lambda *a, **kw: subprocess.CompletedProcess([], 0, "Built CLAUDE.md\n", ""),
+        )
+
+        result = mcp_lib.publish_all_drafts()
+        assert result["rules_changed"] == 2
+
+        # Existing rule updated in place
+        intro = mcp_lib.read_rule_file("intro")
+        assert intro["title"] == "Updated Intro"
+        # New rule created
+        assert (rules_dir / "50_Extra-Rule.md").exists()
 
 
 class TestPublishErrors:

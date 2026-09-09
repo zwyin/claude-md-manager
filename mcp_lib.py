@@ -223,18 +223,34 @@ def publish_all_drafts() -> dict:
             order_override = draft[3]
 
             rule = rules_map.get(rule_id)
-            if not rule:
-                continue
+            if rule:
+                # Existing rule — modify in place (preserves prior behavior)
+                target_file = rule["source_file"]
+                yaml_out = draft_yaml or rule["yaml"]
+                body_out = draft_body or rule["body"]
+                if order_override is not None:
+                    yaml_out = re.sub(r"^order:\s*\d+", f"order: {order_override}", yaml_out, flags=re.MULTILINE)
+            else:
+                # New rule_id — create rules/<NN>_<sanitized_title>.md
+                # Fix: drafts for rule_ids that don't yet have a rules file
+                # used to be silently dropped. Now we create the file so
+                # users can add new rules via the draft/publish flow alone.
+                draft_meta, _, _ = parse_frontmatter(f"---\n{draft_yaml}\n---\n{draft_body}")
+                effective_order = order_override if order_override is not None else int(draft_meta.get("order", 999))
+                title = str(draft_meta.get("title", rule_id))
+                safe_title = re.sub(r"[^\w一-鿿-]+", "-", title).strip("-") or rule_id
+                target_file = RULES_DIR / f"{effective_order:02d}_{safe_title}.md"
+                i = 2
+                while target_file.exists():
+                    target_file = RULES_DIR / f"{effective_order:02d}_{safe_title}-{i}.md"
+                    i += 1
+                yaml_out = draft_yaml
+                if order_override is not None:
+                    yaml_out = re.sub(r"^order:\s*\d+", f"order: {order_override}", yaml_out, flags=re.MULTILINE)
+                body_out = draft_body
+
+            target_file.write_text(f"---\n{yaml_out}\n---\n{body_out}", encoding="utf-8")
             written += 1
-
-            # For reorder-only drafts, keep disk content
-            yaml_out = draft_yaml or rule["yaml"]
-            body_out = draft_body or rule["body"]
-            if order_override is not None:
-                yaml_out = re.sub(r"^order:\s*\d+", f"order: {order_override}", yaml_out, flags=re.MULTILINE)
-
-            content = f"---\n{yaml_out}\n---\n{body_out}"
-            rule["source_file"].write_text(content, encoding="utf-8")
 
         # Run assemble.py
         snapshot_name = pre_snapshot
