@@ -32,6 +32,12 @@ dashboard
 *.png
 !web/public/**/*.png
 
+# Regenerable UI review screenshots (design/final/live rounds)
+screenshots/
+
+# Consumed Open Design handoff exports (web/ was built from these; zip included)
+ui/
+
 # IDE
 .vscode/
 .idea/
